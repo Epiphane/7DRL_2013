@@ -33,6 +33,9 @@ function love.load()
 	-- ANOTHER PLACEHOLDER: the level should initiate the character position
 	char_x = 20
 	char_y = 20
+	
+	-- Initialize functions that are used for creating the info bar
+	dofile("sidebar.lua")
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
@@ -55,6 +58,8 @@ end
 DISPLAYWIDTH = 50
 DISPLAYHEIGHT = 50
 function love.draw()
+	love.graphics.setColor( 255, 255, 255 )
+	-- Draw the map
 	love.graphics.setFont(floorFont)
 	for i = 1, DISPLAYWIDTH do
 		for j = 1, DISPLAYHEIGHT do
@@ -62,8 +67,15 @@ function love.draw()
 		end
 	end
 	
+	-- Draw characters and shit!
 	love.graphics.setFont(mainFont)
+	
+	-- Main Character
+	love.graphics.setColor(255, 255, 255)
 	love.graphics.print("@", char_x*12, char_y*12)	
+	
+	-- Draw sidebar starting at x = 600
+	drawSidebar(600)
 end
 
 currtime = 0
