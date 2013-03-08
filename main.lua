@@ -14,7 +14,8 @@
 REAL_BIG_NUMBER = 999999999999
 
 --where da bullet?
-bullet_x, bullet_y, bullet_dx, bullet_dy = 5, 5, 0 ,0
+bullet = {}
+bullet["x"], bullet["y"], bullet["dx"], bullet["dy"] = 5, 5, 0 ,0
 bullet_over = true
 bullet_range = 5
 bullet_distance, next_bullet_move = 0, 0
@@ -158,9 +159,9 @@ function love.draw()
 	love.graphics.print("@", ((char["x"]-1)-offset["x"])*12, ((char["y"]-1)-offset["y"])*12)	
 	
 	--draw a bullet if we shot one
-	--print("bullet at " .. bullet_x .. ", " .. bullet_y)
+	--print("bullet at " .. bullet["x"] .. ", " .. bullet["y"])
 	if(not bullet_over) then
-		love.graphics.print("!", bullet_x*12, bullet_y*12)
+		love.graphics.print("!", ((bullet["x"]-1)-offset["x"])*12, ((bullet["y"]-1)-offset["y"])*12)
 	end
 	-- Draw sidebar starting at x = 600
 	drawSidebar(600)
@@ -197,15 +198,13 @@ function love.update(dt)
 	if(currtime > next_bullet_move and not bullet_over)	then
 	
 		--did we hit something?
-		if(map[bullet_x + 1 + bullet_dx][bullet_y + 1 + bullet_dy] == 2) then
+		if(map[bullet["x"] + bullet["dx"]][bullet["y"] + bullet["dy"]] == 2) then
 			bullet_over = true
 			suspended = false
 		end
 		
-		bullet_x = bullet_x + bullet_dx
-		bullet_y = bullet_y + bullet_dy
-		
-		
+		bullet["x"] = bullet["x"] + bullet["dx"]
+		bullet["y"] = bullet["y"] + bullet["dy"]
 		
 		bullet_distance = bullet_distance + 1
 		next_bullet_move = currtime + .1
@@ -355,37 +354,37 @@ end
 --Fire bullets with the numpad, scoob.
 
 function shoot(direction)
-	bullet_x = char["x"]
-	bullet_y = char["y"]
-	print("shootin in " .. direction .. " bullet starts at " .. bullet_x .. ", " .. bullet_y)
+	bullet["x"] = char["x"]
+	bullet["y"] = char["y"]
+	print("shootin in " .. direction .. " bullet starts at " .. bullet["x"] .. ", " .. bullet["y"])
 	
-	bullet_dx = 0
-	bullet_dy = 0
+	bullet["dx"] = 0
+	bullet["dy"] = 0
 	
 	if(direction == "7") then
-		bullet_dx = -1
-		bullet_dy = -1
+		bullet["dx"] = -1
+		bullet["dy"] = -1
 	elseif(direction == "8") then
-		bullet_dx = 0
-		bullet_dy = -1
+		bullet["dx"] = 0
+		bullet["dy"] = -1
 	elseif(direction == "9") then
-		bullet_dx = 1
-		bullet_dy = -1
+		bullet["dx"] = 1
+		bullet["dy"] = -1
 	elseif(direction == "4") then
-		bullet_dx = -1
-		bullet_dy = 0
+		bullet["dx"] = -1
+		bullet["dy"] = 0
 	elseif(direction == "6") then
-		bullet_dx = 1
-		bullet_dy = 0
+		bullet["dx"] = 1
+		bullet["dy"] = 0
 	elseif(direction == "1") then
-		bullet_dx = -1
-		bullet_dy = 1
+		bullet["dx"] = -1
+		bullet["dy"] = 1
 	elseif(direction == "2") then
-		bullet_dx = 0
-		bullet_dy = 1
+		bullet["dx"] = 0
+		bullet["dy"] = 1
 	elseif(direction == "3") then
-		bullet_dx = 1
-		bullet_dy = 1
+		bullet["dx"] = 1
+		bullet["dy"] = 1
 	end
 	
 	--now, animate the bullet shootin.
@@ -393,8 +392,8 @@ function shoot(direction)
 	suspended = true
 	
 	--move bullet once so it's not on top of our character
-	bullet_x = bullet_x + bullet_dx
-	bullet_y = bullet_y + bullet_dy
+	bullet["x"] = bullet["x"] + bullet["dx"]
+	bullet["y"] = bullet["y"] + bullet["dy"]
 	
 	bullet_over = false
 	bullet_distance = 0
@@ -403,7 +402,7 @@ function shoot(direction)
 	next_bullet_move = currtime + .08
 	
 	--are we shooting at a wall?
-	if(map[bullet_x + 1][bullet_y + 1] == 2) then
+	if(map[bullet["x"] + 1][bullet["y"] + 1] == 2) then
 		bullet_over = true
 		suspended = false
 	end
