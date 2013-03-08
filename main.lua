@@ -32,31 +32,103 @@ function love.load()
 	-- Load floor tiles (for theming and shit)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "1234")
 	
+	-- Initialize main character and shit
+	-- Side note: right now, with sizing and everything, it's looking like strength
+	-- and such values will max at 180
+	char = {strength=70, knowledge=180, energy=90, sanity=130}
+	-- Character location set in map function
+	
 	-- Build map
 	-- TODO: Make actual level initiation function, this is more of a placeholder
 	makeMap()
-	
-	-- ANOTHER PLACEHOLDER: the level should initiate the character position
-	char_x = 20
-	char_y = 20
 	
 	-- Initialize functions that are used for creating the info bar
 	dofile("sidebar.lua")
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 120
-MAPHEIGHT = 90
+MAPWIDTH = 20
+MAPHEIGHT = 30
+GENERATIONS = 1
 function makeMap()
 	map = {}
 	for i = 1, MAPWIDTH do
 		row = {}
 		for j = 1, MAPHEIGHT do
-			-- Create random tile for the map. Again - placeholder, we need to create functions
-			-- and algorithms and shit
-			row[j] = math.random(4)
+			-- Create random thingy. Again - placeholder, we need to create functions
+			-- and algorithms and stuff
+			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
+				row[j] = 2
+			else
+				if(math.random(20) > 15) then
+					row[j] = 2
+				else
+					row[j] = 3
+				end
+			end
 		end
 		map[i] = row
+	end
+	
+	-- Cavelike not being used right now
+	--for ii = 1, GENERATIONS do
+	--	generation()
+	--end
+	
+	-- Set screen offset (for scrolling)
+	offset = {x=-15, y=-10}
+	char["x"] = 10
+	char["y"] = 10
+end
+
+-- So uh...this should work, I'm feeling like it's not worth our time to fix unless we're
+-- sure we want cavelike levels. If we do want to use it and fix later, refer to
+-- http://roguebasin.roguelikedevelopment.org/index.php?title=Cellular_Automata_Method_for_Generating_Random_Cave-Like_Levels
+-- For the algorithm
+r1_cutoff, r2_cutoff = 5, 2;
+function generation()
+	newmap = {}
+	for i = 2, MAPWIDTH-1 do
+		newrow = {}
+		for j = 2, MAPHEIGHT-1 do
+			adjcount_r1, adjcount_r2 = 0, 0
+			for ii=-1,1 do
+			for jj=-1,1 do
+				if(map[i+ii][j+jj] == 2) then
+					adjcount_r1 = adjcount_r1 + 1
+				end
+			end
+			end
+			
+			for ii=i-2,j+2 do
+			for jj=j-2,j+2 do
+				if(math.abs(ii-i) + math.abs(jj-j) ~= 4) then
+				if(ii > 1 and ii < MAPWIDTH and jj > 1 and jj < MAPHEIGHT) then
+					if(map[ii][jj] == 2) then
+						adjcount_r2 = adjcount_r2 + 1
+					end
+				end
+				end
+			end
+			end
+			
+			if(adjcount_r1 > r1_cutoff or adjcount_r2 > r2_cutoff) then
+				newrow[j] = 2
+			else
+				newrow[j] = 3
+			end
+		end
+		newmap[i] = newrow
+	end
+	
+	for i = 1, table.getn(newmap) do
+		if(newmap[i]) then
+			for j = 1, table.getn(newmap[i]) do
+				if(newmap[i][j]) then
+					map[i][j] = newmap[i][j]
+				end
+			end
+		end
 	end
 end
 
@@ -69,7 +141,12 @@ function love.draw()
 	love.graphics.setFont(floorFont)
 	for i = 1, DISPLAYWIDTH do
 		for j = 1, DISPLAYHEIGHT do
-			love.graphics.print(map[i][j], (i-1)*12, (j-1)*12)
+			-- Do null checks first: add offset["x"] and offset["y"] to show right part of map
+			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
+				love.graphics.print(map[i+offset["x"]][j+offset["y"]], (i-1)*12, (j-1)*12)
+			else
+				love.graphics.print(1, (i-1)*12, (j-1)*12)
+			end
 		end
 	end
 	
@@ -78,7 +155,7 @@ function love.draw()
 	
 	-- Main Character
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("@", char_x*12, char_y*12)	
+	love.graphics.print("@", ((char["x"]-1)-offset["x"])*12, ((char["y"]-1)-offset["y"])*12)	
 	
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet_x .. ", " .. bullet_y)
@@ -101,19 +178,19 @@ function love.update(dt)
 	--press the button again and move the timer forward
 
 	if(currtime > rightpress) then 
-		checkThenMove(char_x + 1, char_y)
+		checkThenMove(char["x"] + 1, char["y"])
 		rightpress = currtime + .1
 	end
 	if(currtime > leftpress) then 
-		checkThenMove(char_x - 1, char_y)
+		checkThenMove(char["x"] - 1, char["y"])
 		leftpress = currtime + .1
 	end
 	if(currtime > uppress) then
-		checkThenMove(char_x, char_y - 1)
+		checkThenMove(char["x"], char["y"] - 1)
 		uppress = currtime + .1
 	end
 	if(currtime > downpress) then
-		checkThenMove(char_x, char_y + 1)
+		checkThenMove(char["x"], char["y"] + 1)
 		downpress = currtime + .1
 	end
 	
@@ -159,7 +236,6 @@ downpress = REAL_BIG_NUMBER
 suspended = false
 function love.keypressed(key, unicode)
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
-	
 	--don't let the user make input if we're showing an animation or something
 	if(not suspended) then
 		
@@ -237,14 +313,33 @@ end
 --If there is a monster there, attack it!
 --If there's a wall there, just don't do nuffin.
 function checkThenMove(x, y)
+	-- Get outta here if its the edge of the world
+	if(map[x] == nil or map[x][y]	== nil) then return end
+	
 	--for now I'm pretending "2" is a wall
-	--...for some reason the map is offset by a little bit.  Go figure.
-	if(map[x+1][y+1] == 2) then
+	if(map[x][y] == 2) then
 		--do nuffin
 	elseif(false) then -- checks for monsters, etc. go here
 	
 	else-- empty square! we cool.
-		char_x, char_y = x, y
+		char["x"], char["y"] = x, y
+		
+		-- And lets do some fancy scrolling stuff
+		if(table.getn(map[1]) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
+			if(char["x"] - offset["x"] > 40) then -- Moving right
+				offset["x"] = char["x"] - 40
+			elseif(char["x"] - offset["x"] < 20) then -- Moving left
+				offset["x"] = char["x"] - 20
+			end
+		end
+		
+		if(table.getn(map) > DISPLAYHEIGHT) then -- Only scroll if the map is tall enough
+			if(char["y"] - offset["y"] > 40) then -- Moving down
+				offset["y"] = char["y"] - 40
+			elseif(char["y"] - offset["y"] < 20) then -- Moving up
+				offset["y"] = char["y"] - 20
+			end
+		end
 	end
 end
 

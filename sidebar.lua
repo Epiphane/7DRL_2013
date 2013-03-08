@@ -8,18 +8,18 @@ function drawSidebar(start_x)
 	love.graphics.setColor( 255, 255, 255 )
 	
 	-- Draw strength and corresponding health
-	love.graphics.print("Strength", start_x+10, 150, math.pi*3/2)
-	love.graphics.print("Knowledge", start_x+60, 150, math.pi*3/2)
-	love.graphics.print("Energy", start_x+110, 150, math.pi*3/2)
-	love.graphics.print("Sanity", start_x+160, 150, math.pi*3/2)
+	love.graphics.print("Strength", start_x+10, 10)
+	love.graphics.print("Knowledge", start_x+10, 60)
+	love.graphics.print("Energy", start_x+10, 110)
+	love.graphics.print("Sanity", start_x+10, 160)
 	
 	-- And the health bars
 	love.graphics.setColor( 255, 0, 0 )
-	love.graphics.rectangle("fill", start_x+30, 50, 10, 100)
+	love.graphics.rectangle("fill", start_x+10, 30, char['strength'], 10)
 	love.graphics.setColor( 0, 255, 0 )
-	love.graphics.rectangle("fill", start_x+80, 50, 10, 100)
+	love.graphics.rectangle("fill", start_x+10, 80, char['knowledge'], 10)
 	love.graphics.setColor( 0, 0, 255 )
-	love.graphics.rectangle("fill", start_x+130, 50, 10, 100)
+	love.graphics.rectangle("fill", start_x+10, 130, char['energy'], 10)
 	love.graphics.setColor( 125, 125, 125 )
-	love.graphics.rectangle("fill", start_x+180, 50, 10, 100)
+	love.graphics.rectangle("fill", start_x+10, 180, char['sanity'], 10)
 end
