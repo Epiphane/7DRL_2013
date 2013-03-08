@@ -13,6 +13,12 @@
 -- handy constants
 REAL_BIG_NUMBER = 999999999999
 
+--where da bullet?
+bullet_x, bullet_y, bullet_dx, bullet_dy = 5, 5, 0 ,0
+bullet_over = true
+bullet_range = 5
+bullet_distance, next_bullet_move = 0, 0
+
 function love.load()
 	-- Set background color black, cause it's a console you stupid bitch
 	love.graphics.setBackgroundColor( 0, 0, 0 )
@@ -43,7 +49,7 @@ function makeMap()
 	for i = 1, MAPWIDTH do
 		row = {}
 		for j = 1, MAPHEIGHT do
-			-- Create random thingy. Again - placeholder, we need to create functions
+			-- Create random tile for the map. Again - placeholder, we need to create functions
 			-- and algorithms and shit
 			row[j] = math.random(4)
 		end
@@ -64,6 +70,12 @@ function love.draw()
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.print("@", char_x*12, char_y*12)	
+	
+	--draw a bullet if we shot one
+	--print("bullet at " .. bullet_x .. ", " .. bullet_y)
+	if(not bullet_over) then
+		love.graphics.print("!", bullet_x*12, bullet_y*12)
+	end
 end
 
 currtime = 0
@@ -71,7 +83,7 @@ currtime = 0
 function love.update(dt)
 	--We need this timer here so that all timers are standardized.  Otherwise it's crazy
 	--crazy crazy god knows what time it is.
-	currtime = love.timer.getTime()
+	currtime = love.timer.getMicroTime()
 	
 	--If any button timers have been held down for a certain amt of time
 	--(e.g. their timer "expired" in a sense)
@@ -93,7 +105,36 @@ function love.update(dt)
 		checkThenMove(char_x, char_y + 1)
 		downpress = currtime + .1
 	end
-
+	
+	if(currtime > next_bullet_move and not bullet_over)	then
+	
+		--did we hit something?
+		if(map[bullet_x + 1 + bullet_dx][bullet_y + 1 + bullet_dy] == 2) then
+			bullet_over = true
+			suspended = false
+		end
+		
+		bullet_x = bullet_x + bullet_dx
+		bullet_y = bullet_y + bullet_dy
+		
+		
+		
+		bullet_distance = bullet_distance + 1
+		next_bullet_move = currtime + .1
+		
+		if(bullet_distance >= bullet_range) then
+			bullet_over = true
+			suspended = false
+			bullet_distance = 9999
+		end
+	end
+	
+	--make sure bullet stops if it reaches its maximum range.
+	if(bullet_distance >= bullet_range) then
+		bullet_over = true
+		suspended = false
+		bullet_distance = 9999
+	end
 end
 
 function love.focus(bool)
@@ -103,29 +144,50 @@ rightpress = REAL_BIG_NUMBER
 leftpress = REAL_BIG_NUMBER
 uppress = REAL_BIG_NUMBER
 downpress = REAL_BIG_NUMBER
+
+suspended = false
 function love.keypressed(key, unicode)
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
-	if(key == "right") then
-		checkThenMove(char_x + 1, char_y)
-		rightpress = currtime + .55
+	
+	--don't let the user make input if we're showing an animation or something
+	if(not suspended) then
 		
-		--make sure only the LAST thing pressed counts
-		leftpress, uppress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
-	elseif(key == "left") then
-		checkThenMove(char_x - 1, char_y)
-		leftpress = currtime + .55
+		if(key == "right") then
+			checkThenMove(char_x + 1, char_y)
+			rightpress = currtime + .55
+			
+			--make sure only the LAST thing pressed counts
+			leftpress, uppress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+		elseif(key == "left") then
+			checkThenMove(char_x - 1, char_y)
+			leftpress = currtime + .55
+			
+			rightpress, uppress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+		elseif(key == "up") then
+			checkThenMove(char_x, char_y - 1)
+			uppress = currtime + .55
+			
+			leftpress, rightpress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+		elseif(key == "down") then
+			checkThenMove(char_x, char_y + 1)
+			downpress = currtime + .55
+			
+			leftpress, rightpress, uppress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+		end
 		
-		rightpress, uppress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
-	elseif(key == "up") then
-		checkThenMove(char_x, char_y - 1)
-		uppress = currtime + .55
-		
-		leftpress, rightpress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
-	elseif(key == "down") then
-		checkThenMove(char_x, char_y + 1)
-		downpress = currtime + .55
-		
-		leftpress, rightpress, uppress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+		--handle numpad keypresses, it's for shooooting.
+		--numpad code is formatted as "kp#"
+		if(string.sub(key,0,2) == "kp") then
+			shoot(string.sub(key,3))
+		end
+	else
+		print("user trying to move while suspended.")
+		if(bullet_over) then
+			print("bullet IS over...")
+		else
+			print("bullet is NOT over!")
+		end
+		print("bullet range is " .. bullet_range .. " bullet distance is " .. bullet_distance)
 	end
 end
 
@@ -175,3 +237,69 @@ function checkThenMove(x, y)
 	end
 end
 
+--Just a little thing I maaaade.
+--Direction is:
+
+-- 7   8   9
+--
+-- 4  you  6
+-- 
+-- 1   2   3
+
+--Fire bullets with the numpad, scoob.
+
+function shoot(direction)
+	bullet_x = char_x
+	bullet_y = char_y
+	print("shootin in " .. direction .. " bullet starts at " .. bullet_x .. ", " .. bullet_y)
+	
+	bullet_dx = 0
+	bullet_dy = 0
+	
+	if(direction == "7") then
+		bullet_dx = -1
+		bullet_dy = -1
+	elseif(direction == "8") then
+		bullet_dx = 0
+		bullet_dy = -1
+	elseif(direction == "9") then
+		bullet_dx = 1
+		bullet_dy = -1
+	elseif(direction == "4") then
+		bullet_dx = -1
+		bullet_dy = 0
+	elseif(direction == "6") then
+		bullet_dx = 1
+		bullet_dy = 0
+	elseif(direction == "1") then
+		bullet_dx = -1
+		bullet_dy = 1
+	elseif(direction == "2") then
+		bullet_dx = 0
+		bullet_dy = 1
+	elseif(direction == "3") then
+		bullet_dx = 1
+		bullet_dy = 1
+	end
+	
+	--now, animate the bullet shootin.
+	--suspend user input
+	suspended = true
+	
+	--move bullet once so it's not on top of our character
+	bullet_x = bullet_x + bullet_dx
+	bullet_y = bullet_y + bullet_dy
+	
+	bullet_over = false
+	bullet_distance = 0
+	bullet_range = 5
+	
+	next_bullet_move = currtime + .08
+	
+	--are we shooting at a wall?
+	if(map[bullet_x + 1][bullet_y + 1] == 2) then
+		bullet_over = true
+		suspended = false
+	end
+end
+--end shoot()
