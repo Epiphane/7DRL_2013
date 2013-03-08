@@ -58,7 +58,7 @@ end
 DISPLAYWIDTH = 50
 DISPLAYHEIGHT = 50
 function love.draw()
-	love.graphics.setColor( 255, 255, 255 )
+	love.graphics.setColor( 128, 128, 128 )
 	-- Draw the map
 	love.graphics.setFont(floorFont)
 	for i = 1, DISPLAYWIDTH do
