@@ -26,25 +26,24 @@ function love.load()
 	-- Load floor tiles (for theming and shit)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "1234")
 	
-	-- Build map
-	-- TODO: Make actual level initiation function, this is more of a placeholder
-	makeMap()
-	
 	-- Initialize main character and shit
 	-- Side note: right now, with sizing and everything, it's looking like strength
 	-- and such values will max at 180
 	char = {strength=70, knowledge=180, energy=90, sanity=130}
-	-- ANOTHER PLACEHOLDER: the level should initiate the character position
-	char["x"] = 20
-	char["y"] = 20
+	-- Character location set in map function
+	
+	-- Build map
+	-- TODO: Make actual level initiation function, this is more of a placeholder
+	makeMap()
 	
 	-- Initialize functions that are used for creating the info bar
 	dofile("sidebar.lua")
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 100
-MAPHEIGHT = 100
+MAPWIDTH = 20
+MAPHEIGHT = 30
+GENERATIONS = 1
 function makeMap()
 	map = {}
 	for i = 1, MAPWIDTH do
@@ -52,19 +51,79 @@ function makeMap()
 		for j = 1, MAPHEIGHT do
 			-- Create random thingy. Again - placeholder, we need to create functions
 			-- and algorithms and stuff
-			if i*j < 400 then
+			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
 				row[j] = 2
-			elseif i*j < 1600 then
-				row[j] = 3
 			else
-				row[j] = 4
+				if(math.random(20) > 15) then
+					row[j] = 2
+				else
+					row[j] = 3
+				end
 			end
 		end
 		map[i] = row
 	end
 	
+	-- Cavelike not being used right now
+	--for ii = 1, GENERATIONS do
+	--	generation()
+	--end
+	
 	-- Set screen offset (for scrolling)
-	offset = {x=0, y=0}
+	offset = {x=-15, y=-10}
+	char["x"] = 10
+	char["y"] = 10
+end
+
+-- So uh...this should work, I'm feeling like it's not worth our time to fix unless we're
+-- sure we want cavelike levels. If we do want to use it and fix later, refer to
+-- http://roguebasin.roguelikedevelopment.org/index.php?title=Cellular_Automata_Method_for_Generating_Random_Cave-Like_Levels
+-- For the algorithm
+r1_cutoff, r2_cutoff = 5, 2;
+function generation()
+	newmap = {}
+	for i = 2, MAPWIDTH-1 do
+		newrow = {}
+		for j = 2, MAPHEIGHT-1 do
+			adjcount_r1, adjcount_r2 = 0, 0
+			for ii=-1,1 do
+			for jj=-1,1 do
+				if(map[i+ii][j+jj] == 2) then
+					adjcount_r1 = adjcount_r1 + 1
+				end
+			end
+			end
+			
+			for ii=i-2,j+2 do
+			for jj=j-2,j+2 do
+				if(math.abs(ii-i) + math.abs(jj-j) ~= 4) then
+				if(ii > 1 and ii < MAPWIDTH and jj > 1 and jj < MAPHEIGHT) then
+					if(map[ii][jj] == 2) then
+						adjcount_r2 = adjcount_r2 + 1
+					end
+				end
+				end
+			end
+			end
+			
+			if(adjcount_r1 > r1_cutoff or adjcount_r2 > r2_cutoff) then
+				newrow[j] = 2
+			else
+				newrow[j] = 3
+			end
+		end
+		newmap[i] = newrow
+	end
+	
+	for i = 1, table.getn(newmap) do
+		if(newmap[i]) then
+			for j = 1, table.getn(newmap[i]) do
+				if(newmap[i][j]) then
+					map[i][j] = newmap[i][j]
+				end
+			end
+		end
+	end
 end
 
 -- Amount of tiles to display (proportional to display size / 12)
@@ -90,7 +149,7 @@ function love.draw()
 	
 	-- Main Character
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("@", (char["x"]-offset["x"])*12, (char["y"]-offset["y"])*12)	
+	love.graphics.print("@", ((char["x"]-1)-offset["x"])*12, ((char["y"]-1)-offset["y"])*12)	
 	
 	-- Draw sidebar starting at x = 600
 	drawSidebar(600)
@@ -194,9 +253,11 @@ end
 --If there is a monster there, attack it!
 --If there's a wall there, just don't do nuffin.
 function checkThenMove(x, y)
+	-- Get outta here if its the edge of the world
+	if(map[x] == nil or map[x][y]	== nil) then return end
+	
 	--for now I'm pretending "2" is a wall
-	--...for some reason the map is offset by a little bit.  Go figure.
-	if(map[x+1][y+1] == 2) then
+	if(map[x][y] == 2) then
 		--do nuffin
 	elseif(false) then -- checks for monsters, etc. go here
 	
@@ -204,16 +265,20 @@ function checkThenMove(x, y)
 		char["x"], char["y"] = x, y
 		
 		-- And lets do some fancy scrolling stuff
-		if(char["x"] - offset["x"] > 40) then -- Moving right
-			offset["x"] = char["x"] - 40
-		elseif(char["x"] - offset["x"] < 20) then -- Moving left
-			offset["x"] = char["x"] - 20
+		if(table.getn(map[1]) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
+			if(char["x"] - offset["x"] > 40) then -- Moving right
+				offset["x"] = char["x"] - 40
+			elseif(char["x"] - offset["x"] < 20) then -- Moving left
+				offset["x"] = char["x"] - 20
+			end
 		end
 		
-		if(char["y"] - offset["y"] > 40) then -- Moving down
-			offset["y"] = char["y"] - 40
-		elseif(char["y"] - offset["y"] < 20) then -- Moving up
-			offset["y"] = char["y"] - 20
+		if(table.getn(map) > DISPLAYHEIGHT) then -- Only scroll if the map is tall enough
+			if(char["y"] - offset["y"] > 40) then -- Moving down
+				offset["y"] = char["y"] - 40
+			elseif(char["y"] - offset["y"] < 20) then -- Moving up
+				offset["y"] = char["y"] - 20
+			end
 		end
 	end
 end
