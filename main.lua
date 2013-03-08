@@ -160,7 +160,7 @@ function love.draw()
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet_x .. ", " .. bullet_y)
 	if(not bullet_over) then
-		love.graphics.print("!", bullet_x*12, bullet_y*12)
+		love.graphics.print("!", (bullet_x - offset["x"])*12, (bullet_y - offset["y"])*12)
 	end
 	-- Draw sidebar starting at x = 600
 	drawSidebar(600)
@@ -240,23 +240,23 @@ function love.keypressed(key, unicode)
 	if(not suspended) then
 		
 		if(key == "right") then
-			checkThenMove(char_x + 1, char_y)
+			checkThenMove(char["x"] + 1, char["y"])
 			rightpress = currtime + .55
 			
 			--make sure only the LAST thing pressed counts
 			leftpress, uppress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 		elseif(key == "left") then
-			checkThenMove(char_x - 1, char_y)
+			checkThenMove(char["x"] - 1, char["y"])
 			leftpress = currtime + .55
 			
 			rightpress, uppress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 		elseif(key == "up") then
-			checkThenMove(char_x, char_y - 1)
+			checkThenMove(char["x"], char["y"] - 1)
 			uppress = currtime + .55
 			
 			leftpress, rightpress, downpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 		elseif(key == "down") then
-			checkThenMove(char_x, char_y + 1)
+			checkThenMove(char["x"], char["y"] + 1)
 			downpress = currtime + .55
 			
 			leftpress, rightpress, uppress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
@@ -355,8 +355,8 @@ end
 --Fire bullets with the numpad, scoob.
 
 function shoot(direction)
-	bullet_x = char_x
-	bullet_y = char_y
+	bullet_x = char["x"] - 1
+	bullet_y = char["y"] - 1
 	print("shootin in " .. direction .. " bullet starts at " .. bullet_x .. ", " .. bullet_y)
 	
 	bullet_dx = 0
