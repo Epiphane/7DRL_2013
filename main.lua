@@ -169,31 +169,7 @@ function love.draw()
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet["x"] .. ", " .. bullet["y"])
 	if(not bullet_over) then
-<<<<<<< HEAD
-<<<<<<< HEAD
 		love.graphics.print("!", ((bullet["x"]-1)-offset["x"])*12, ((bullet["y"]-1)-offset["y"])*12)
-=======
-		love.graphics.print("!", (bullet_x - offset["x"])*12, (bullet_y - offset["y"])*12)
->>>>>>> 16c91899efbfe5ff7830914750ad1361799a2537
-	end
-	
-	--draw enemies
-	for i = 0, num_enemies do
-		ex = enemies["enemy" .. i .. "x"]
-		ey = enemies["enemy" .. i .. "y"]
-		which = enemies["enemy" .. i .. "whichEnemy"]
-		--print("ex: " .. ex .. " and ey " .. ey)
-		
-		if(which == "zombie") then
-			love.graphics.print("Z", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
-		end
-		
-		if(which == "robot") then
-			love.graphics.print("R", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
-		end
-	end
-	
-=======
 		love.graphics.print("!", (bullet_x - offset["x"])*12, (bullet_y - offset["y"])*12)
 	end
 	
@@ -213,7 +189,25 @@ function love.draw()
 		end
 	end
 	
->>>>>>> 16c91899efbfe5ff7830914750ad1361799a2537
+		love.graphics.print("!", (bullet_x - offset["x"])*12, (bullet_y - offset["y"])*12)
+	end
+	
+	--draw enemies
+	for i = 0, num_enemies do
+		ex = enemies["enemy" .. i .. "x"]
+		ey = enemies["enemy" .. i .. "y"]
+		which = enemies["enemy" .. i .. "whichEnemy"]
+		--print("ex: " .. ex .. " and ey " .. ey)
+		
+		if(which == "zombie") then
+			love.graphics.print("Z", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
+		end
+		
+		if(which == "robot") then
+			love.graphics.print("R", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
+		end
+	end
+	
 	-- Draw sidebar starting at x = 600
 	drawSidebar(600)
 end
@@ -397,19 +391,11 @@ end
 --Fire bullets with the numpad, scoob.
 
 function shoot(direction)
-<<<<<<< HEAD
-<<<<<<< HEAD
 	bullet["x"] = char["x"]
 	bullet["y"] = char["y"]
 	print("shootin in " .. direction .. " bullet starts at " .. bullet["x"] .. ", " .. bullet["y"])
-=======
 	bullet_x = char["x"] - 1
 	bullet_y = char["y"] - 1
->>>>>>> 16c91899efbfe5ff7830914750ad1361799a2537
-=======
-	bullet_x = char["x"] - 1
-	bullet_y = char["y"] - 1
->>>>>>> 16c91899efbfe5ff7830914750ad1361799a2537
 	
 	bullet["dx"] = 0
 	bullet["dy"] = 0
