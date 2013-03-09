@@ -20,6 +20,9 @@ bullet_over = true
 bullet_range = 5
 bullet_distance, next_bullet_move = 0, 0
 
+enemies = {}
+num_enemies = 0
+
 function love.load()
 	-- Set background color black, cause it's a console you stupid bitch
 	love.graphics.setBackgroundColor( 0, 0, 0 )
@@ -42,6 +45,11 @@ function love.load()
 	-- Build map
 	-- TODO: Make actual level initiation function, this is more of a placeholder
 	makeMap()
+	
+	-- spawn enemies
+	-- TODO: where???
+	spawnEnemy(10,20,"zombie")
+	spawnEnemy(12,12,"robot")
 	
 	-- Initialize functions that are used for creating the info bar
 	dofile("sidebar.lua")
@@ -161,8 +169,29 @@ function love.draw()
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet["x"] .. ", " .. bullet["y"])
 	if(not bullet_over) then
+<<<<<<< HEAD
 		love.graphics.print("!", ((bullet["x"]-1)-offset["x"])*12, ((bullet["y"]-1)-offset["y"])*12)
+=======
+		love.graphics.print("!", (bullet_x - offset["x"])*12, (bullet_y - offset["y"])*12)
+>>>>>>> 16c91899efbfe5ff7830914750ad1361799a2537
 	end
+	
+	--draw enemies
+	for i = 0, num_enemies do
+		ex = enemies["enemy" .. i .. "x"]
+		ey = enemies["enemy" .. i .. "y"]
+		which = enemies["enemy" .. i .. "whichEnemy"]
+		--print("ex: " .. ex .. " and ey " .. ey)
+		
+		if(which == "zombie") then
+			love.graphics.print("Z", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
+		end
+		
+		if(which == "robot") then
+			love.graphics.print("R", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
+		end
+	end
+	
 	-- Draw sidebar starting at x = 600
 	drawSidebar(600)
 end
@@ -266,14 +295,6 @@ function love.keypressed(key, unicode)
 		if(string.sub(key,0,2) == "kp") then
 			shoot(string.sub(key,3))
 		end
-	else
-		print("user trying to move while suspended.")
-		if(bullet_over) then
-			print("bullet IS over...")
-		else
-			print("bullet is NOT over!")
-		end
-		print("bullet range is " .. bullet_range .. " bullet distance is " .. bullet_distance)
 	end
 end
 
@@ -354,9 +375,14 @@ end
 --Fire bullets with the numpad, scoob.
 
 function shoot(direction)
+<<<<<<< HEAD
 	bullet["x"] = char["x"]
 	bullet["y"] = char["y"]
 	print("shootin in " .. direction .. " bullet starts at " .. bullet["x"] .. ", " .. bullet["y"])
+=======
+	bullet_x = char["x"] - 1
+	bullet_y = char["y"] - 1
+>>>>>>> 16c91899efbfe5ff7830914750ad1361799a2537
 	
 	bullet["dx"] = 0
 	bullet["dy"] = 0
@@ -408,3 +434,39 @@ function shoot(direction)
 	end
 end
 --end shoot()
+
+--spawns an enemy @ x, y
+function spawnEnemy(x, y, which_enemy)
+	--look at the length, go +1
+	num_enemies = num_enemies + 1
+	
+	print(#enemies .. " hmm")
+	
+	enemystring = "enemy" .. (num_enemies)
+	
+	enemies[enemystring .. "x"] = x
+	enemies[enemystring .. "y"] = y
+	
+	enemies[enemystring .. "whichEnemy"] = which_enemy
+	
+	print("added enemy! ex at " .. enemystring .."x is " .. enemies[enemystring .. "x"] .."!")
+
+end
+--end spawnEnemy
+
+--called whenever player shoots/moves/pulls lever/whatever.
+--all enemies get to move, bombs go off, fires spread, whatever.
+function doTurn()
+	for i = 0, num_enemies do
+		enemyTurn(i)
+	end
+end
+--end doTurn()
+
+--controls enemy movement/attack patterns.
+function enemyTurn(id)
+	
+
+
+end
+--end enemyTurn()
