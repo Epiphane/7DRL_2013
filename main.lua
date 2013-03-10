@@ -49,12 +49,15 @@ function love.load()
 	
 	-- Initialize functions that are used for creating the info bar
 	dofile("sidebar.lua")
+	
+	-- Initialize line of sight functions MAYBE
+	--dofile("los_functions.lua")
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 20
-MAPHEIGHT = 30
-GENERATIONS = 1
+MAPWIDTH = 18
+MAPHEIGHT = 14
+ROOMNUM = 1
 function makeMap()
 	map = {}
 	for i = 1, MAPWIDTH do
@@ -63,97 +66,46 @@ function makeMap()
 			-- Create random thingy. Again - placeholder, we need to create functions
 			-- and algorithms and stuff
 			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
-				row[j] = 2
+				row[j] = {tile=2, room=ROOMNUM}
 			else
-				if(math.random(20) > 15) then
-					row[j] = 2
-				else
-					row[j] = 3
-				end
+				row[j] = {tile=3, room=ROOMNUM}
 			end
 		end
 		map[i] = row
 	end
 	
-	-- Cavelike not being used right now
-	--for ii = 1, GENERATIONS do
-	--	generation()
-	--end
-	
 	-- Set screen offset (for scrolling)
-	offset = {x=-15, y=-10}
+	offset = {x=-15, y=-20}
 	char["x"] = 10
-	char["y"] = 10
-end
-
--- So uh...this should work, I'm feeling like it's not worth our time to fix unless we're
--- sure we want cavelike levels. If we do want to use it and fix later, refer to
--- http://roguebasin.roguelikedevelopment.org/index.php?title=Cellular_Automata_Method_for_Generating_Random_Cave-Like_Levels
--- For the algorithm
-r1_cutoff, r2_cutoff = 5, 2;
-function generation()
-	newmap = {}
-	for i = 2, MAPWIDTH-1 do
-		newrow = {}
-		for j = 2, MAPHEIGHT-1 do
-			adjcount_r1, adjcount_r2 = 0, 0
-			for ii=-1,1 do
-			for jj=-1,1 do
-				if(map[i+ii][j+jj] == 2) then
-					adjcount_r1 = adjcount_r1 + 1
-				end
-			end
-			end
-			
-			for ii=i-2,j+2 do
-			for jj=j-2,j+2 do
-				if(math.abs(ii-i) + math.abs(jj-j) ~= 4) then
-				if(ii > 1 and ii < MAPWIDTH and jj > 1 and jj < MAPHEIGHT) then
-					if(map[ii][jj] == 2) then
-						adjcount_r2 = adjcount_r2 + 1
-					end
-				end
-				end
-			end
-			end
-			
-			if(adjcount_r1 > r1_cutoff or adjcount_r2 > r2_cutoff) then
-				newrow[j] = 2
-			else
-				newrow[j] = 3
-			end
-		end
-		newmap[i] = newrow
-	end
-	
-	for i = 1, table.getn(newmap) do
-		if(newmap[i]) then
-			for j = 1, table.getn(newmap[i]) do
-				if(newmap[i][j]) then
-					map[i][j] = newmap[i][j]
-				end
-			end
-		end
-	end
+	char["y"] = 8
+	char["room"] = ROOMNUM
 end
 
 -- Amount of tiles to display (proportional to display size / 12)
 DISPLAYWIDTH = 50
 DISPLAYHEIGHT = 50
 function love.draw()
-	love.graphics.setColor( 128, 128, 128 )
 	-- Draw the map
 	love.graphics.setFont(floorFont)
 	for i = 1, DISPLAYWIDTH do
 		for j = 1, DISPLAYHEIGHT do
 			-- Do null checks first: add offset["x"] and offset["y"] to show right part of map
 			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
-				love.graphics.print(map[i+offset["x"]][j+offset["y"]], (i-1)*12, (j-1)*12)
+				-- Tint is how bright to make it (decreases with distance)
+				if map[i+offset["x"]][j+offset["y"]]["room"] == char["room"] then
+					love.graphics.setColor( 255, 255, 255 )
+				else
+					love.graphics.setColor( 100, 100, 100 )
+				end
+				love.graphics.print(map[i+offset["x"]][j+offset["y"]]["tile"], (i-1)*12, (j-1)*12)
 			else
 				love.graphics.print(1, (i-1)*12, (j-1)*12)
 			end
 		end
 	end
+	
+	-- Set color back to gray
+	love.graphics.setColor( 128, 128, 128 )
 	
 	-- Draw characters and shit!
 	love.graphics.setFont(mainFont)
@@ -219,15 +171,13 @@ function love.update(dt)
 	if(currtime > bullet["nextmove"] and not bullet["over"])	then
 	
 		--did we hit something?
-		if(map[bullet["x"] + 1 + bullet["dx"]][bullet["y"] + 1 + bullet["dy"]] == 2) then
-			bullet["nextmove"] = true
+		if(map[bullet["x"] + 1 + bullet["dx"]][bullet["y"] + 1 + bullet["dy"]]["tile"] == 2) then
+			bullet["over"] = true
 			suspended = false
 		end
 		
 		bullet["x"] = bullet["x"] + bullet["dx"]
 		bullet["y"] = bullet["y"] + bullet["dy"]
-		
-		
 		
 		bullet["distance"] = bullet["distance"] + 1
 		bullet["nextmove"] = currtime + .1
@@ -331,12 +281,13 @@ function checkThenMove(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
 	--for now I'm pretending "2" is a wall
-	if(map[x][y] == 2) then
+	if(map[x][y]["tile"] == 2) then
 		--do nuffin
 	elseif(false) then -- checks for monsters, etc. go here
 	
 	else-- empty square! we cool.
 		char["x"], char["y"] = x, y
+		char["room"] = map[char["x"]][char["y"]]["room"]
 		
 		-- And lets do some fancy scrolling stuff
 		if(table.getn(map[1]) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
@@ -416,7 +367,7 @@ function shoot(direction)
 	bullet["nextmove"] = currtime + .08
 	
 	--are we shooting at a wall?
-	if(map[bullet["x"] + 1][bullet["y"] + 1] == 2) then
+	if(map[bullet["x"] + 1][bullet["y"] + 1]["tile"] == 2) then
 		bullet["over"] = true
 		suspended = false
 	end
