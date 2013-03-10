@@ -59,6 +59,7 @@ MAPWIDTH = 60
 MAPHEIGHT = 60
 ROOMNUM = 1
 WALL_NUM = 2 -- Wall num constant
+viewed_rooms = {}
 function makeMap()
 	map = {}
 	for i = 1, MAPWIDTH do
@@ -80,7 +81,7 @@ function makeMap()
 	repeat
 		next_j = j+8+math.random(6)
 		-- Boundary check
-		if(next_j > MAPHEIGHT) then 
+		if(next_j + 5 > MAPHEIGHT) then 
 			next_j = MAPHEIGHT
 		end
 		
@@ -88,7 +89,7 @@ function makeMap()
 		repeat
 			next_i = i+8+math.random(6)
 			-- Boundary check
-			if(next_i > MAPWIDTH) then 
+			if(next_i + 5 > MAPWIDTH) then 
 				next_i = MAPWIDTH 
 			end
 			
@@ -100,11 +101,17 @@ function makeMap()
 		j = next_j
 	until j == MAPHEIGHT
 	
+	-- Set character location
+	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
+	char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
 	-- Set screen offset (for scrolling)
-	offset = {x=-15, y=-20}
-	char["x"] = 10
-	char["y"] = 8
+	offset = {x=char["x"]-30, y=char["y"]-30}
+	while(map[char["x"]][char["y"]]["tile"] == WALL_NUM) do
+		char["x"] = char["x"] + 1
+		char["y"] = char["y"] + 1
+	end
 	char["room"] = map[char["x"]][char["y"]]["room"]
+	viewed_rooms[char["room"]] = true
 end
 
 -- Fill a room with generic wall/floor
@@ -120,7 +127,7 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum)
 	end
 	
 	if(start_i ~= 1) then -- Put a doorway!
-		map[start_i][start_j + math.random(end_j-start_j)] = {tile=4, room=roomnum} -- Floor
+		map[start_i][start_j+1 + math.random(end_j-start_j-2)] = {tile=4, room=roomnum} -- Floor
 	end
 	
 	if(start_j ~= 1) then -- Put top doorways!
@@ -132,7 +139,7 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum)
 				if(diff > 3) then
 					map[walk_start_i+math.random(diff)][start_j]["tile"] = 4
 				end
-				walk_start_i = walk_end_i + 1
+				walk_end_i = walk_start_i + 1
 			end
 		end
 	end
@@ -149,13 +156,19 @@ function love.draw()
 			-- Do null checks first: add offset["x"] and offset["y"] to show right part of map
 			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
 				-- Tint is how bright to make it
-				love.graphics.setColor( 100, 100, 100 ) -- Dim for not in room
-				for x_o=-1,0 do	-- This is for walls: if the top-left is in your room
+				love.graphics.setColor( 0, 0, 0 ) -- Dim for not in room
+				for x_o=-1,0 do	-- This is for walls: if the top-left is in your room,
 				for y_o=-1,0 do -- Light this up for aesthetics
 					if(map[i+offset["x"]+x_o] and map[i+offset["x"]+x_o][j+offset["y"]+y_o]) then
-						if map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"] == char["room"] then
+						roomnum = map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"]
+						if roomnum == char["room"] then
 							love.graphics.setColor( 255, 255, 255 ) -- LIGHT 'ER UP
-							break
+						elseif viewed_rooms[roomnum] then
+							-- TODO: Smarter way to figure out if its 255, 255, 255
+							r, g, b, a = love.graphics.getColor()
+							if(r ~= 255) then
+								love.graphics.setColor( 100, 100, 100 )
+							end
 						end
 					end
 				end
@@ -351,6 +364,7 @@ function checkThenMove(x, y)
 	else-- empty square! we cool.
 		char["x"], char["y"] = x, y
 		char["room"] = map[char["x"]][char["y"]]["room"]
+		viewed_rooms[char["room"]] = true
 		
 		-- And lets do some fancy scrolling stuff
 		if(table.getn(map[1]) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
