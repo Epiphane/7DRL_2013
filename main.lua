@@ -20,12 +20,13 @@ enemies = {}
 num_enemies = 0
 
 tile_info = {{blocker=false}, 
-			{blocker=true, message="You walk headlong into a wall.", awesome_effect=-2}, 
+			{blocker=true, message="You walk into a wall...", awesome_effect=-2}, 
 			{blocker=false}, 
-			{blocker=true, walk_trans=5, message="You open the door.", awesome_effect=0}, -- Door turns into an opened door
+			{blocker=true, walk_trans=5, message="You open the door.", awesome_effect=1}, -- Door turns into an opened door
 			{blocker=false},
 			{blocker=true},
-			{blocker=true, walk_trans=5, message="The door thunders open.", awesome_effect=0}}
+			{blocker=true, walk_trans=5, message="The door thunders open.", awesome_effect=5},
+			{blocker=false}}
 
 function love.load()
 	-- Set background color black, cause it's a console you stupid bitch
@@ -38,7 +39,7 @@ function love.load()
 											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
-	floorFont = love.graphics.newImageFont ("floorTiles.png", "1234567")
+	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
 	
 	-- Initialize main character and shit
 	-- Side note: right now, with sizing and everything, it's looking like strength
@@ -102,7 +103,7 @@ function makeMap()
 			end
 			
 			-- Make a room with the coordinates as stated
-			makeRoom(i, j, next_i, next_j, ROOMNUM)
+			makeRoomAndDoors(i, j, next_i, next_j, ROOMNUM)
 			i = next_i
 			ROOMNUM = ROOMNUM + 1
 		until i == MAPWIDTH
@@ -111,7 +112,7 @@ function makeMap()
 	
 	-- Make boss room corridor
 	start_i = MAPWIDTH
-	CORRIDORWIDTH = 13 + math.random(15)
+	CORRIDORWIDTH = 24 + math.random(8)
 	end_i = start_i + CORRIDORWIDTH
 	start_j = MAPHEIGHT/2
 	while(tile_info[map[start_i-1][start_j]["tile"]]["blocker"]) do -- In case we put corridor against a wall
@@ -124,8 +125,15 @@ function makeMap()
 		map[i][start_j] = {tile=3, room=998}
 		map[i][start_j + 1] = {tile=WALL_NUM, room=998}
 	end
-	map[end_i][start_j]["tile"] = 7
+	map[end_i][start_j] = {tile=7, room=998} -- Make thundering door
 	ROOMNUM = ROOMNUM + 1
+	
+	-- Make boss room!
+	start_i = end_i + 1
+	end_i = start_i + 20
+	for i=start_i,end_i do map[i] = {} end -- Make rows
+	makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
+	map[start_i][start_j] = {tile=8, room=999} -- Make thundering door lever
 	
 	-- Set character location
 	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
@@ -140,9 +148,14 @@ function makeMap()
 	viewed_rooms[char["room"]] = true
 end
 
+function makeRoomAndDoors(start_i, start_j, end_i, end_j, roomnum)
+	makeRoom(start_i, start_j, end_i, end_j, roomnum, true)
+end
+
 -- Fill a room with generic wall/floor
-function makeRoom(start_i, start_j, end_i, end_j, roomnum)
+function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 	for i = start_i, end_i do
+		if not map[i] then map[i] = {} end
 		for j = start_j, end_j do
 			if(i == start_i or j == start_j or j == end_j or i == end_i) then
 				map[i][j] = {tile=WALL_NUM, room=roomnum} -- Wall
@@ -152,21 +165,23 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum)
 		end
 	end
 	
-	if(start_i ~= 1) then -- Put a doorway!
-		map[start_i][start_j+2 + math.random(end_j-start_j-4)] = {tile=4, room=roomnum} -- Floor
-	end
-	
-	if(start_j ~= 1) then -- Put top doorways!
-		walk_start_i = start_i -- "Walk" along the top wall and find good doorway walls
-		for walk_end_i = walk_start_i + 1,end_i do
-			if(map[walk_end_i][start_j-1]["tile"] == WALL_NUM 
-				or map[walk_end_i][start_j+1]["tile"] == WALL_NUM) then
-				diff = walk_end_i - walk_start_i
-				if(diff > 3) then
-					map[walk_start_i+2+math.random(diff-3)][start_j]["tile"] = 4
+	if makeDoors then
+		if(start_i ~= 1) then -- Put a doorway!
+			map[start_i][start_j+2 + math.random(end_j-start_j-4)] = {tile=4, room=roomnum} -- Floor
+		end
+		
+		if(start_j ~= 1) then -- Put top doorways!
+			walk_start_i = start_i -- "Walk" along the top wall and find good doorway walls
+			for walk_end_i = walk_start_i + 1,end_i do
+				if(map[walk_end_i][start_j-1]["tile"] == WALL_NUM 
+					or map[walk_end_i][start_j+1]["tile"] == WALL_NUM) then
+					diff = walk_end_i - walk_start_i
+					if(diff > 3) then
+						map[walk_start_i+2+math.random(diff-3)][start_j]["tile"] = 4
+					end
+					walk_start_i = walk_end_i + 1
+					walk_end_i = walk_start_i + 1
 				end
-				walk_start_i = walk_end_i + 1
-				walk_end_i = walk_start_i + 1
 			end
 		end
 	end
@@ -388,19 +403,29 @@ function checkThenMove(x, y)
 	-- Get outta here if its the edge of the world
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
-	tile = map[x][y]["tile"]
-	--for now I'm pretending "2" is a wall
-	if(tile_info[tile]["blocker"]) then
-		-- Random stuff that sends a message
-		printSide(tile_info[tile]["message"])
+	tileinfo = tile_info[map[x][y]["tile"]]
+	-- Random stuff that sends a message
+	printSide(tileinfo["message"])
+	
+	if(tileinfo["blocker"] ) then
 		-- Or adds/subtracts awesome
-		char['awesome'] = char['awesome'] + tile_info[tile]["awesome_effect"]
-		if(tile_info[tile]["walk_trans"]) then
-			map[x][y]["tile"] = tile_info[tile]["walk_trans"]
+		char['awesome'] = char['awesome'] + tileinfo["awesome_effect"]
+		
+		if(tileinfo["walk_trans"]) then
+			map[x][y]["tile"] = tileinfo["walk_trans"]
 		end
 	elseif(false) then -- checks for monsters, etc. go here
 	
 	else-- empty square! we cool.
+		if(map[x][y]["tile"] == 8 and map[char["x"]][char["y"]]["tile"] == 5) then -- If this is the boss room lever
+			printSide("The door thunders closed.")
+			map[char["x"]][char["y"]]["tile"] = 2
+		end
+		
+		-- In case we're entering a new room soon
+		viewed_rooms[map[x-1][y]["room"]] = true
+		viewed_rooms[map[x][y-1]["room"]] = true
+		
 		char["x"], char["y"] = x, y
 		char["room"] = map[char["x"]][char["y"]]["room"]
 		viewed_rooms[char["room"]] = true

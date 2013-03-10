@@ -27,5 +27,7 @@ function drawSidebar(start_x)
 end
 
 function printSide(message)
-	table.insert(sidebarlog, 1, message)
+	if message then
+		table.insert(sidebarlog, 1, message)
+	end
 end
