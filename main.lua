@@ -58,6 +58,7 @@ end
 MAPWIDTH = 60
 MAPHEIGHT = 60
 ROOMNUM = 1
+WALL_NUM = 2 -- Wall num constant
 function makeMap()
 	map = {}
 	for i = 1, MAPWIDTH do
@@ -66,7 +67,7 @@ function makeMap()
 			-- Create random thingy. Again - placeholder, we need to create functions
 			-- and algorithms and stuff
 			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
-				row[j] = {tile=2, room=ROOMNUM}
+				row[j] = {tile=WALL_NUM, room=ROOMNUM}
 			else
 				row[j] = {tile=3, room=ROOMNUM}
 			end
@@ -77,15 +78,15 @@ function makeMap()
 	-- Create rooms
 	j = 1
 	repeat
-		next_j = j+5+math.random(15)
+		next_j = j+8+math.random(6)
 		-- Boundary check
 		if(next_j > MAPHEIGHT) then 
-			next_j = MAPHEIGHT 
+			next_j = MAPHEIGHT
 		end
 		
 		i = 1
 		repeat
-			next_i = i+5+math.random(15)
+			next_i = i+8+math.random(6)
 			-- Boundary check
 			if(next_i > MAPWIDTH) then 
 				next_i = MAPWIDTH 
@@ -94,7 +95,6 @@ function makeMap()
 			-- Make a room with the coordinates as stated
 			makeRoom(i, j, next_i, next_j, ROOMNUM)
 			i = next_i
-			print(j)
 			ROOMNUM = ROOMNUM + 1
 		until i == MAPWIDTH
 		j = next_j
@@ -104,19 +104,35 @@ function makeMap()
 	offset = {x=-15, y=-20}
 	char["x"] = 10
 	char["y"] = 8
-	char["room"] = ROOMNUM
+	char["room"] = map[char["x"]][char["y"]]["room"]
 end
 
 -- Fill a room with generic wall/floor
 function makeRoom(start_i, start_j, end_i, end_j, roomnum)
 	for i = start_i, end_i do
 		for j = start_j, end_j do
-			-- Create random thingy. Again - placeholder, we need to create functions
-			-- and algorithms and stuff
 			if(i == start_i or j == start_j or j == end_j or i == end_i) then
-				map[i][j] = {tile=2, room=roomnum}
+				map[i][j] = {tile=WALL_NUM, room=roomnum} -- Wall
 			else
-				map[i][j] = {tile=3, room=roomnum}
+				map[i][j] = {tile=3, room=roomnum} -- Floor
+			end
+		end
+	end
+	
+	if(start_i ~= 1) then -- Put a doorway!
+		map[start_i][start_j + math.random(end_j-start_j)] = {tile=4, room=roomnum} -- Floor
+	end
+	
+	if(start_j ~= 1) then -- Put top doorways!
+		walk_start_i = start_i -- "Walk" along the top wall and find good doorway walls
+		for walk_end_i = walk_start_i + 1,end_i do
+			if(map[walk_end_i][start_j-1]["tile"] == WALL_NUM 
+				or map[walk_end_i][start_j+1]["tile"] == WALL_NUM) then
+				diff = walk_end_i - walk_start_i
+				if(diff > 3) then
+					map[walk_start_i+math.random(diff)][start_j]["tile"] = 4
+				end
+				walk_start_i = walk_end_i + 1
 			end
 		end
 	end
@@ -132,11 +148,17 @@ function love.draw()
 		for j = 1, DISPLAYHEIGHT do
 			-- Do null checks first: add offset["x"] and offset["y"] to show right part of map
 			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
-				-- Tint is how bright to make it (decreases with distance)
-				if map[i+offset["x"]][j+offset["y"]]["room"] == char["room"] then
-					love.graphics.setColor( 255, 255, 255 )
-				else
-					love.graphics.setColor( 100, 100, 100 )
+				-- Tint is how bright to make it
+				love.graphics.setColor( 100, 100, 100 ) -- Dim for not in room
+				for x_o=-1,0 do	-- This is for walls: if the top-left is in your room
+				for y_o=-1,0 do -- Light this up for aesthetics
+					if(map[i+offset["x"]+x_o] and map[i+offset["x"]+x_o][j+offset["y"]+y_o]) then
+						if map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"] == char["room"] then
+							love.graphics.setColor( 255, 255, 255 ) -- LIGHT 'ER UP
+							break
+						end
+					end
+				end
 				end
 				love.graphics.print(map[i+offset["x"]][j+offset["y"]]["tile"], (i-1)*12, (j-1)*12)
 			else
@@ -322,7 +344,7 @@ function checkThenMove(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
 	--for now I'm pretending "2" is a wall
-	if(map[x][y]["tile"] == 4) then
+	if(map[x][y]["tile"] == WALL_NUM) then
 		--do nuffin
 	elseif(false) then -- checks for monsters, etc. go here
 	
@@ -408,7 +430,7 @@ function shoot(direction)
 	bullet["nextmove"] = currtime + .08
 	
 	--are we shooting at a wall?
-	if(map[bullet["x"] + 1][bullet["y"] + 1]["tile"] == 2) then
+	if(map[bullet["x"] + 1][bullet["y"] + 1]["tile"] == WALL_NUM) then
 		bullet["over"] = true
 		suspended = false
 	end
