@@ -55,8 +55,8 @@ function love.load()
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 18
-MAPHEIGHT = 14
+MAPWIDTH = 60
+MAPHEIGHT = 60
 ROOMNUM = 1
 function makeMap()
 	map = {}
@@ -74,11 +74,52 @@ function makeMap()
 		map[i] = row
 	end
 	
+	-- Create rooms
+	j = 1
+	repeat
+		next_j = j+5+math.random(15)
+		-- Boundary check
+		if(next_j > MAPHEIGHT) then 
+			next_j = MAPHEIGHT 
+		end
+		
+		i = 1
+		repeat
+			next_i = i+5+math.random(15)
+			-- Boundary check
+			if(next_i > MAPWIDTH) then 
+				next_i = MAPWIDTH 
+			end
+			
+			-- Make a room with the coordinates as stated
+			makeRoom(i, j, next_i, next_j, ROOMNUM)
+			i = next_i
+			print(j)
+			ROOMNUM = ROOMNUM + 1
+		until i == MAPWIDTH
+		j = next_j
+	until j == MAPHEIGHT
+	
 	-- Set screen offset (for scrolling)
 	offset = {x=-15, y=-20}
 	char["x"] = 10
 	char["y"] = 8
 	char["room"] = ROOMNUM
+end
+
+-- Fill a room with generic wall/floor
+function makeRoom(start_i, start_j, end_i, end_j, roomnum)
+	for i = start_i, end_i do
+		for j = start_j, end_j do
+			-- Create random thingy. Again - placeholder, we need to create functions
+			-- and algorithms and stuff
+			if(i == start_i or j == start_j or j == end_j or i == end_i) then
+				map[i][j] = {tile=2, room=roomnum}
+			else
+				map[i][j] = {tile=3, room=roomnum}
+			end
+		end
+	end
 end
 
 -- Amount of tiles to display (proportional to display size / 12)
@@ -281,7 +322,7 @@ function checkThenMove(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
 	--for now I'm pretending "2" is a wall
-	if(map[x][y]["tile"] == 2) then
+	if(map[x][y]["tile"] == 4) then
 		--do nuffin
 	elseif(false) then -- checks for monsters, etc. go here
 	
