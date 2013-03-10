@@ -467,8 +467,33 @@ end
 
 --controls enemy movement/attack patterns.
 function enemyTurn(id)
+	--if an enemy can't see the player it just wanders around randomly.
+	--weight it so that the enemy moves vaguely forward.
+	rand = math.random(101)
+	
+	if(rand < 70) then --don't move at all
+	
+	elseif(rand < 80) then -- move forward
+		
+	elseif(rand < 86) then -- forward-right
+	
+	elseif(rand < 92) then -- foward-left
+	
+	elseif(rand < 95) then -- left
+	
+	elseif(rand < 98) then -- right
+	
+	else --backwards
+	
+	end
 	
 
 
 end
 --end enemyTurn()
+
+--checks if an enemy can in fact move to a place, then does it
+--if it can!
+function moveEnemy(id, x, y)
+
+end
