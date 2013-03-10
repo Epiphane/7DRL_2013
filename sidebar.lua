@@ -1,3 +1,5 @@
+sidebarlog = {}
+
 function drawSidebar(start_x)
 	love.graphics.setFont(mainFont) -- Just in case
 	
@@ -8,18 +10,22 @@ function drawSidebar(start_x)
 	love.graphics.setColor( 255, 255, 255 )
 	
 	-- Draw strength and corresponding health
-	love.graphics.print("Strength", start_x+10, 10)
-	love.graphics.print("Knowledge", start_x+10, 60)
-	love.graphics.print("Energy", start_x+10, 110)
-	love.graphics.print("Sanity", start_x+10, 160)
+	love.graphics.print("Awesome", start_x+10, 10)
 	
 	-- And the health bars
-	love.graphics.setColor( 255, 0, 0 )
-	love.graphics.rectangle("fill", start_x+10, 30, char['strength'], 10)
-	love.graphics.setColor( 0, 255, 0 )
-	love.graphics.rectangle("fill", start_x+10, 80, char['knowledge'], 10)
-	love.graphics.setColor( 0, 0, 255 )
-	love.graphics.rectangle("fill", start_x+10, 130, char['energy'], 10)
-	love.graphics.setColor( 125, 125, 125 )
-	love.graphics.rectangle("fill", start_x+10, 180, char['sanity'], 10)
+	love.graphics.setColor( 129, 129, 129 )
+	love.graphics.rectangle("fill", start_x+10, 30, char['awesome'], 10)
+	
+	
+	-- Draw strength and corresponding health
+	love.graphics.setColor( 255, 255, 255 )
+	for i = 1,table.getn(sidebarlog) do
+		if i > 8 then break end
+		love.graphics.setColor( 255 - i*30, 255 - i*30, 255 - i*30 )
+		love.graphics.print(sidebarlog[i], start_x+10, 100+i*15)
+	end
+end
+
+function printSide(message)
+	table.insert(sidebarlog, 1, message)
 end
