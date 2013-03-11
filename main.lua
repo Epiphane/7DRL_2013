@@ -27,15 +27,6 @@ exploding = false
 explosionTiles = {}
 explosion = {x=5, y=5, size=5, friendlyFire = false}
 
-tile_info = {{blocker=false}, 
-			{blocker=true, message="You walk into a wall...", awesome_effect=-2}, 
-			{blocker=false}, 
-			{blocker=true, walk_trans=5, message="You open the door.", awesome_effect=1}, -- Door turns into an opened door
-			{blocker=false},
-			{blocker=true},
-			{blocker=true, walk_trans=5, message="The door thunders open.", awesome_effect=5},
-			{blocker=false}}
-
 function love.load()
 	-- Initialize functions that are used for creating the info bar
 	dofile("sidebar.lua")
@@ -137,10 +128,11 @@ function makeMap()
 	CORRIDORWIDTH = 24 + math.random(8)
 	end_i = start_i + CORRIDORWIDTH
 	start_j = MAPHEIGHT/2
-	while(tile_info[map[start_i-1][start_j]["tile"]]["blocker"]) do -- In case we put corridor against a wall
+	while(map[start_i-1][start_j].blocker) do -- In case we put corridor against a wall
 		start_j = start_j - 1
 	end
-	map[start_i][start_j]["tile"] = 6
+	k, v = next(map[start_i-1][start_j].room, nil)
+	map[start_i][start_j] = CrackedWall:new{room={[998]=true, [k]=true}}
 	-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
 	spawnEnemy(start_i-1, start_j, Barrel)
 	for i = start_i+1,end_i do
@@ -165,7 +157,7 @@ function makeMap()
 	char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
 	-- Set screen offset (for scrolling)
 	offset = {x=char["x"]-20, y=char["y"]-30}
-	while(tile_info[map[char["x"]][char["y"]]["tile"]]["blocker"]) do
+	while(map[char["x"]][char["y"]].blocker) do
 		char["x"] = char["x"] + 1
 		char["y"] = char["y"] + 1
 	end
@@ -584,6 +576,9 @@ end
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
 	for i = 1, # enemies do
+		if not enemies[i].alive then
+			table.remove(enemies, i)
+		end
 		enemies[i]:takeTurn()
 	end
 end

@@ -1,6 +1,6 @@
 -- Constructor for the Tile Class
 -- param: o is an object, or table of information.
-Enemy = {name="Enemy", icon="E", room=1, x=1, y=1, health=1}
+Enemy = {name="Enemy", icon="E", room=1, x=1, y=1, health=1, alive=true}
 
 function Enemy:new(o)
 	o = o or {}				-- Set the tile's info to match passed params
@@ -22,6 +22,10 @@ function Enemy:getHit()
 end
 
 function Enemy:takeTurn()
+end
+
+function Enemy:die()
+	self.alive = false
 end
 
 Barrel = Enemy:new{name="Barrel", icon="B", health=1}
@@ -46,5 +50,7 @@ function Barrel:takeTurn()
 	elseif self.icon == "1" then
 		self.icon = "0"
 	elseif self.icon == "0" then
+		makeExplosion(self.x, self.y, 5, true)
+		self:die()
 	end
 end
