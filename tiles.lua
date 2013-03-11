@@ -75,6 +75,16 @@ function ThunderingDoor:new(o)
 	return o
 end
 
+function ThunderingDoor:doAction()
+	Tile.doAction(self)
+	if(self.tile ~= 5) then
+		char["awesome"] = char["awesome"] + 10
+		printSide("The door thunders open.")
+	end
+	self.tile = 5
+	self.blocker = false
+end
+
 -- DoorSealer constructor seals a door
 DoorSealer = Floor:new()
 function DoorSealer:new(o)
@@ -86,8 +96,14 @@ end
 -- end constructor
 
 -- seal() closes the door, turning it into a wall
-function DoorSealer:seal()
-	self.door_to_seal = Wall:new(self.door_to_seal.room)
+function DoorSealer:doAction()
+	if(self.door_to_seal.x) then
+		door_room = {}
+		for k,v in pairs(map[self.door_to_seal.x][self.door_to_seal.y].room, nil) do door_room[k] = v end
+		map[self.door_to_seal.x][self.door_to_seal.y] = Wall:new{room=door_room}
+		self.door_to_seal.x = nil -- Can't seal again
+		printSide("The door shudders closed behind you.")
+	end
 end
 -- end seal()
 

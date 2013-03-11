@@ -44,7 +44,7 @@ function love.load()
 	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
 											.. "xxxxxxxxxxxxxxxxxxxxx"
 											.. "xxxxxxxxxxxxBxxxxxxxxxxxx"
-											.. "AACDEFGHIJKLMNOPQRSTUVWXYZ"
+											.. "ACCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
@@ -133,6 +133,8 @@ function makeMap()
 	end
 	k, v = next(map[start_i-1][start_j].room, nil)
 	map[start_i][start_j] = CrackedWall:new{room={[998]=true, [k]=true}}
+	table.insert(map[start_i][start_j-1].room, {[998]=true})
+	table.insert(map[start_i][start_j+1].room, {[998]=true})
 	-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
 	spawnEnemy(start_i-1, start_j, Barrel)
 	for i = start_i+1,end_i do
@@ -150,7 +152,7 @@ function makeMap()
 	end_i = start_i + 20
 	for i=start_i,end_i do map[i] = {} end -- Make rows
 	makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
-	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal=thunderingDoor} -- Make thundering door lever
+	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-1, y=start_j}} -- Make thundering door lever
 	
 	-- Set character location
 	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
@@ -578,8 +580,9 @@ function doTurn()
 	for i = 1, # enemies do
 		if not enemies[i].alive then
 			table.remove(enemies, i)
+		else
+			enemies[i]:takeTurn()
 		end
-		enemies[i]:takeTurn()
 	end
 end
 --end doTurn()
@@ -620,6 +623,13 @@ end
 --spawns an explosion at the specified x and y.
 --if "Friendly Fire" is set to TRUE, it CAN hurt the player.
 function makeExplosion(x, y, size, friendlyFire)
+	for i=math.ceil(x-size/2),math.ceil(x+size/2) do
+	for j=math.ceil(y-size/2),math.ceil(y+size/2) do
+		if(map[i] and map[i][j]) then
+			map[i][j]:greatForce()
+		end
+	end
+	end
 
 	--1 second long explosions
 	endsplosion = currtime + 0.6
@@ -634,7 +644,6 @@ function makeExplosion(x, y, size, friendlyFire)
 	suspended = true --suspend user until explosion is over
 	exploding = true -- duh
 
-	
 	starttime = love.timer.getMicroTime()
 	--while(love.timer.getMicroTime() - starttime < 0.5) do --1 second long splosion
 	print("endsplosion: " .. endsplosion .. " and currtime " .. currtime)
