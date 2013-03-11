@@ -1,4 +1,4 @@
-sidebarlog = {}
+sidebarlog = {"You wake up."}
 
 function drawSidebar(start_x)
 	love.graphics.setFont(mainFont) -- Just in case
@@ -19,7 +19,7 @@ function drawSidebar(start_x)
 	
 	-- Draw strength and corresponding health
 	love.graphics.setColor( 255, 255, 255 )
-	for i = 1,table.getn(sidebarlog) do
+	for i = 1,#sidebarlog do
 		if i > 8 then break end
 		love.graphics.setColor( 255 - i*30, 255 - i*30, 255 - i*30 )
 		love.graphics.print(sidebarlog[i], start_x+10, 100+i*15)
