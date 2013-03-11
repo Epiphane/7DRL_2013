@@ -184,8 +184,7 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 					or map[walk_end_i][start_j+1].blocker) then
 					diff = walk_end_i - walk_start_i
 					if(diff > 3) then
-						tile = map[walk_start_i+2+math.random(diff-3)][start_j]
-						tile = Door:new{room=roomnum}
+						map[walk_start_i+2+math.random(diff-3)][start_j] = Door:new{room=roomnum}
 					end
 					walk_start_i = walk_end_i + 1
 					walk_end_i = walk_start_i + 1
