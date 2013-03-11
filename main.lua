@@ -19,23 +19,32 @@ bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 enemies = {}
 num_enemies = 0
 
+tile_info = {{blocker=false}, 
+			{blocker=true, message="You walk into a wall...", awesome_effect=-2}, 
+			{blocker=false}, 
+			{blocker=true, walk_trans=5, message="You open the door.", awesome_effect=1}, -- Door turns into an opened door
+			{blocker=false},
+			{blocker=true},
+			{blocker=true, walk_trans=5, message="The door thunders open.", awesome_effect=5},
+			{blocker=false}}
+
 function love.load()
 	-- Set background color black, cause it's a console you stupid bitch
 	love.graphics.setBackgroundColor( 0, 0, 0 )
 	
 	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
-	mainFont = love.graphics.newImageFont ("arial12x12.png", "_!\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
+	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
 											.. "xxxxxxxxxxxxxxxxxxxxx"
 											.. "xxxxxxxxxxxxxxxxxxxxxxxxx"
 											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
-	floorFont = love.graphics.newImageFont ("floorTiles.png", "1234")
+	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
 	
 	-- Initialize main character and shit
 	-- Side note: right now, with sizing and everything, it's looking like strength
 	-- and such values will max at 180
-	char = {strength=70, knowledge=180, energy=90, sanity=130}
+	char = {awesome=100}
 	-- Character location set in map function
 	
 	-- Build map
@@ -55,10 +64,11 @@ function love.load()
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 60
-MAPHEIGHT = 60
+MAPWIDTH = 24
+MAPHEIGHT = 24
 ROOMNUM = 1
 WALL_NUM = 2 -- Wall num constant
+viewed_rooms = {}
 function makeMap()
 	map = {}
 	for i = 1, MAPWIDTH do
@@ -78,38 +88,74 @@ function makeMap()
 	-- Create rooms
 	j = 1
 	repeat
-		next_j = j+8+math.random(6)
+		next_j = j+8+math.random(8)
 		-- Boundary check
-		if(next_j > MAPHEIGHT) then 
+		if(next_j + 5 > MAPHEIGHT) then 
 			next_j = MAPHEIGHT
 		end
 		
 		i = 1
 		repeat
-			next_i = i+8+math.random(6)
+			next_i = i+8+math.random(8)
 			-- Boundary check
-			if(next_i > MAPWIDTH) then 
+			if(next_i + 5 > MAPWIDTH) then 
 				next_i = MAPWIDTH 
 			end
 			
 			-- Make a room with the coordinates as stated
-			makeRoom(i, j, next_i, next_j, ROOMNUM)
+			makeRoomAndDoors(i, j, next_i, next_j, ROOMNUM)
 			i = next_i
 			ROOMNUM = ROOMNUM + 1
 		until i == MAPWIDTH
 		j = next_j
 	until j == MAPHEIGHT
 	
+	-- Make boss room corridor
+	start_i = MAPWIDTH
+	CORRIDORWIDTH = 24 + math.random(8)
+	end_i = start_i + CORRIDORWIDTH
+	start_j = MAPHEIGHT/2
+	while(tile_info[map[start_i-1][start_j]["tile"]]["blocker"]) do -- In case we put corridor against a wall
+		start_j = start_j - 1
+	end
+	map[start_i][start_j]["tile"] = 3
+	for i = start_i+1,end_i do
+		map[i] = {}
+		map[i][start_j - 1] = {tile=WALL_NUM, room=998}
+		map[i][start_j] = {tile=3, room=998}
+		map[i][start_j + 1] = {tile=WALL_NUM, room=998}
+	end
+	map[end_i][start_j] = {tile=7, room=998} -- Make thundering door
+	ROOMNUM = ROOMNUM + 1
+	
+	-- Make boss room!
+	start_i = end_i + 1
+	end_i = start_i + 20
+	for i=start_i,end_i do map[i] = {} end -- Make rows
+	makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
+	map[start_i][start_j] = {tile=8, room=999} -- Make thundering door lever
+	
+	-- Set character location
+	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
+	char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
 	-- Set screen offset (for scrolling)
-	offset = {x=-15, y=-20}
-	char["x"] = 10
-	char["y"] = 8
+	offset = {x=char["x"]-20, y=char["y"]-30}
+	while(tile_info[map[char["x"]][char["y"]]["tile"]]["blocker"]) do
+		char["x"] = char["x"] + 1
+		char["y"] = char["y"] + 1
+	end
 	char["room"] = map[char["x"]][char["y"]]["room"]
+	viewed_rooms[char["room"]] = true
+end
+
+function makeRoomAndDoors(start_i, start_j, end_i, end_j, roomnum)
+	makeRoom(start_i, start_j, end_i, end_j, roomnum, true)
 end
 
 -- Fill a room with generic wall/floor
-function makeRoom(start_i, start_j, end_i, end_j, roomnum)
+function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 	for i = start_i, end_i do
+		if not map[i] then map[i] = {} end
 		for j = start_j, end_j do
 			if(i == start_i or j == start_j or j == end_j or i == end_i) then
 				map[i][j] = {tile=WALL_NUM, room=roomnum} -- Wall
@@ -119,27 +165,30 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum)
 		end
 	end
 	
-	if(start_i ~= 1) then -- Put a doorway!
-		map[start_i][start_j + math.random(end_j-start_j)] = {tile=4, room=roomnum} -- Floor
-	end
-	
-	if(start_j ~= 1) then -- Put top doorways!
-		walk_start_i = start_i -- "Walk" along the top wall and find good doorway walls
-		for walk_end_i = walk_start_i + 1,end_i do
-			if(map[walk_end_i][start_j-1]["tile"] == WALL_NUM 
-				or map[walk_end_i][start_j+1]["tile"] == WALL_NUM) then
-				diff = walk_end_i - walk_start_i
-				if(diff > 3) then
-					map[walk_start_i+math.random(diff)][start_j]["tile"] = 4
+	if makeDoors then
+		if(start_i ~= 1) then -- Put a doorway!
+			map[start_i][start_j+2 + math.random(end_j-start_j-4)] = {tile=4, room=roomnum} -- Floor
+		end
+		
+		if(start_j ~= 1) then -- Put top doorways!
+			walk_start_i = start_i -- "Walk" along the top wall and find good doorway walls
+			for walk_end_i = walk_start_i + 1,end_i do
+				if(map[walk_end_i][start_j-1]["tile"] == WALL_NUM 
+					or map[walk_end_i][start_j+1]["tile"] == WALL_NUM) then
+					diff = walk_end_i - walk_start_i
+					if(diff > 3) then
+						map[walk_start_i+2+math.random(diff-3)][start_j]["tile"] = 4
+					end
+					walk_start_i = walk_end_i + 1
+					walk_end_i = walk_start_i + 1
 				end
-				walk_start_i = walk_end_i + 1
 			end
 		end
 	end
 end
 
 -- Amount of tiles to display (proportional to display size / 12)
-DISPLAYWIDTH = 50
+DISPLAYWIDTH = 40
 DISPLAYHEIGHT = 50
 function love.draw()
 	-- Draw the map
@@ -149,13 +198,24 @@ function love.draw()
 			-- Do null checks first: add offset["x"] and offset["y"] to show right part of map
 			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
 				-- Tint is how bright to make it
-				love.graphics.setColor( 100, 100, 100 ) -- Dim for not in room
-				for x_o=-1,0 do	-- This is for walls: if the top-left is in your room
+				love.graphics.setColor( 0, 0, 0 ) -- Dim for not in room
+				for x_o=-1,0 do	-- This is for walls: if the top-left is in your room,
 				for y_o=-1,0 do -- Light this up for aesthetics
 					if(map[i+offset["x"]+x_o] and map[i+offset["x"]+x_o][j+offset["y"]+y_o]) then
-						if map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"] == char["room"] then
+						roomnum = map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"]
+						if roomnum == char["room"] then
 							love.graphics.setColor( 255, 255, 255 ) -- LIGHT 'ER UP
-							break
+						elseif viewed_rooms[roomnum] then
+							-- TODO: Smarter way to figure out if its 255, 255, 255
+							r, g, b, a = love.graphics.getColor()
+							if(r ~= 255) then
+								if(char["room"] == 998) then -- Corridor: Tint darker the farther you get
+									tint = (MAPWIDTH - char["x"])*255/CORRIDORWIDTH
+									love.graphics.setColor( tint, tint, tint )
+								else
+									love.graphics.setColor( 100, 100, 100 )
+								end
+							end
 						end
 					end
 				end
@@ -200,7 +260,7 @@ function love.draw()
 	end
 	
 	-- Draw sidebar starting at x = 600
-	drawSidebar(600)
+	drawSidebar(480)
 end
 
 currtime = 0
@@ -234,7 +294,7 @@ function love.update(dt)
 	if(currtime > bullet["nextmove"] and not bullet["over"])	then
 	
 		--did we hit something?
-		if(map[bullet["x"] + 1 + bullet["dx"]][bullet["y"] + 1 + bullet["dy"]]["tile"] == 2) then
+		if(tile_info[map[bullet["x"] + 1 + bullet["dx"]][bullet["y"] + 1 + bullet["dy"]]["tile"]]["blocker"]) then
 			bullet["over"] = true
 			suspended = false
 		end
@@ -343,31 +403,49 @@ function checkThenMove(x, y)
 	-- Get outta here if its the edge of the world
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
-	--for now I'm pretending "2" is a wall
-	if(map[x][y]["tile"] == WALL_NUM) then
-		--do nuffin
+	tileinfo = tile_info[map[x][y]["tile"]]
+	-- Random stuff that sends a message
+	printSide(tileinfo["message"])
+	
+	if(tileinfo["blocker"] ) then
+		-- Or adds/subtracts awesome
+		char['awesome'] = char['awesome'] + tileinfo["awesome_effect"]
+		
+		if(tileinfo["walk_trans"]) then
+			map[x][y]["tile"] = tileinfo["walk_trans"]
+		end
 	elseif(false) then -- checks for monsters, etc. go here
 	
 	else-- empty square! we cool.
+		if(map[x][y]["tile"] == 8 and map[char["x"]][char["y"]]["tile"] == 5) then -- If this is the boss room lever
+			printSide("The door thunders closed.")
+			map[char["x"]][char["y"]]["tile"] = 2
+		end
+		
+		-- In case we're entering a new room soon
+		viewed_rooms[map[x-1][y]["room"]] = true
+		viewed_rooms[map[x][y-1]["room"]] = true
+		
 		char["x"], char["y"] = x, y
 		char["room"] = map[char["x"]][char["y"]]["room"]
+		viewed_rooms[char["room"]] = true
 		
 		-- And lets do some fancy scrolling stuff
-		if(table.getn(map[1]) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
-			if(char["x"] - offset["x"] > 40) then -- Moving right
-				offset["x"] = char["x"] - 40
+		--if(table.getn(map) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
+			if(char["x"] - offset["x"] > 30) then -- Moving right
+				offset["x"] = char["x"] - 30
 			elseif(char["x"] - offset["x"] < 20) then -- Moving left
 				offset["x"] = char["x"] - 20
 			end
-		end
+		--end
 		
-		if(table.getn(map) > DISPLAYHEIGHT) then -- Only scroll if the map is tall enough
+		--if(table.getn(map[1]) > DISPLAYHEIGHT) then -- Only scroll if the map is tall enough
 			if(char["y"] - offset["y"] > 40) then -- Moving down
 				offset["y"] = char["y"] - 40
 			elseif(char["y"] - offset["y"] < 20) then -- Moving up
 				offset["y"] = char["y"] - 20
 			end
-		end
+		--	end
 	end
 end
 
@@ -430,7 +508,7 @@ function shoot(direction)
 	bullet["nextmove"] = currtime + .08
 	
 	--are we shooting at a wall?
-	if(map[bullet["x"] + 1][bullet["y"] + 1]["tile"] == WALL_NUM) then
+	if(tile_info[map[bullet["x"] + 1][bullet["y"] + 1]["tile"]]["blocker"]) then
 		bullet["over"] = true
 		suspended = false
 	end
