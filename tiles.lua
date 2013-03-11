@@ -41,7 +41,7 @@ function Floor:new(o)
 	return o
 end
 
-Door = Tile:new{tile=4, blocker=true, message="You open the door."}
+Door = Tile:new{tile=4, blocker=true}
 function Door:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile

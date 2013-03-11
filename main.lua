@@ -35,6 +35,9 @@ function love.load()
 	-- Initialize everything Tile
 	dofile("tiles.lua")
 	
+	-- Initialize everything Tile
+	dofile("enemies.lua")
+	
 	-- Set background color black, cause it's a console you stupid bitch
 	love.graphics.setBackgroundColor( 0, 0, 0 )
 	
@@ -250,27 +253,12 @@ function love.draw()
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet["x"] .. ", " .. bullet["y"])
 	if(not bullet["over"]) then
-		love.graphics.print("!", (bullet["x"] - offset["x"])*12, (bullet["y"] - offset["y"])*12)
+		love.graphics.print("!", (bullet["x"] - offset["x"] - 1)*12, (bullet["y"] - offset["y"] - 1)*12)
 	end
 	
 	--draw enemies
-	for i = 0, num_enemies do
-		ex = enemies["enemy" .. i .. "x"]
-		ey = enemies["enemy" .. i .. "y"]
-		which = enemies["enemy" .. i .. "whichEnemy"]
-		--print("ex: " .. ex .. " and ey " .. ey)
-		
-		if(which == "zombie") then
-			love.graphics.print("Z", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
-		end
-		
-		if(which == "robot") then
-			love.graphics.print("R", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
-		end
-		
-		if(which == "barrel") then
-			love.graphics.print("B", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
-		end
+	for i = 1, # enemies do
+		enemies[i]:draw()
 	end
 	
 	-- Draw sidebar starting at x = 600
@@ -308,7 +296,7 @@ function love.update(dt)
 	if(currtime > bullet["nextmove"] and not bullet["over"])	then
 	
 		--did we hit something?
-		if(tile_info[map[bullet["x"] + 1 + bullet["dx"]][bullet["y"] + 1 + bullet["dy"]]["tile"]]["blocker"]) then
+		if(map[bullet["x"] + bullet["dx"]][bullet["y"] + bullet["dy"]].blocker) then
 			bullet["over"] = true
 			suspended = false
 		end
@@ -469,8 +457,8 @@ end
 --Fire bullets with the numpad, scoob.
 
 function shoot(direction)
-	bullet["x"] = char["x"] - 1
-	bullet["y"] = char["y"] - 1
+	bullet["x"] = char["x"]
+	bullet["y"] = char["y"]
 	
 	bullet["dx"] = 0
 	bullet["dy"] = 0
@@ -516,7 +504,7 @@ function shoot(direction)
 	bullet["nextmove"] = currtime + .08
 	
 	--are we shooting at a wall?
-	if(tile_info[map[bullet["x"] + 1][bullet["y"] + 1]["tile"]]["blocker"]) then
+	if(map[bullet["x"]][bullet["y"]].blocker) then
 		bullet["over"] = true
 		suspended = false
 	end
@@ -525,21 +513,8 @@ end
 
 --spawns an enemy @ x, y
 function spawnEnemy(x, y, which_enemy)
-	--look at the length, go +1
-	num_enemies = num_enemies + 1
-	
-	print(#enemies .. " hmm")
-	
-	enemystring = "enemy" .. (num_enemies)
-	
-	enemies[enemystring .. "x"] = x
-	enemies[enemystring .. "y"] = y
-	enemies[enemystring .. "hp"] = y
-	
-	enemies[enemystring .. "whichEnemy"] = which_enemy
-	
-	print("added enemy! ex at " .. enemystring .."x is " .. enemies[enemystring .. "x"] .."!")
-
+	k, v = next(map[x][y].room, nil)
+	table.insert(enemies, Enemy:new{x=x, y=y, room=k})
 end
 --end spawnEnemy
 
