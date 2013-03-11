@@ -19,6 +19,14 @@ bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 enemies = {}
 num_enemies = 0
 
+sizes1 = {1,3,5,5,5,3,2,1,0}
+sizeindex = 0
+
+--is explosion happening?
+exploding = false
+explosionTiles = {}
+explosion = {x=5, y=5, size=5, friendlyFire = false}
+
 tile_info = {{blocker=false}, 
 			{blocker=true, message="You walk into a wall...", awesome_effect=-2}, 
 			{blocker=false}, 
@@ -59,6 +67,16 @@ function love.load()
 	-- Build map
 	-- TODO: Make actual level initiation function, this is more of a placeholder
 	makeMap()
+	
+	
+	explosionTiles = {}
+    for i=-13,13 do
+		explosionTiles[i] = {}     -- initialize multidimensional array
+		for j=-13,13 do
+			explosionTiles[i][j] = "-1+-1+-1"
+		end
+    end
+	
 	
 	-- spawn enemies
 	-- TODO: where???
@@ -259,6 +277,39 @@ function love.draw()
 		enemies[i]:draw()
 	end
 	
+	--drawsplosion if we're sploding
+	if(exploding) then
+		iterateExplosion()
+	
+		love.graphics.setColor(255,255,0)
+		love.graphics.rectangle("fill",0,0,24,24)
+		for explosionX = 0, explosion["size"] * 2 do
+			for explosionY = 0, explosion["size"] * 2 do
+				
+				rindex = string.find(explosionTiles[explosionX][explosionY], "+")
+				
+				--pull out the r, g, and b index values
+				r = tonumber(string.sub(explosionTiles[explosionX][explosionY], 0, rindex - 1))
+				
+				gindex = string.find(explosionTiles[explosionX][explosionY], "+", rindex + 1) 
+				
+				g = tonumber(string.sub(explosionTiles[explosionX][explosionY], 
+					rindex + 1, gindex - 1))
+				
+				bindex = string.find(explosionTiles[explosionX][explosionY], "+", gindex) 
+				
+				b = tonumber(string.sub(explosionTiles[explosionX][explosionY], 
+					bindex + 1))
+				
+				if(r ~= -1) then
+					love.graphics.setColor(r, g, b)
+					love.graphics.rectangle( "fill", (explosion["x"] + explosionX - offset["x"] - 5) * 12, 
+						(explosion["y"] + explosionY - offset["y"] - 5) * 12, 12, 12)
+				end
+			end
+		end
+	end
+	
 	-- Draw sidebar starting at x = 600
 	drawSidebar(480)
 end
@@ -368,6 +419,11 @@ function love.keypressed(key, unicode)
 		--numpad code is formatted as "kp#"
 		if(string.sub(key,0,2) == "kp") then
 			shoot(string.sub(key,3))
+		end
+		
+		--press E for Explosion
+		if(key == "e") then
+			makeExplosion(char["x"], char["y"], 5, false)
 		end
 	end
 end
@@ -535,8 +591,126 @@ end
 
 --controls enemy movement/attack patterns.
 function enemyTurn(id)
+	--if an enemy can't see the player it just wanders around randomly.
+	--weight it so that the enemy moves vaguely forward.
+	rand = math.random(101)
+	
+	if(rand < 70) then --don't move at all
+	
+	elseif(rand < 80) then -- move forward
+		
+	elseif(rand < 86) then -- forward-right
+	
+	elseif(rand < 92) then -- foward-left
+	
+	elseif(rand < 95) then -- left
+	
+	elseif(rand < 98) then -- right
+	
+	else --backwards
+	
+	end
 	
 
 
 end
 --end enemyTurn()
+
+--checks if an enemy can in fact move to a place, then does it
+--if it can!
+function moveEnemy(id, x, y)
+
+end
+
+--spawns an explosion at the specified x and y.
+--if "Friendly Fire" is set to TRUE, it CAN hurt the player.
+function makeExplosion(x, y, size, friendlyFire)
+
+	--1 second long explosions
+	endsplosion = currtime + 0.6
+	nextiteration = currtime
+
+	--print("hi " .. explosionTiles[-0][2])
+	explosion["x"] = x
+	explosion["y"] = y
+	explosion["size"] = size
+	explosion["friendlyFire"] = friendlyFire
+	
+	suspended = true --suspend user until explosion is over
+	exploding = true -- duh
+
+	
+	starttime = love.timer.getMicroTime()
+	--while(love.timer.getMicroTime() - starttime < 0.5) do --1 second long splosion
+	print("endsplosion: " .. endsplosion .. " and currtime " .. currtime)
+
+end
+
+--if enough time has passed, make the explosion different-looking
+function iterateExplosion()
+	--see if we're actually secretly done
+	if(endsplosion < currtime) then
+		print("done exploding!")
+		exploding = false
+		suspended = false
+	end
+
+	--draw a bunch of yellow/red/orange rectangles, centered at x, y
+	--goes all the way to radius specified by "size"
+
+	--is all randomized and shit.  Also decreases in size over lifespan.
+	if(nextiteration < currtime) then
+		print("this is happening now")
+		for exx = -math.ceil(explosion["size"]), math.ceil(explosion["size"]) do 
+			for exy = -math.ceil(explosion["size"]), math.ceil(explosion["size"]) do 
+				r,g,b = -1,-1,-1
+				--First, choose a random color or choose to not have a splosion tile there at all
+				rando = math.random(5)
+				if(rando == 1) then
+					--negative one indicates explosion-less square.
+					r, g, b = -1, -1, -1
+				elseif(rando == 2) then
+					--a nice oaky orange
+					r, g, b = 230, 193, 30
+				elseif(rando == 3) then
+					--a vibrant yellow
+					r, g, b = 255, 255, 0
+				elseif(rando == 4) then
+					--a sultry, hot red
+					r, g, b = 255, 55, 0
+				end
+			
+				--print(math.ceil(math.sin(angle) * radius + size/2) .. " and " .. math.ceil(math.cos(angle) * radius + size/2))
+				explosionTiles[exx + 2][exy + 2] = r .. "+" .. g .. "+" .. b
+			end
+		end
+	
+		nextiteration = currtime + .1
+		sizeindex = sizeindex + 1
+		end
+	--currtime = love.timer.getMicroTime()
+	
+	explosion["size"] = sizes1[sizeindex]
+	if(explosion["size"] == 0) then
+		exploding = false
+		suspended = false
+		sizeindex = 0
+	end
+end
+
+--wheredja get this?
+-- I STOOOLED IT
+function string.explode(str, div)
+    assert(type(str) == "string" and type(div) == "string", "invalid arguments")
+    local o = {}
+    while true do
+        local pos1,pos2 = str:find(div)
+        if not pos1 then
+            o[#o+1] = str
+            break
+        end
+        o[#o+1],str = str:sub(1,pos1-1),str:sub(pos2+1)
+    end
+	print(o[0] .. " and " .. o[1] .. " AND " .. o[2])
+    return o
+end
