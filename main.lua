@@ -80,9 +80,9 @@ function makeMap()
 			-- Create random thingy. Again - placeholder, we need to create functions
 			-- and algorithms and stuff
 			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
-				row[j] = Wall:new{room=ROOMNUM}
+				row[j] = Wall:new{room={[ROOMNUM]=true}}
 			else
-				row[j] = Floor:new{room=ROOMNUM}
+				row[j] = Floor:new{room={[ROOMNUM]=true}}
 			end
 		end
 		map[i] = row
@@ -126,11 +126,11 @@ function makeMap()
 	spawnEnemy(start_i-1, start_j, "barrel")
 	for i = start_i+1,end_i do
 		map[i] = {}
-		map[i][start_j - 1] = Wall:new{room=998}
-		map[i][start_j] = Floor:new{room=998}
-		map[i][start_j + 1] = Wall:new{room=998}
+		map[i][start_j - 1] = Wall:new{room={[998]=true}}
+		map[i][start_j] = Floor:new{room={[998]=true}}
+		map[i][start_j + 1] = Wall:new{room={[998]=true}}
 	end
-	thunderingDoor = ThunderingDoor:new{room=998}
+	thunderingDoor = ThunderingDoor:new{room={[998]=true}}
 	map[end_i][start_j] = thunderingDoor -- Make thundering door
 	ROOMNUM = ROOMNUM + 1
 	
@@ -139,7 +139,7 @@ function makeMap()
 	end_i = start_i + 20
 	for i=start_i,end_i do map[i] = {} end -- Make rows
 	makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
-	map[start_i][start_j] = DoorSealer:new{room=999, door_to_seal=thunderingDoor} -- Make thundering door lever
+	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal=thunderingDoor} -- Make thundering door lever
 	
 	-- Set character location
 	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
@@ -150,8 +150,11 @@ function makeMap()
 		char["x"] = char["x"] + 1
 		char["y"] = char["y"] + 1
 	end
-	char["room"] = map[char["x"]][char["y"]]["room"]
-	viewed_rooms[char["room"]] = true
+	
+	-- Put character in the room
+	k, v = next(map[char["x"]][char["y"]].room, nil)
+	char["room"] = k
+	viewed_rooms[k] = true
 end
 
 -- Automatically add doors to the room
@@ -165,16 +168,35 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 		if not map[i] then map[i] = {} end
 		for j = start_j, end_j do
 			if(i == start_i or j == start_j or j == end_j or i == end_i) then
-				map[i][j] = Wall:new{room=romnum} -- Wall
+				map[i][j] = Wall:new{room={[roomnum]=true}} -- Wall
 			else
-				map[i][j] = Floor:new{room=romnum} -- Floor
+				map[i][j] = Floor:new{room={[roomnum]=true}} -- Floor
+			end
+			
+			-- if its the top or left of a room we need to make special...modifications
+			-- so that it shows
+			if(i == start_i and i > 1) then
+				if map[i-1][j] then
+					for k, v in pairs(map[i-1][j].room) do 
+						map[i][j].room[k] = true
+					end
+				end
+			end
+			if(j == start_j and j > 1) then
+				if map[i][j-1] then
+					for k, v in pairs(map[i][j-1].room) do 
+						map[i][j].room[k] = true
+					end
+				end
 			end
 		end
 	end
 	
 	if makeDoors then
 		if(start_i ~= 1) then -- Put a doorway!
-			map[start_i][start_j+2 + math.random(end_j-start_j-4)] = Door:new{room=roomnum} -- Floor
+			j_val = start_j+2 + math.random(end_j-start_j-4)
+			k,v = next(map[start_i-1][j_val].room,nil)
+			map[start_i][j_val] = Door:new{room={[roomnum]=true, [k]=true}} -- Floor
 		end
 		
 		if(start_j ~= 1) then -- Put top doorways!
@@ -184,7 +206,9 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 					or map[walk_end_i][start_j+1].blocker) then
 					diff = walk_end_i - walk_start_i
 					if(diff > 3) then
-						map[walk_start_i+2+math.random(diff-3)][start_j] = Door:new{room=roomnum}
+						i_val = walk_start_i+2+math.random(diff-3)
+						k,v = next(map[i_val][start_j-1].room,nil)
+						map[i_val][start_j] = Door:new{room={[roomnum]=true, [k]=true}}
 					end
 					walk_start_i = walk_end_i + 1
 					walk_end_i = walk_start_i + 1
@@ -205,28 +229,7 @@ function love.draw()
 			-- Do null checks first: add offset["x"] and offset["y"] to show right part of map
 			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
 				-- Tint is how bright to make it
-				map[i+offset["x"]][j+offset["y"]]:setColor(char["room"], 0)
-				--for x_o=-1,0 do	-- This is for walls: if the top-left is in your room,
-				--for y_o=-1,0 do -- Light this up for aesthetics
-					--if(map[i+offset["x"]+x_o] and map[i+offset["x"]+x_o][j+offset["y"]+y_o]) then
-						--roomnum = map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"]
-						--if roomnum == char["room"] then
-							--love.graphics.setColor( 255, 255, 255 ) -- LIGHT 'ER UP
-						--elseif viewed_rooms[roomnum] then
-						--	-- TODO: Smarter way to figure out if its 255, 255, 255
-						--	r, g, b, a = love.graphics.getColor()
-						--	if(r ~= 255) then
-						--		if(char["room"] == 998) then -- Corridor: Tint darker the farther you get
-						--			tint = (MAPWIDTH - char["x"])*255/CORRIDORWIDTH
-						--			love.graphics.setColor( tint, tint, tint )
-						--		else
-						--			love.graphics.setColor( 100, 100, 100 )
-						--		end
-						--	end
-						--end
-					--end
-				--end
-				--end
+				map[i+offset["x"]][j+offset["y"]]:setColor(char["room"])
 				love.graphics.print(map[i+offset["x"]][j+offset["y"]].tile, (i-1)*12, (j-1)*12)
 			else
 				love.graphics.print(1, (i-1)*12, (j-1)*12)
@@ -415,8 +418,6 @@ function checkThenMove(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
 	tile = map[x][y]
-	-- Random stuff that sends a message
-	tile:doAction()
 	
 	if tile.blocker then
 	elseif(false) then -- checks for monsters, etc. go here
@@ -432,8 +433,9 @@ function checkThenMove(x, y)
 		viewed_rooms[map[x][y-1]["room"]] = true
 		
 		char["x"], char["y"] = x, y
-		char["room"] = map[char["x"]][char["y"]]["room"]
-		viewed_rooms[char["room"]] = true
+		k, v = next(map[char["x"]][char["y"]].room, nil)
+		char["room"] = k
+		viewed_rooms[k] = true
 		
 		-- And lets do some fancy scrolling stuff
 		--if(table.getn(map) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
@@ -452,6 +454,7 @@ function checkThenMove(x, y)
 			end
 		--	end
 	end
+	tile:doAction()
 end
 
 --Just a little thing I maaaade.
