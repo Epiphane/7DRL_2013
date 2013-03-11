@@ -19,7 +19,8 @@ bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 enemies = {}
 num_enemies = 0
 
-sizes1 = {1,3,5,5,5,3,3,2,1,0}
+sizes1 = {1,3,5,5,5,3,2,1,0}
+sizeindex = 0
 
 --is explosion happening?
 exploding = false
@@ -306,7 +307,6 @@ function love.draw()
 					love.graphics.setColor(r, g, b)
 					love.graphics.rectangle( "fill", (explosion["x"] + explosionX - offset["x"] - 5) * 12, 
 						(explosion["y"] + explosionY - offset["y"] - 5) * 12, 12, 12)
-					print("well I'm just tryinta draw this shit")
 				end
 			end
 		end
@@ -655,8 +655,8 @@ function iterateExplosion()
 	--is all randomized and shit.  Also decreases in size over lifespan.
 	if(nextiteration < currtime) then
 		print("this is happening now")
-		for radius = 0, explosion["size"], 1 do 
-			for angle = 0, 2 * math.pi, math.pi / 7 do 
+		for exx = -math.ceil(explosion["size"]), math.ceil(explosion["size"]) do 
+			for exy = -math.ceil(explosion["size"]), math.ceil(explosion["size"]) do 
 				r,g,b = -1,-1,-1
 				--First, choose a random color or choose to not have a splosion tile there at all
 				rando = math.random(5)
@@ -674,17 +674,22 @@ function iterateExplosion()
 					r, g, b = 255, 55, 0
 				end
 			
-				--dat polar coordinate system :D
 				--print(math.ceil(math.sin(angle) * radius + size/2) .. " and " .. math.ceil(math.cos(angle) * radius + size/2))
-				explosionTiles[math.ceil(math.sin(angle) * radius + explosion["size"]/2)][math.ceil(math.cos(angle) * radius + explosion["size"]/2)] = r .. "+" .. g .. "+" .. b
+				explosionTiles[exx + 2][exy + 2] = r .. "+" .. g .. "+" .. b
 			end
 		end
 	
-		nextiteration = currtime + .04
+		nextiteration = currtime + .1
+		sizeindex = sizeindex + 1
 		end
 	--currtime = love.timer.getMicroTime()
 	
-	--explosion["size"] = next(sizes1,explosion["size"])
+	explosion["size"] = sizes1[sizeindex]
+	if(explosion["size"] == 0) then
+		exploding = false
+		suspended = false
+		sizeindex = 0
+	end
 end
 
 --wheredja get this?
