@@ -44,8 +44,8 @@ function love.load()
 	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
 	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
 											.. "xxxxxxxxxxxxxxxxxxxxx"
-											.. "xxxxxxxxxxxxxxxxxxxxxxxxx"
-											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+											.. "xxxxxxxxxxxxBxxxxxxxxxxxx"
+											.. "AACDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
@@ -62,8 +62,6 @@ function love.load()
 	
 	-- spawn enemies
 	-- TODO: where???
-	spawnEnemy(10,20,"zombie")
-	spawnEnemy(12,12,"robot")
 	
 	-- Initialize line of sight functions MAYBE
 	--dofile("los_functions.lua")
@@ -126,7 +124,7 @@ function makeMap()
 	end
 	map[start_i][start_j]["tile"] = 6
 	-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
-	spawnEnemy(start_i-1, start_j, "barrel")
+	spawnEnemy(start_i-1, start_j, Barrel)
 	for i = start_i+1,end_i do
 		map[i] = {}
 		map[i][start_j - 1] = Wall:new{room={[998]=true}}
@@ -300,6 +298,13 @@ function love.update(dt)
 			bullet["over"] = true
 			suspended = false
 		end
+		for i = 1, # enemies do
+			if(bullet["x"] == enemies[i]["x"] and bullet["y"] == enemies[i]["y"]) then
+				enemies[i]:getHit()
+				bullet["over"] = true
+				suspended = false
+			end
+		end
 		
 		bullet["x"] = bullet["x"] + bullet["dx"]
 		bullet["y"] = bullet["y"] + bullet["dy"]
@@ -443,6 +448,7 @@ function checkThenMove(x, y)
 		--	end
 	end
 	tile:doAction()
+	doTurn()
 end
 
 --Just a little thing I maaaade.
@@ -514,15 +520,15 @@ end
 --spawns an enemy @ x, y
 function spawnEnemy(x, y, which_enemy)
 	k, v = next(map[x][y].room, nil)
-	table.insert(enemies, Enemy:new{x=x, y=y, room=k})
+	table.insert(enemies, which_enemy:new{x=x, y=y, room=k})
 end
 --end spawnEnemy
 
 --called whenever player shoots/moves/pulls lever/whatever.
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
-	for i = 0, num_enemies do
-		enemyTurn(i)
+	for i = 1, # enemies do
+		enemies[i]:takeTurn()
 	end
 end
 --end doTurn()
