@@ -259,6 +259,9 @@ function love.draw()
 		end
 	end
 	
+	love.graphics.setColor(255,248,31)
+	love.graphics.rectangle("fill", 50, 50, 60, 120 )
+	
 	-- Draw sidebar starting at x = 600
 	drawSidebar(480)
 end
@@ -361,6 +364,11 @@ function love.keypressed(key, unicode)
 		--numpad code is formatted as "kp#"
 		if(string.sub(key,0,2) == "kp") then
 			shoot(string.sub(key,3))
+		end
+		
+		--press E for Explosion
+		if(key == "e") then
+			makeExplosion(char["x"], char["y"], 5, false)
 		end
 	end
 end
@@ -573,5 +581,28 @@ end
 --checks if an enemy can in fact move to a place, then does it
 --if it can!
 function moveEnemy(id, x, y)
+
+end
+
+--spawns an explosion at the specified x and y.
+--if "Friendly Fire" is set to TRUE, it CAN hurt the player.
+function makeExplosion(x, y, size, friendlyFire)
+
+	suspended = true --suspend user until explosion is over
+
+	--draw a bunch of yellow/red/orange rectangles, centered at x, y
+	--goes all the way to radius specified by "size"
+
+	--is all randomized and shit.  Also decreases in size over lifespan.
+	
+	starttime = love.timer.getMicroTime()
+	while(love.timer.getMicroTime() - starttime < 1) do --1 second long splosion
+		for x = 0, size, 1 do
+		
+		end
+		print("currtime is " .. love.timer.getMicroTime() .. " and starttime is " .. starttime)
+	end
+	
+	suspended = false
 
 end
