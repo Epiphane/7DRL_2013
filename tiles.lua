@@ -12,40 +12,66 @@ end
 -- setColor(char_room, currentTint) takes what room the character is in,
 -- decides what color to make itself, and then returns that lighting.
 -- Added currentTint for efficiency
-function Tile:setColor(char_room, currentTint)
-	love.graphics.setColor( 0, 0, 0 ) -- Dim for not in room
-	if(self.room == char_room) then
-		love.graphics.setColor( 255, 255, 255 )
-	else
-		love.graphics.setColor( 100, 100, 100 )
+function Tile:setColor(char_room)
+	love.graphics.setColor( 0, 0, 0 )
+	k, v = next(self.room, nil)
+	while k do
+		if(char_room == k) then
+			love.graphics.setColor( 255, 255, 255 )
+			return
+		elseif(viewed_rooms[k]) then
+			love.graphics.setColor( 100, 100, 100 )
+		end
+		k, v = next(self.room, k)
 	end
 end
 -- end setColor()
 
 function Tile:doAction()
 	char['awesome'] = char['awesome'] + self.awesome_effect
+	printSide(self.message)
 end
 
 -- SUBCLASSES. THIS IS HOW INHERITANCE WORKS. IT'S WEIRD BUT GOOD
 Floor = Tile:new{tile=3} -- In other words, it inherits everything. It is a Tile, but 3, not 1
+function Floor:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
 
 Door = Tile:new{tile=4, blocker=true}
+function Door:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
 
--- open(): sets the door tile to open, and passibility to passible
-function Door:open()
+-- doAction(): sets the door tile to open, and passibility to passible
+function Door:doAction()
+	Tile.doAction(self)
+	if(self.tile ~= 5) then printSide("You open the door.") end
 	self.tile = 5
+	self.blocker = false
 end
 
 ThunderingDoor = Door:new{tile=7, blocker=true}
+function ThunderingDoor:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
 
 -- DoorSealer constructor seals a door
 DoorSealer = Floor:new()
-function DoorSealer:new(o, room_num, door_to_seal)
-	o = Floor:new(room_num)
+function DoorSealer:new(o)
+	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
 	self.__index = self		-- Define o as a Tile
-	self.door_to_seal = door_to_seal
-	return o				-- Return Tile
+	return o
 end
 -- end constructor
 
@@ -56,3 +82,9 @@ end
 -- end seal()
 
 Wall = Tile:new{tile=2, blocker=true}
+function Wall:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
