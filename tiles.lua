@@ -107,7 +107,7 @@ function DoorSealer:doAction()
 end
 -- end seal()
 
-Wall = Tile:new{tile=2, blocker=true}
+Wall = Tile:new{tile=2, blocker=true, awesome_effect=-1, message="You walk headlong\n  into a wall..."}
 function Wall:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -115,7 +115,7 @@ function Wall:new(o)
 	return o
 end
 
-CrackedWall = Wall:new{tile=6}
+CrackedWall = Wall:new{tile=6, awesome_effect=0}
 function CrackedWall:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
