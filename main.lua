@@ -702,7 +702,7 @@ function iterateExplosion()
 			end
 		end
 	
-		nextiteration = currtime + .05
+		nextiteration = currtime + .04
 		end
 	--currtime = love.timer.getMicroTime()
 	
