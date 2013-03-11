@@ -29,6 +29,12 @@ tile_info = {{blocker=false},
 			{blocker=false}}
 
 function love.load()
+	-- Initialize functions that are used for creating the info bar
+	dofile("sidebar.lua")
+	
+	-- Initialize everything Tile
+	dofile("tiles.lua")
+	
 	-- Set background color black, cause it's a console you stupid bitch
 	love.graphics.setBackgroundColor( 0, 0, 0 )
 	
@@ -56,9 +62,6 @@ function love.load()
 	spawnEnemy(10,20,"zombie")
 	spawnEnemy(12,12,"robot")
 	
-	-- Initialize functions that are used for creating the info bar
-	dofile("sidebar.lua")
-	
 	-- Initialize line of sight functions MAYBE
 	--dofile("los_functions.lua")
 end
@@ -77,9 +80,9 @@ function makeMap()
 			-- Create random thingy. Again - placeholder, we need to create functions
 			-- and algorithms and stuff
 			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
-				row[j] = {tile=WALL_NUM, room=ROOMNUM}
+				row[j] = Wall:new{room=ROOMNUM}
 			else
-				row[j] = {tile=3, room=ROOMNUM}
+				row[j] = Floor:new{room=ROOMNUM}
 			end
 		end
 		map[i] = row
@@ -118,14 +121,17 @@ function makeMap()
 	while(tile_info[map[start_i-1][start_j]["tile"]]["blocker"]) do -- In case we put corridor against a wall
 		start_j = start_j - 1
 	end
-	map[start_i][start_j]["tile"] = 3
+	map[start_i][start_j]["tile"] = 6
+	-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
+	spawnEnemy(start_i-1, start_j, "barrel")
 	for i = start_i+1,end_i do
 		map[i] = {}
-		map[i][start_j - 1] = {tile=WALL_NUM, room=998}
-		map[i][start_j] = {tile=3, room=998}
-		map[i][start_j + 1] = {tile=WALL_NUM, room=998}
+		map[i][start_j - 1] = Wall:new{room=998}
+		map[i][start_j] = Floor:new{room=998}
+		map[i][start_j + 1] = Wall:new{room=998}
 	end
-	map[end_i][start_j] = {tile=7, room=998} -- Make thundering door
+	thunderingDoor = ThunderingDoor:new{room=998}
+	map[end_i][start_j] = thunderingDoor -- Make thundering door
 	ROOMNUM = ROOMNUM + 1
 	
 	-- Make boss room!
@@ -133,7 +139,7 @@ function makeMap()
 	end_i = start_i + 20
 	for i=start_i,end_i do map[i] = {} end -- Make rows
 	makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
-	map[start_i][start_j] = {tile=8, room=999} -- Make thundering door lever
+	map[start_i][start_j] = DoorSealer:new{room=999, door_to_seal=thunderingDoor} -- Make thundering door lever
 	
 	-- Set character location
 	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
@@ -148,6 +154,7 @@ function makeMap()
 	viewed_rooms[char["room"]] = true
 end
 
+-- Automatically add doors to the room
 function makeRoomAndDoors(start_i, start_j, end_i, end_j, roomnum)
 	makeRoom(start_i, start_j, end_i, end_j, roomnum, true)
 end
@@ -158,26 +165,27 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 		if not map[i] then map[i] = {} end
 		for j = start_j, end_j do
 			if(i == start_i or j == start_j or j == end_j or i == end_i) then
-				map[i][j] = {tile=WALL_NUM, room=roomnum} -- Wall
+				map[i][j] = Wall:new{room=romnum} -- Wall
 			else
-				map[i][j] = {tile=3, room=roomnum} -- Floor
+				map[i][j] = Floor:new{room=romnum} -- Floor
 			end
 		end
 	end
 	
 	if makeDoors then
 		if(start_i ~= 1) then -- Put a doorway!
-			map[start_i][start_j+2 + math.random(end_j-start_j-4)] = {tile=4, room=roomnum} -- Floor
+			map[start_i][start_j+2 + math.random(end_j-start_j-4)] = Door:new{room=roomnum} -- Floor
 		end
 		
 		if(start_j ~= 1) then -- Put top doorways!
 			walk_start_i = start_i -- "Walk" along the top wall and find good doorway walls
 			for walk_end_i = walk_start_i + 1,end_i do
-				if(map[walk_end_i][start_j-1]["tile"] == WALL_NUM 
-					or map[walk_end_i][start_j+1]["tile"] == WALL_NUM) then
+				if(map[walk_end_i][start_j-1].blocker
+					or map[walk_end_i][start_j+1].blocker) then
 					diff = walk_end_i - walk_start_i
 					if(diff > 3) then
-						map[walk_start_i+2+math.random(diff-3)][start_j]["tile"] = 4
+						tile = map[walk_start_i+2+math.random(diff-3)][start_j]
+						tile = Door:new{room=roomnum}
 					end
 					walk_start_i = walk_end_i + 1
 					walk_end_i = walk_start_i + 1
@@ -198,29 +206,29 @@ function love.draw()
 			-- Do null checks first: add offset["x"] and offset["y"] to show right part of map
 			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
 				-- Tint is how bright to make it
-				love.graphics.setColor( 0, 0, 0 ) -- Dim for not in room
-				for x_o=-1,0 do	-- This is for walls: if the top-left is in your room,
-				for y_o=-1,0 do -- Light this up for aesthetics
-					if(map[i+offset["x"]+x_o] and map[i+offset["x"]+x_o][j+offset["y"]+y_o]) then
-						roomnum = map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"]
-						if roomnum == char["room"] then
-							love.graphics.setColor( 255, 255, 255 ) -- LIGHT 'ER UP
-						elseif viewed_rooms[roomnum] then
-							-- TODO: Smarter way to figure out if its 255, 255, 255
-							r, g, b, a = love.graphics.getColor()
-							if(r ~= 255) then
-								if(char["room"] == 998) then -- Corridor: Tint darker the farther you get
-									tint = (MAPWIDTH - char["x"])*255/CORRIDORWIDTH
-									love.graphics.setColor( tint, tint, tint )
-								else
-									love.graphics.setColor( 100, 100, 100 )
-								end
-							end
-						end
-					end
-				end
-				end
-				love.graphics.print(map[i+offset["x"]][j+offset["y"]]["tile"], (i-1)*12, (j-1)*12)
+				map[i+offset["x"]][j+offset["y"]]:setColor(char["room"], 0)
+				--for x_o=-1,0 do	-- This is for walls: if the top-left is in your room,
+				--for y_o=-1,0 do -- Light this up for aesthetics
+					--if(map[i+offset["x"]+x_o] and map[i+offset["x"]+x_o][j+offset["y"]+y_o]) then
+						--roomnum = map[i+offset["x"]+x_o][j+offset["y"]+y_o]["room"]
+						--if roomnum == char["room"] then
+							--love.graphics.setColor( 255, 255, 255 ) -- LIGHT 'ER UP
+						--elseif viewed_rooms[roomnum] then
+						--	-- TODO: Smarter way to figure out if its 255, 255, 255
+						--	r, g, b, a = love.graphics.getColor()
+						--	if(r ~= 255) then
+						--		if(char["room"] == 998) then -- Corridor: Tint darker the farther you get
+						--			tint = (MAPWIDTH - char["x"])*255/CORRIDORWIDTH
+						--			love.graphics.setColor( tint, tint, tint )
+						--		else
+						--			love.graphics.setColor( 100, 100, 100 )
+						--		end
+						--	end
+						--end
+					--end
+				--end
+				--end
+				love.graphics.print(map[i+offset["x"]][j+offset["y"]].tile, (i-1)*12, (j-1)*12)
 			else
 				love.graphics.print(1, (i-1)*12, (j-1)*12)
 			end
@@ -256,6 +264,10 @@ function love.draw()
 		
 		if(which == "robot") then
 			love.graphics.print("R", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
+		end
+		
+		if(which == "barrel") then
+			love.graphics.print("B", (ex - offset["x"]) * 12, (ey - offset["y"])*12)
 		end
 	end
 	
@@ -403,17 +415,11 @@ function checkThenMove(x, y)
 	-- Get outta here if its the edge of the world
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
-	tileinfo = tile_info[map[x][y]["tile"]]
+	tile = map[x][y]
 	-- Random stuff that sends a message
-	printSide(tileinfo["message"])
+	tile:doAction()
 	
-	if(tileinfo["blocker"] ) then
-		-- Or adds/subtracts awesome
-		char['awesome'] = char['awesome'] + tileinfo["awesome_effect"]
-		
-		if(tileinfo["walk_trans"]) then
-			map[x][y]["tile"] = tileinfo["walk_trans"]
-		end
+	if tile.blocker then
 	elseif(false) then -- checks for monsters, etc. go here
 	
 	else-- empty square! we cool.
@@ -526,6 +532,7 @@ function spawnEnemy(x, y, which_enemy)
 	
 	enemies[enemystring .. "x"] = x
 	enemies[enemystring .. "y"] = y
+	enemies[enemystring .. "hp"] = y
 	
 	enemies[enemystring .. "whichEnemy"] = which_enemy
 	
