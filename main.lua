@@ -607,9 +607,9 @@ function makeExplosion(x, y, size, friendlyFire)
 		for x = 0, size, 1 do
 		
 		end
-		print("currtime is " .. love.timer.getMicroTime() .. " and starttime is " .. starttime)
 	end
 	
+	print("currtime is " .. love.timer.getMicroTime() .. " and starttime is " .. starttime)
 	suspended = false
 
 end
