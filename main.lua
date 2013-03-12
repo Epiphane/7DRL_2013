@@ -490,6 +490,10 @@ function checkThenMove(x, y)
 		for i=1,#objects do
 			if(objects[i].x == x and objects[i].y == y) then
 				objects[i]:interact()
+				if not objects[i].alive then
+					table.remove(objects, i)
+					i = i - 1
+				end
 			end
 		end
 	end

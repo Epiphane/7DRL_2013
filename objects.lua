@@ -11,6 +11,7 @@ end
 
 function Pistol:interact()
 	char.weapon = bullet
+	self.alive = false
 end
 
 -- draws the enemy if he's in the right room
