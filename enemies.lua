@@ -28,7 +28,7 @@ function Enemy:die()
 	self.alive = false
 end
 
-Barrel = Enemy:new{name="Barrel", icon="B", health=1}
+Barrel = Enemy:new{name="Barrel", icon="O", health=1}
 function Barrel:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
 	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
@@ -36,7 +36,8 @@ function Barrel:new(o)
 	return o				-- Return Barrel
 end
 
-function Barrel:getHit()
+function Barrel:getHit(dmg)
+	if dmg < 25 then return end
 	if(self.icon == "B") then
 		self.icon = "3"
 	end
@@ -53,4 +54,42 @@ function Barrel:takeTurn()
 		makeExplosion(self.x, self.y, 5, true)
 		self:die()
 	end
+end
+
+Rat = Enemy:new{name="Rat", icon="r", health=10}
+function Rat:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
+function Rat:getHit(dmg)
+	health = health - dmg
+	if health <= 0 then
+		self:die()
+	end
+end
+
+function Rat:takeTurn()
+	
+end
+
+Zombie = Enemy:new{name="Zombie", icon="Z", health=100}
+function Zombie:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
+function Zombie:getHit(dmg)
+	health = health - dmg
+	if health <= 0 then
+		self:die()
+	end
+end
+
+function Zombie:takeTurn()
+	
 end

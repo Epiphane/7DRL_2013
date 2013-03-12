@@ -84,7 +84,7 @@ function bullet:update()
 		end
 		for i = 1, # enemies do
 			if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
-				enemies[i]:getHit()
+				enemies[i]:getHit(25)
 				self.over = true
 				suspended = false
 			end
@@ -113,6 +113,9 @@ end
 
 -- SHOOTIN WITH YOUR HANDS
 function hands:shoot(direction)	
+	self.x = char.x
+	self.y = char.y
+	
 	if(direction == "7") then
 		self.dx = -1
 		self.dy = -1
@@ -137,6 +140,14 @@ function hands:shoot(direction)
 	elseif(direction == "3") then
 		self.dx = 1
 		self.dy = 1
+	end
+	
+	for i = 1, # enemies do
+		if(self.x + self.dx == enemies[i]["x"] and self.y + self.dy == enemies[i]["y"]) then
+			enemies[i]:getHit(10)
+			printSide("You punch the "..enemies[i].name)
+			return
+		end
 	end
 	
 	printSide("You swing at the empty\n  air...")
