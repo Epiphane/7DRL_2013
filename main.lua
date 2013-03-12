@@ -16,8 +16,12 @@ REAL_BIG_NUMBER = 999999999999
 enemies = {}
 objects = {}
 
-sizes1 = {2,4,6,6,6,5,4,3,2,1,0}
-sizeindex = 0
+--how big each frame of the explosion is
+sizes1 = {1,1,2,2,4,4,4,6,0}
+sizeindex = 1
+--how much empty space is present in each iteration of the explosion
+--1 is tight explosion, 9 is barely any flames and stuff
+dispersion1 = {0,0,0,0,3,5,7,9,0}
 
 --is explosion happening?
 exploding = false
@@ -302,10 +306,13 @@ function love.draw()
 				b = tonumber(string.sub(explosionTiles[explosionX][explosionY], 
 					bindex + 1))
 				
-				if(r ~= -1) then
+				local drawX = explosion["x"] + explosionX - offset["x"] - 2
+				local drawY = explosion["y"] + explosionY - offset["y"] - 2
+				tile = map[drawX][drawY]
+				--check to see if the square is empty, and can thus receive splosions.
+				if(r ~= -1 and not tile.blocker) then
 					love.graphics.setColor(r, g, b)
-					love.graphics.rectangle( "fill", (explosion["x"] + explosionX - offset["x"] - explosion["size"]/2) * 12, 
-						(explosion["y"] + explosionY - offset["y"] - explosion["size"]/2) * 12, 12, 12)
+					love.graphics.rectangle( "fill", (drawX) * 12, (drawY) * 12, 12, 12)
 				end
 			end
 		end
@@ -570,7 +577,7 @@ function makeExplosion(x, y, size, friendlyFire)
 	end
 	
 	-- Hit self
-	if(char.x > x-size/2 and char.x < x+size/2) then
+	if(char.x > x-size/2 and char.x < x+size/2 and friendlyFire) then
 		if(char.y > y-size/2 and char.y < y+size/2) then
 			char:hitByExplosion()
 		end
@@ -610,18 +617,23 @@ function iterateExplosion()
 	--is all randomized and shit.  Also decreases in size over lifespan.
 	if(nextiteration < currtime) then
 	
+		explosion["size"] = sizes1[sizeindex]
+		local dispersalness = dispersion1[sizeindex]
+	
 		for radius = 0, explosion["size"] do
-			for i = 0, explosion["size"] * 3 do
+			for i = 0, explosion["size"] * 2 do
 				
 				--make the color reddish orangish yellowish
 				
-				r = math.random(1,255)
+				r = math.random(150,255)
 				
-				g = math.random(1,255)
+				g = math.random(1,120)
 				
 				b = 27
 				
-				if(g > 200) then r = -1 end
+				--consider dispersion
+				local rand = math.random(0,101)
+				if(rand < dispersalness * 10) then r = -1 end
 				
 				--polar coordinates ftw
 				angle = math.random() * math.pi * 2
@@ -634,21 +646,31 @@ function iterateExplosion()
 			end
 		end
 	
-		nextiteration = currtime + .1
+		nextiteration = currtime + .02
 		sizeindex = sizeindex + 1
-		end
+		--print("splosion size index: " .. sizeindex .. " splosion size: " .. explosion["size"])
+	end
 	--currtime = love.timer.getMicroTime()
 	
-	explosion["size"] = sizes1[sizeindex]
+	--we reached the end of the size array! reset everything
 	if(explosion["size"] == 0) then
 		exploding = false
 		suspended = false
-		sizeindex = 0
+		sizeindex = 1
+		
+		--wipe explosion tiles
+		for i=-13, 13 do
+			for j=-13, 13 do
+				explosionTiles[i][j] = "-1+-1+-1"
+			end
+		end
 	end
+	
+	
 end
 
 --wheredja get this?
--- I STOOOLED IT
+--I STOOOLED IT
 function string.explode(str, div)
     assert(type(str) == "string" and type(div) == "string", "invalid arguments")
     local o = {}
@@ -660,6 +682,6 @@ function string.explode(str, div)
         end
         o[#o+1],str = str:sub(1,pos1-1),str:sub(pos2+1)
     end
-	--print(o[0] .. " and " .. o[1] .. " AND " .. o[2])
+ --print(o[0] .. " and " .. o[1] .. " AND " .. o[2])
     return o
 end
