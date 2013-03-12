@@ -246,6 +246,7 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 		if(roomnum == 1) then
 			spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Pistol)
 		elseif(roomnum == 2) then
+			spawnEnemy(5, 5, Rat)
 		elseif(roomnum == 3) then
 		elseif(roomnum == 4) then
 		end
@@ -409,6 +410,7 @@ function love.keypressed(key, unicode)
 		--numpad code is formatted as "kp#"
 		if(string.sub(key,0,2) == "kp") then
 			char.weapon:shoot(string.sub(key,3))
+			doTurn()
 		end
 		
 		--press E for Explosion
@@ -533,10 +535,12 @@ end
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
 	for i = 1, # enemies do
-		if not enemies[i].alive then
-			table.remove(enemies, i)
-		else
-			enemies[i]:takeTurn()
+		if enemies[i] then
+			if not enemies[i].alive then
+				table.remove(enemies, i)
+			else
+				enemies[i]:takeTurn()
+			end
 		end
 	end
 end
@@ -544,36 +548,11 @@ end
 
 --controls enemy movement/attack patterns.
 function enemyTurn(id)
-	--if an enemy can't see the player it just wanders around randomly.
-	--weight it so that the enemy moves vaguely forward.
-	rand = math.random(101)
-	
-	if(rand < 70) then --don't move at all
-	
-	elseif(rand < 80) then -- move forward
-		
-	elseif(rand < 86) then -- forward-right
-	
-	elseif(rand < 92) then -- foward-left
-	
-	elseif(rand < 95) then -- left
-	
-	elseif(rand < 98) then -- right
-	
-	else --backwards
-	
+	for i=1,#enemies do
+		enemies[i]:takeTurn()
 	end
-	
-
-
 end
 --end enemyTurn()
-
---checks if an enemy can in fact move to a place, then does it
---if it can!
-function moveEnemy(id, x, y)
-
-end
 
 --spawns an explosion at the specified x and y.
 --if "Friendly Fire" is set to TRUE, it CAN hurt the player.

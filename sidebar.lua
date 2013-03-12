@@ -32,7 +32,10 @@ end
 function printSideWithColor(message, r, g, b)
 	if message then
 		table.insert(sidebarlog, 1, {message="break", color={r=0,g=0,b=0}})
-		table.insert(sidebarlog, 1, {message=message, color={r=r,g=g,b=b}})
+		m = string.explode(message, "\n")
+		for i = #m,1,-1 do
+			table.insert(sidebarlog, 1, {message=m[i], color={r=r,g=g,b=b}})
+		end
 	end
 end
 
