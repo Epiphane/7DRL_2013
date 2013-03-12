@@ -17,9 +17,9 @@ function char:forceMarch(newx, newy)
 	print("newy is " .. newy)
 	self.fx = newx
 	self.fy = newy
-	print("fy is " .. self.fy .. " ...fyi!")
+	--print("fy is " .. self.fy .. " ...fyi!")
 	
 	self.nextForcedMove = currtime + 0.05
-	print("nfm is " .. self.nextForcedMove .. " ...fyi!")
+	--print("nfm is " .. self.nextForcedMove .. " ...fyi!")
 end
 

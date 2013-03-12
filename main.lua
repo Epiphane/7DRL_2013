@@ -28,6 +28,8 @@ exploding = false
 explosionTiles = {}
 explosion = {x=5, y=5, size=5, friendlyFire = false}
 
+
+
 function love.load()
 	level = 1
 	
@@ -343,6 +345,7 @@ function love.draw()
 end
 
 currtime = 0
+fpdirection = {}
 
 function love.update(dt)
 	
@@ -407,6 +410,23 @@ function love.update(dt)
 			end
 		end
 	end
+	
+	--wait for directional input here
+	if(explosion["falcon"]) then --or a number of other flags
+		if(rightpress < REAL_BIG_NUMBER) then
+			fpdirection.x, fpdirection.y = 1, 0
+			falconPAWNCH(fpdirection)
+		elseif(leftpress < REAL_BIG_NUMBER) then
+			fpdirection.x, fpdirection.y = -1, 0
+			falconPAWNCH(fpdirection)
+		elseif(uppress < REAL_BIG_NUMBER) then
+			fpdirection.x, fpdirection.y = 0, -1
+			falconPAWNCH(fpdirection)
+		elseif(downpress < REAL_BIG_NUMBER) then
+			fpdirection.x, fpdirection.y = 0, 1
+			falconPAWNCH(fpdirection)
+		end
+	end
 end
 
 function love.focus(bool)
@@ -457,6 +477,25 @@ function love.keypressed(key, unicode)
 		if(key == "e") then
 			makeExplosion(char["x"], char["y"], 5, false)
 			char:forceMarch(char["x"], char["y"] + 5)
+		end
+		
+		--press P for some PAWWWNCH
+		if(key == "p") then
+			if(fpcooldown == 0) then
+				suspended = true
+				--this flag indicates we're gonna wait for the user to input a direction
+				explosion["falcon"] = true
+				
+				printSide("FALCOOOOON...\n(choose a direction)")
+			end
+		end
+	else	
+		--supension also is kicked in when the user has to choose a direction/location for something.
+		--pass the directional keys to any function that might want 'em.
+		if(key == "right") then rightpress = currtime
+		elseif(key == "left") then leftpress = currtime
+		elseif(key == "up") then uppress = currtime
+		elseif(key == "down") then downpress = currtime
 		end
 	end
 end
@@ -575,6 +614,12 @@ end
 --called whenever player shoots/moves/pulls lever/whatever.
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
+	--decrement all cooldowns by one
+	if(fpcooldown > 0) then
+		fpcooldown = fpcooldown - 1
+		print("fpcooldown: " .. fpcooldown)
+	end
+
 	for i = 1, # enemies do
 		if enemies[i] then
 			if not enemies[i].alive then
@@ -649,7 +694,6 @@ function makeExplosion(x, y, size, friendlyFire)
 	endsplosion = currtime + 0.6
 	nextiteration = currtime
 
-	--print("hi " .. explosionTiles[-0][2])
 	explosion["x"] = x
 	explosion["y"] = y
 	explosion["size"] = size
@@ -706,6 +750,25 @@ function iterateExplosion()
 				
 				--polar coordinates ftw
 				angle = math.random() * math.pi * 2
+				
+				--hold up! if it's falcon-splosion mode make it vaguely directional.
+				--restrict angle to be moderately behind the player.
+				if(explosion["falcon"]) then
+					--print("direction.x: " .. fpdirection.x .. " and direction.y: " .. fpdirection.y)
+					--basically, "shorten" radius if it is directly in front of the player's pawnch.
+					if(fpdirection.y == -1 and not (angle < 3 / 2 * math.pi + 0.2 and angle > 3 / 2 * math.pi - 0.2 )) then
+						radius = 1.5
+					end
+					if(fpdirection.y == 1 and not (angle < 1 / 2 * math.pi + 0.2 and angle > 1 / 2 * math.pi - 0.2 )) then
+						radius = 1.5
+					end
+					if(fpdirection.x == -1 and not (angle < math.pi + 0.2 and angle > math.pi - 0.2 )) then
+						radius = 1.5
+					end
+					if(fpdirection.x == 1 and not (angle < 0.2 or angle > 2 * math.pi - 0.2 )) then
+						radius = 1.5
+					end
+				end
 			
 				exx = math.ceil(math.sin(angle) * radius)
 				exy = math.ceil(math.cos(angle) * radius)
@@ -735,6 +798,9 @@ function iterateExplosion()
 		end
 		
 		screenshake = 0
+		
+		--make sure falcon mode is deactivated
+		explosion["falcon"] = false
 	end
 	
 	
