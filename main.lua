@@ -242,6 +242,10 @@ end
 -- Amount of tiles to display (proportional to display size / 12)
 DISPLAYWIDTH = 40
 DISPLAYHEIGHT = 50
+
+--how much offset to have for the screenshake
+screenshake = 0
+
 function love.draw()
 	-- Draw the map
 	love.graphics.setFont(floorFont)
@@ -251,7 +255,7 @@ function love.draw()
 			if(map[i+offset["x"]] and map[i+offset["x"]][j+offset["y"]]) then
 				-- Tint is how bright to make it
 				map[i+offset["x"]][j+offset["y"]]:setColor(char["room"])
-				love.graphics.print(map[i+offset["x"]][j+offset["y"]].tile, (i-1)*12, (j-1)*12)
+				love.graphics.print(map[i+offset["x"]][j+offset["y"]].tile, (i-1)*12, (j-1)*12 + screenshake)
 			else
 				love.graphics.print(1, (i-1)*12, (j-1)*12)
 			end
@@ -266,7 +270,7 @@ function love.draw()
 	
 	-- Main Character
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("@", ((char["x"]-1)-offset["x"])*12, ((char["y"]-1)-offset["y"])*12)	
+	love.graphics.print("@", ((char["x"]-1)-offset["x"])*12, ((char["y"]-1)-offset["y"])*12 + screenshake)	
 	
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet["x"] .. ", " .. bullet["y"])
@@ -309,10 +313,13 @@ function love.draw()
 				local drawX = explosion["x"] + explosionX - offset["x"] - 2
 				local drawY = explosion["y"] + explosionY - offset["y"] - 2
 				tile = map[drawX][drawY]
-				--check to see if the square is empty, and can thus receive splosions.
-				if(r ~= -1 and not tile.blocker) then
-					love.graphics.setColor(r, g, b)
-					love.graphics.rectangle( "fill", (drawX) * 12, (drawY) * 12, 12, 12)
+				
+				if(tile ~= nil) then
+					--check to see if the square is empty, and can thus receive splosions.
+					if(r ~= -1 and not tile.blocker) then
+						love.graphics.setColor(r, g, b)
+						love.graphics.rectangle( "fill", (drawX) * 12, (drawY) * 12 + screenshake, 12, 12)
+					end
 				end
 			end
 		end
@@ -325,6 +332,7 @@ end
 currtime = 0
 
 function love.update(dt)
+	
 	--We need this timer here so that all timers are standardized.  Otherwise it's crazy
 	--crazy crazy god knows what time it is.
 	currtime = love.timer.getMicroTime()
@@ -349,7 +357,7 @@ function love.update(dt)
 		checkThenMove(char["x"], char["y"] + 1)
 		downpress = currtime + .1
 	end
-	
+
 	char.weapon:update()
 end
 
@@ -573,6 +581,9 @@ function makeExplosion(x, y, size, friendlyFire)
 	end
 	end
 	
+	--initialize dat screenshake
+	screenshake = size * 5
+	
 	-- Hit enemies
 	for i = 1, # enemies do
 		if not enemies[i].alive then
@@ -618,8 +629,15 @@ function iterateExplosion()
 	--draw a bunch of yellow/red/orange rectangles, centered at x, y
 	--goes all the way to radius specified by "size"
 
-	--is all randomized and shit.  Also decreases in size over lifespan.
+	--is all randomized and shit.
 	if(nextiteration < currtime) then
+	
+		--gimme dat screen shakery
+		if(screenshake > 0) then
+			screenshake = -(screenshake-2)
+		elseif(screenshake < 0) then
+			screenshake = -(screenshake+2)
+		end
 	
 		explosion["size"] = sizes1[sizeindex]
 		local dispersalness = dispersion1[sizeindex]
@@ -668,6 +686,8 @@ function iterateExplosion()
 				explosionTiles[i][j] = "-1+-1+-1"
 			end
 		end
+		
+		screenshake = 0
 	end
 	
 	
