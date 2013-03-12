@@ -11,6 +11,7 @@ end
 
 function Pistol:interact()
 	char.weapon = bullet
+	printSide("You pick up the Pistol")
 	self.alive = false
 end
 

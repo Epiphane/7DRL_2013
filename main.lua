@@ -29,6 +29,8 @@ explosionTiles = {}
 explosion = {x=5, y=5, size=5, friendlyFire = false}
 
 function love.load()
+	level = 1
+	
 	-- Initialize functions that are used for creating the info bar
 	dofile("sidebar.lua")
 	
@@ -50,8 +52,8 @@ function love.load()
 	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
 	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
 											.. "xxxxxxxxxxxxxxxxxxxxx"
-											.. "xxxxxxxxxxxxBxxxxxxxxxxxx"
-											.. "ACCDEFGHIJKLMNOPQRSTUVWXYZ"
+											.. "xxxxxxxxxxxxOxxxxxxxxxxxx"
+											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
@@ -66,8 +68,6 @@ function love.load()
 	-- TODO: Make actual level initiation function, this is more of a placeholder
 	makeMap()
 	
-	spawnObject(10, 10, Pistol)
-	
 	explosionTiles = {}
     for i=-13,13 do
 		explosionTiles[i] = {}     -- initialize multidimensional array
@@ -75,7 +75,6 @@ function love.load()
 			explosionTiles[i][j] = "-1+-1+-1"
 		end
     end
-	
 	
 	-- spawn enemies
 	-- TODO: where???
@@ -85,8 +84,8 @@ function love.load()
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 36
-MAPHEIGHT = 36
+MAPWIDTH = 24
+MAPHEIGHT = 24
 ROOMNUM = 1
 WALL_NUM = 2 -- Wall num constant
 viewed_rooms = {}
@@ -144,7 +143,10 @@ function makeMap()
 	table.insert(map[start_i][start_j-1].room, {[998]=true})
 	table.insert(map[start_i][start_j+1].room, {[998]=true})
 	-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
-	spawnEnemy(start_i-1, start_j, Barrel)
+	if level == 1 then
+		spawnEnemy(start_i-1, start_j, Barrel)
+	end
+	
 	for i = start_i+1,end_i do
 		map[i] = {}
 		map[i][start_j - 1] = Wall:new{room={[998]=true}}
@@ -237,6 +239,17 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 			end
 		end
 	end
+	
+	-- TIME TO CUSTOMIZE THE ROOMS. THIS IS WHERE SHIT GETS REAL
+	-- SO WATCH OUT
+	if(level == 1) then -- Beginner level. we need specific rooms
+		if(roomnum == 1) then
+			spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Pistol)
+		elseif(roomnum == 2) then
+		elseif(roomnum == 3) then
+		elseif(roomnum == 4) then
+		end
+	end
 end
 
 -- Amount of tiles to display (proportional to display size / 12)
@@ -306,13 +319,15 @@ function love.draw()
 				b = tonumber(string.sub(explosionTiles[explosionX][explosionY], 
 					bindex + 1))
 				
-				local drawX = explosion["x"] + explosionX - offset["x"] - 2
-				local drawY = explosion["y"] + explosionY - offset["y"] - 2
-				tile = map[drawX][drawY]
-				--check to see if the square is empty, and can thus receive splosions.
-				if(r ~= -1 and not tile.blocker) then
-					love.graphics.setColor(r, g, b)
-					love.graphics.rectangle( "fill", (drawX) * 12, (drawY) * 12, 12, 12)
+				local drawX = explosion["x"] + explosionX
+				local drawY = explosion["y"] + explosionY
+				if map[drawX] and map[drawX][drawY] then
+					tile = map[drawX][drawY]
+					--check to see if the square is empty, and can thus receive splosions.
+					if(r~= -1 and not tile.blocker and tile.room[char.room]) then
+						love.graphics.setColor(r, g, b)
+						love.graphics.rectangle( "fill", (drawX-offset["x"]-1) * 12, (drawY-offset["y"]-1) * 12, 12, 12)
+					end
 				end
 			end
 		end
@@ -442,7 +457,7 @@ function checkThenMove(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
 	tile = map[x][y]	
-	
+	local enemy_in_space = nil
 	for i=1,#enemies do
 		if(enemies[i].x == x and enemies[i].y == y) then
 			enemy_in_space = enemies[i]
@@ -452,7 +467,6 @@ function checkThenMove(x, y)
 	
 	if tile.blocker then
 	elseif(enemy_in_space) then -- checks for monsters, etc. go here
-		
 	else
 		-- empty square! we cool.
 		if(map[x][y]["tile"] == 8 and map[char["x"]][char["y"]]["tile"] == 5) then -- If this is the boss room lever
