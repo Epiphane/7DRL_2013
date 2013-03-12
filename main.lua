@@ -371,6 +371,41 @@ function love.update(dt)
 	end
 
 	char.weapon:update()
+	
+	--are we in a forced march?
+	if(char['forcedMarch']) then
+		if(char['nextForcedMove'] < currtime) then
+			--print("you gettin moved boiii from " .. char.y .. " to " .. char.fy)
+			local newPosX, newPosY = char.x, char.y
+		
+			if(char['fx'] < char["x"]) then newPosX = char["x"] - 1
+			elseif(char['fx'] > char["x"]) then newPosX = char["x"] + 1 end
+			
+			if(char['fy'] < char["y"]) then newPosY = char["y"] - 1
+			elseif(char['fy'] > char["y"]) then newPosY = char["y"] + 1 end
+			
+			
+			if(map[newPosX]) then
+				tile = map[newPosX][newPosY]
+				--check if we've hit a wall.
+				if(tile.blocker) then
+					printSide("You slam into a wall!")
+					char['forcedMarch'] = false
+				elseif(newPosX == char.fx and newPosY == char.fy) then
+					--check if we've hit the target
+					char['forcedMarch'] = false
+					char["x"], char["y"] = newPosX, newPosY
+				else --guess we're good to move the character here!
+					char["x"], char["y"] = newPosX, newPosY
+				end
+				
+				char.nextForcedMove = currtime + 0.05
+			
+			else
+				char['forcedMarch'] = false
+			end
+		end
+	end
 end
 
 function love.focus(bool)
@@ -419,6 +454,7 @@ function love.keypressed(key, unicode)
 		--press E for Explosion
 		if(key == "e") then
 			makeExplosion(char["x"], char["y"], 5, false)
+			char:forceMarch(char["x"], char["y"] + 5)
 		end
 	end
 end
@@ -606,6 +642,23 @@ function makeExplosion(x, y, size, friendlyFire)
 	if(char.x > x-size/2 and char.x < x+size/2 and friendlyFire) then
 		if(char.y > y-size/2 and char.y < y+size/2) then
 			char:hitByExplosion()
+			
+			local newX, newY = char.x, char.y
+			
+			--figure out where to push you
+			if(char.x > x) then
+				newX = char.x + 5
+			elseif(char.x < x) then
+				newX = char.x - 5
+			end
+			
+			if(char.y > y) then
+				newY = char.y + 5
+			elseif(char.y < y) then
+				newY = char.y - 5
+			end
+			
+			char:forceMarch(newX, newY)
 		end
 	end
 
