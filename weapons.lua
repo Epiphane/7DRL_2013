@@ -70,7 +70,7 @@ end
 
 function bullet:draw()
 	if(not self.over) then
-		love.graphics.print("!", (self.x - offset["x"] - 1)*12, (self.y - offset["y"] - 1)*12)
+		love.graphics.print("!", (self.x - offset["x"] - 1)*12, (self.y - offset["y"] - 1)*12 + screenshake)
 	end
 end
 

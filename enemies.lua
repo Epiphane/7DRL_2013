@@ -12,7 +12,7 @@ end
 -- draws the enemy if he's in the right room
 function Enemy:draw()
 	if(self.alive and self.room == char.room) then
-		love.graphics.print(self.icon, (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12)
+		love.graphics.print(self.icon, (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
 	end
 end
 -- end draw()
