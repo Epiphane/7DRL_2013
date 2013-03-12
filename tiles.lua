@@ -2,6 +2,7 @@
 -- param: o is an object, or table of information.
 Tile = {tile=1, room=1, blocker=false, awesome_effect=0}
 
+-- Generic tile constructor. Doesn't do much
 function Tile:new(o)
 	o = o or {}				-- Set the tile's info to match passed params
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -27,10 +28,19 @@ function Tile:setColor(char_room)
 end
 -- end setColor()
 
+-- Do an action whenever you walk on a space
 function Tile:doAction()
 	char['awesome'] = char['awesome'] + self.awesome_effect
 	printSide(self.message)
 end
+-- end doAction()
+
+-- greatForce() is called for big changing effects
+-- such as explosions or kicking enemies
+-- It doesn't do anything in most cases.
+function Tile:greatForce()
+end
+-- end greatForce()
 
 -- SUBCLASSES. THIS IS HOW INHERITANCE WORKS. IT'S WEIRD BUT GOOD
 Floor = Tile:new{tile=3} -- In other words, it inherits everything. It is a Tile, but 3, not 1
@@ -65,6 +75,16 @@ function ThunderingDoor:new(o)
 	return o
 end
 
+function ThunderingDoor:doAction()
+	Tile.doAction(self)
+	if(self.tile ~= 5) then
+		char["awesome"] = char["awesome"] + 10
+		printSide("The door thunders open.")
+	end
+	self.tile = 5
+	self.blocker = false
+end
+
 -- DoorSealer constructor seals a door
 DoorSealer = Floor:new()
 function DoorSealer:new(o)
@@ -76,15 +96,36 @@ end
 -- end constructor
 
 -- seal() closes the door, turning it into a wall
-function DoorSealer:seal()
-	self.door_to_seal = Wall:new(self.door_to_seal.room)
+function DoorSealer:doAction()
+	if(self.door_to_seal.x) then
+		door_room = {}
+		for k,v in pairs(map[self.door_to_seal.x][self.door_to_seal.y].room, nil) do door_room[k] = v end
+		map[self.door_to_seal.x][self.door_to_seal.y] = Wall:new{room=door_room}
+		self.door_to_seal.x = nil -- Can't seal again
+		printSide("The door shudders closed behind you.")
+	end
 end
 -- end seal()
 
-Wall = Tile:new{tile=2, blocker=true}
+Wall = Tile:new{tile=2, blocker=true, awesome_effect=-1, message="You walk headlong\n  into a wall..."}
 function Wall:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
 	self.__index = self		-- Define o as a Tile
 	return o
+end
+
+CrackedWall = Wall:new{tile=6, awesome_effect=0}
+function CrackedWall:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
+
+function CrackedWall:greatForce()
+	Tile.doAction(self)
+	if(self.tile ~= 8) then printSide("The wall splits open.") end
+	self.tile = 8
+	self.blocker = false
 end

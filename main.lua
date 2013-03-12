@@ -13,11 +13,8 @@
 -- handy constants
 REAL_BIG_NUMBER = 999999999999
 
---where da bullet?
-bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
-
 enemies = {}
-num_enemies = 0
+objects = {}
 
 sizes1 = {2,4,6,6,6,5,4,3,2,1,0}
 sizeindex = 0
@@ -27,15 +24,6 @@ exploding = false
 explosionTiles = {}
 explosion = {x=5, y=5, size=5, friendlyFire = false}
 
-tile_info = {{blocker=false}, 
-			{blocker=true, message="You walk into a wall...", awesome_effect=-2}, 
-			{blocker=false}, 
-			{blocker=true, walk_trans=5, message="You open the door.", awesome_effect=1}, -- Door turns into an opened door
-			{blocker=false},
-			{blocker=true},
-			{blocker=true, walk_trans=5, message="The door thunders open.", awesome_effect=5},
-			{blocker=false}}
-
 function love.load()
 	-- Initialize functions that are used for creating the info bar
 	dofile("sidebar.lua")
@@ -43,8 +31,14 @@ function love.load()
 	-- Initialize everything Tile
 	dofile("tiles.lua")
 	
-	-- Initialize everything Tile
+	-- Initialize everything Enemy
 	dofile("enemies.lua")
+	
+	-- Initialize everything that has to do with weaponry
+	dofile("weapons.lua")
+	
+	-- Initialize everything that has to do with objects
+	dofile("objects.lua")
 	
 	-- Set background color black, cause it's a console you stupid bitch
 	love.graphics.setBackgroundColor( 0, 0, 0 )
@@ -52,8 +46,8 @@ function love.load()
 	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
 	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
 											.. "xxxxxxxxxxxxxxxxxxxxx"
-											.. "xxxxxxxxxxxxxxxxxxxxxxxxx"
-											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+											.. "xxxxxxxxxxxxBxxxxxxxxxxxx"
+											.. "ACCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
@@ -61,13 +55,14 @@ function love.load()
 	-- Initialize main character and shit
 	-- Side note: right now, with sizing and everything, it's looking like strength
 	-- and such values will max at 180
-	char = {awesome=100}
+	dofile("character.lua")
 	-- Character location set in map function
 	
 	-- Build map
 	-- TODO: Make actual level initiation function, this is more of a placeholder
 	makeMap()
 	
+	spawnObject(10, 10, Pistol)
 	
 	explosionTiles = {}
     for i=-13,13 do
@@ -80,16 +75,14 @@ function love.load()
 	
 	-- spawn enemies
 	-- TODO: where???
-	spawnEnemy(10,20,"zombie")
-	spawnEnemy(12,12,"robot")
 	
 	-- Initialize line of sight functions MAYBE
 	--dofile("los_functions.lua")
 end
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 24
-MAPHEIGHT = 24
+MAPWIDTH = 36
+MAPHEIGHT = 36
 ROOMNUM = 1
 WALL_NUM = 2 -- Wall num constant
 viewed_rooms = {}
@@ -139,12 +132,15 @@ function makeMap()
 	CORRIDORWIDTH = 24 + math.random(8)
 	end_i = start_i + CORRIDORWIDTH
 	start_j = MAPHEIGHT/2
-	while(tile_info[map[start_i-1][start_j]["tile"]]["blocker"]) do -- In case we put corridor against a wall
+	while(map[start_i-1][start_j].blocker) do -- In case we put corridor against a wall
 		start_j = start_j - 1
 	end
-	map[start_i][start_j]["tile"] = 6
+	k, v = next(map[start_i-1][start_j].room, nil)
+	map[start_i][start_j] = CrackedWall:new{room={[998]=true, [k]=true}}
+	table.insert(map[start_i][start_j-1].room, {[998]=true})
+	table.insert(map[start_i][start_j+1].room, {[998]=true})
 	-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
-	spawnEnemy(start_i-1, start_j, "barrel")
+	spawnEnemy(start_i-1, start_j, Barrel)
 	for i = start_i+1,end_i do
 		map[i] = {}
 		map[i][start_j - 1] = Wall:new{room={[998]=true}}
@@ -160,14 +156,14 @@ function makeMap()
 	end_i = start_i + 20
 	for i=start_i,end_i do map[i] = {} end -- Make rows
 	makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
-	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal=thunderingDoor} -- Make thundering door lever
+	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-1, y=start_j}} -- Make thundering door lever
 	
 	-- Set character location
 	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
 	char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
 	-- Set screen offset (for scrolling)
 	offset = {x=char["x"]-20, y=char["y"]-30}
-	while(tile_info[map[char["x"]][char["y"]]["tile"]]["blocker"]) do
+	while(map[char["x"]][char["y"]].blocker) do
 		char["x"] = char["x"] + 1
 		char["y"] = char["y"] + 1
 	end
@@ -270,8 +266,11 @@ function love.draw()
 	
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet["x"] .. ", " .. bullet["y"])
-	if(not bullet["over"]) then
-		love.graphics.print("!", (bullet["x"] - offset["x"] - 1)*12, (bullet["y"] - offset["y"] - 1)*12)
+	char.weapon:draw()
+	
+	--draw objects
+	for i = 1, # objects do
+		objects[i]:draw()
 	end
 	
 	--draw enemies
@@ -344,33 +343,7 @@ function love.update(dt)
 		downpress = currtime + .1
 	end
 	
-	if(currtime > bullet["nextmove"] and not bullet["over"])	then
-	
-		--did we hit something?
-		if(map[bullet["x"] + bullet["dx"]][bullet["y"] + bullet["dy"]].blocker) then
-			bullet["over"] = true
-			suspended = false
-		end
-		
-		bullet["x"] = bullet["x"] + bullet["dx"]
-		bullet["y"] = bullet["y"] + bullet["dy"]
-		
-		bullet["distance"] = bullet["distance"] + 1
-		bullet["nextmove"] = currtime + .1
-		
-		if(bullet["distance"] >= bullet["range"]) then
-			bullet["over"] = true
-			suspended = false
-			bullet["distance"] = 9999
-		end
-	end
-	
-	--make sure bullet stops if it reaches its maximum range.
-	if(bullet["distance"] >= bullet["range"]) then
-		bullet["over"] = true
-		suspended = false
-		bullet_distance = 9999
-	end
+	char.weapon:update()
 end
 
 function love.focus(bool)
@@ -413,7 +386,7 @@ function love.keypressed(key, unicode)
 		--handle numpad keypresses, it's for shooooting.
 		--numpad code is formatted as "kp#"
 		if(string.sub(key,0,2) == "kp") then
-			shoot(string.sub(key,3))
+			char.weapon:shoot(string.sub(key,3))
 		end
 		
 		--press E for Explosion
@@ -461,12 +434,20 @@ function checkThenMove(x, y)
 	-- Get outta here if its the edge of the world
 	if(map[x] == nil or map[x][y]	== nil) then return end
 	
-	tile = map[x][y]
+	tile = map[x][y]	
+	
+	for i=1,#enemies do
+		if(enemies[i].x == x and enemies[i].y == y) then
+			enemy_in_space = enemies[i]
+			break
+		end
+	end
 	
 	if tile.blocker then
-	elseif(false) then -- checks for monsters, etc. go here
-	
-	else-- empty square! we cool.
+	elseif(enemy_in_space) then -- checks for monsters, etc. go here
+		
+	else
+		-- empty square! we cool.
 		if(map[x][y]["tile"] == 8 and map[char["x"]][char["y"]]["tile"] == 5) then -- If this is the boss room lever
 			printSide("The door thunders closed.")
 			map[char["x"]][char["y"]]["tile"] = 2
@@ -497,88 +478,41 @@ function checkThenMove(x, y)
 				offset["y"] = char["y"] - 20
 			end
 		--	end
+		
+		-- Look for objects in your spot
+		for i=1,#objects do
+			if(objects[i].x == x and objects[i].y == y) then
+				objects[i]:interact()
+			end
+		end
 	end
 	tile:doAction()
+	doTurn()
 end
-
---Just a little thing I maaaade.
---Direction is:
-
--- 7   8   9
---
--- 4  you  6
--- 
--- 1   2   3
-
---Fire bullets with the numpad, scoob.
-
-function shoot(direction)
-	bullet["x"] = char["x"]
-	bullet["y"] = char["y"]
-	
-	bullet["dx"] = 0
-	bullet["dy"] = 0
-	
-	if(direction == "7") then
-		bullet["dx"] = -1
-		bullet["dy"] = -1
-	elseif(direction == "8") then
-		bullet["dx"] = 0
-		bullet["dy"] = -1
-	elseif(direction == "9") then
-		bullet["dx"] = 1
-		bullet["dy"] = -1
-	elseif(direction == "4") then
-		bullet["dx"] = -1
-		bullet["dy"] = 0
-	elseif(direction == "6") then
-		bullet["dx"] = 1
-		bullet["dy"] = 0
-	elseif(direction == "1") then
-		bullet["dx"] = -1
-		bullet["dy"] = 1
-	elseif(direction == "2") then
-		bullet["dx"] = 0
-		bullet["dy"] = 1
-	elseif(direction == "3") then
-		bullet["dx"] = 1
-		bullet["dy"] = 1
-	end
-	
-	--now, animate the bullet shootin.
-	--suspend user input
-	suspended = true
-	
-	--move bullet once so it's not on top of our character
-	bullet["x"] = bullet["x"] + bullet["dx"]
-	bullet["y"] = bullet["y"] + bullet["dy"]
-	
-	bullet["over"] = false
-	bullet["distance"] = 0
-	bullet["range"] = 5
-	
-	bullet["nextmove"] = currtime + .08
-	
-	--are we shooting at a wall?
-	if(map[bullet["x"]][bullet["y"]].blocker) then
-		bullet["over"] = true
-		suspended = false
-	end
-end
---end shoot()
 
 --spawns an enemy @ x, y
 function spawnEnemy(x, y, which_enemy)
 	k, v = next(map[x][y].room, nil)
-	table.insert(enemies, Enemy:new{x=x, y=y, room=k})
+	table.insert(enemies, which_enemy:new{x=x, y=y, room=k})
+end
+--end spawnEnemy
+
+--spawns an object @ x, y
+function spawnObject(x, y, which_object)
+	k, v = next(map[x][y].room, nil)
+	table.insert(objects, which_object:new{x=x, y=y, room=k})
 end
 --end spawnEnemy
 
 --called whenever player shoots/moves/pulls lever/whatever.
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
-	for i = 0, num_enemies do
-		enemyTurn(i)
+	for i = 1, # enemies do
+		if not enemies[i].alive then
+			table.remove(enemies, i)
+		else
+			enemies[i]:takeTurn()
+		end
 	end
 end
 --end doTurn()
@@ -619,6 +553,28 @@ end
 --spawns an explosion at the specified x and y.
 --if "Friendly Fire" is set to TRUE, it CAN hurt the player.
 function makeExplosion(x, y, size, friendlyFire)
+	-- Hit environment
+	for i=math.ceil(x-size/2),math.ceil(x+size/2) do
+	for j=math.ceil(y-size/2),math.ceil(y+size/2) do
+		if(map[i] and map[i][j]) then
+			map[i][j]:greatForce()
+		end
+	end
+	end
+	
+	-- Hit enemies
+	for i = 1, # enemies do
+		if not enemies[i].alive then
+			table.remove(enemies, i)
+		end
+	end
+	
+	-- Hit self
+	if(char.x > x-size/2 and char.x < x+size/2) then
+		if(char.y > y-size/2 and char.y < y+size/2) then
+			char:hitByExplosion()
+		end
+	end
 
 	--1 second long explosions
 	endsplosion = currtime + 0.6
@@ -633,7 +589,6 @@ function makeExplosion(x, y, size, friendlyFire)
 	suspended = true --suspend user until explosion is over
 	exploding = true -- duh
 
-	
 	starttime = love.timer.getMicroTime()
 	--while(love.timer.getMicroTime() - starttime < 0.5) do --1 second long splosion
 	print("endsplosion: " .. endsplosion .. " and currtime " .. currtime)
@@ -705,6 +660,6 @@ function string.explode(str, div)
         end
         o[#o+1],str = str:sub(1,pos1-1),str:sub(pos2+1)
     end
-	print(o[0] .. " and " .. o[1] .. " AND " .. o[2])
+	--print(o[0] .. " and " .. o[1] .. " AND " .. o[2])
     return o
 end
