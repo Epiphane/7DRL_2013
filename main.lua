@@ -612,8 +612,12 @@ function makeExplosion(x, y, size, friendlyFire)
 	
 	-- Hit enemies
 	for i = 1, # enemies do
-		if not enemies[i].alive then
-			table.remove(enemies, i)
+		if enemies[i] then
+			if(enemies[i].x > x-size/2 and enemies[i].x < x+size/2) then
+				if(enemies[i].y > y-size/2 and enemies[i].y < y+size/2) then
+					enemies[i]:hitByExplosion()
+				end
+			end
 		end
 	end
 	

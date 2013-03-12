@@ -28,6 +28,9 @@ function Enemy:die()
 	self.alive = false
 end
 
+function Enemy:hitByExplosion()
+end
+
 Barrel = Enemy:new{name="Barrel", icon="O", health=1}
 function Barrel:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
@@ -67,6 +70,13 @@ end
 function Rat:getHit(dmg)
 	self.health = self.health - dmg
 	if self.health <= 0 then
+		self:die()
+	end
+end
+
+function Enemy:hitByExplosion()
+	if self.alive then
+		printSide("The rat explodes")
 		self:die()
 	end
 end
