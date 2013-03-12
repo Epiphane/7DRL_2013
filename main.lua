@@ -19,7 +19,7 @@ bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 enemies = {}
 num_enemies = 0
 
-sizes1 = {1,3,5,5,5,3,2,1,0}
+sizes1 = {2,4,6,6,6,5,4,3,2,1,0}
 sizeindex = 0
 
 --is explosion happening?
@@ -285,8 +285,8 @@ function love.draw()
 	
 		love.graphics.setColor(255,255,0)
 		love.graphics.rectangle("fill",0,0,24,24)
-		for explosionX = 0, explosion["size"] * 2 do
-			for explosionY = 0, explosion["size"] * 2 do
+		for explosionX = -13, 13 do
+			for explosionY = -13, 13 do
 				
 				rindex = string.find(explosionTiles[explosionX][explosionY], "+")
 				
@@ -305,8 +305,8 @@ function love.draw()
 				
 				if(r ~= -1) then
 					love.graphics.setColor(r, g, b)
-					love.graphics.rectangle( "fill", (explosion["x"] + explosionX - offset["x"] - 5) * 12, 
-						(explosion["y"] + explosionY - offset["y"] - 5) * 12, 12, 12)
+					love.graphics.rectangle( "fill", (explosion["x"] + explosionX - offset["x"] - explosion["size"]/2) * 12, 
+						(explosion["y"] + explosionY - offset["y"] - explosion["size"]/2) * 12, 12, 12)
 				end
 			end
 		end
@@ -643,39 +643,39 @@ end
 --if enough time has passed, make the explosion different-looking
 function iterateExplosion()
 	--see if we're actually secretly done
-	if(endsplosion < currtime) then
+	--[[if(endsplosion < currtime) then
 		print("done exploding!")
 		exploding = false
 		suspended = false
-	end
+	end]]--
 
 	--draw a bunch of yellow/red/orange rectangles, centered at x, y
 	--goes all the way to radius specified by "size"
 
 	--is all randomized and shit.  Also decreases in size over lifespan.
 	if(nextiteration < currtime) then
-		print("this is happening now")
-		for exx = -math.ceil(explosion["size"]), math.ceil(explosion["size"]) do 
-			for exy = -math.ceil(explosion["size"]), math.ceil(explosion["size"]) do 
-				r,g,b = -1,-1,-1
-				--First, choose a random color or choose to not have a splosion tile there at all
-				rando = math.random(5)
-				if(rando == 1) then
-					--negative one indicates explosion-less square.
-					r, g, b = -1, -1, -1
-				elseif(rando == 2) then
-					--a nice oaky orange
-					r, g, b = 230, 193, 30
-				elseif(rando == 3) then
-					--a vibrant yellow
-					r, g, b = 255, 255, 0
-				elseif(rando == 4) then
-					--a sultry, hot red
-					r, g, b = 255, 55, 0
-				end
+	
+		for radius = 0, explosion["size"] do
+			for i = 0, explosion["size"] * 3 do
+				
+				--make the color reddish orangish yellowish
+				
+				r = math.random(1,255)
+				
+				g = math.random(1,255)
+				
+				b = 27
+				
+				if(g > 200) then r = -1 end
+				
+				--polar coordinates ftw
+				angle = math.random() * math.pi * 2
+			
+				exx = math.ceil(math.sin(angle) * radius)
+				exy = math.ceil(math.cos(angle) * radius)
 			
 				--print(math.ceil(math.sin(angle) * radius + size/2) .. " and " .. math.ceil(math.cos(angle) * radius + size/2))
-				explosionTiles[exx + 2][exy + 2] = r .. "+" .. g .. "+" .. b
+				explosionTiles[exx][exy] = r .. "+" .. g .. "+" .. b
 			end
 		end
 	
