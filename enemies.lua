@@ -38,7 +38,7 @@ end
 
 function Barrel:getHit(dmg)
 	if dmg < 25 then return end
-	if(self.icon == "B") then
+	if(self.icon == "O") then
 		self.icon = "3"
 	end
 end
