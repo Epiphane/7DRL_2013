@@ -119,6 +119,9 @@ function hands:shoot(direction)
 	self.x = char.x
 	self.y = char.y
 	
+	self.dx = 0
+	self.dy = 0
+	
 	if(direction == "7") then
 		self.dx = -1
 		self.dy = -1
@@ -153,7 +156,7 @@ function hands:shoot(direction)
 		end
 	end
 	
-	printSide("You swing at the empty\n  air...")
+	printSide("You swing at the empty air...")
 end
 --end hands.shoot()
 

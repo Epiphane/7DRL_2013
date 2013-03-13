@@ -112,7 +112,7 @@ function DoorSealer:doAction()
 end
 -- end seal()
 
-Wall = Tile:new{tile=2, blocker=true, awesome_effect=-1, message="You walk headlong\n  into a wall..."}
+Wall = Tile:new{tile=2, blocker=true, awesome_effect=-1, message="You walk headlong into a wall..."}
 function Wall:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -151,7 +151,7 @@ function SpikeTrap:checkTrap(victim)
 	if(victim == "you") then
 		printSide("Spikes shoot out of the ground and stab you in the shins!")
 	else
-		printSide("Spikes shoot out of the ground and stab the " .. victim.name .. "!")
+		printSide("Spikes shoot out of the ground and stab the " .. string.lower(victim.name) .. "!")
 		victim:getHit(10)
 	end
 end

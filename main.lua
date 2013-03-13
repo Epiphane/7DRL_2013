@@ -198,7 +198,7 @@ end
 function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 
 	--each room gets 1 trap.
-	local trapX, trapY = math.random(start_i, end_i), math.random(start_j, end_j)
+	local trapX, trapY = math.random(start_i + 1, end_i - 1), math.random(start_j + 1, end_j - 1)
 
 	for i = start_i, end_i do
 		if not map[i] then map[i] = {} end
@@ -542,7 +542,7 @@ function keyPressGame(key, unicode)
 				--this flag indicates we're gonna wait for the user to input a direction
 				explosion["falcon"] = true
 				
-				printSide("FALCOOOOON...\n(choose a direction)")
+				printSide("FALCOOOOON... (choose a direction)")
 			end
 		end
 	else	

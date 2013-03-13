@@ -1,6 +1,9 @@
 sidebarlog = {{message="You wake up.", color={r=100,g=255,b=255}}}
 displayBig = true
 
+--number of characters that we can fit on one line.
+CHARS_PER_LINE = 24
+
 function drawSidebar(start_x)
 	love.graphics.setFont(mainFont) -- Just in case
 	
@@ -51,10 +54,56 @@ end
 
 function printSide(message)
 	if message then
+		message = parseLongThing(message)
+	
 		table.insert(sidebarlog, 1, {message="break", color={r=0,g=0,b=0}})
 		m = string.explode(message, "\n")
 		for i = #m,1,-1 do
 			table.insert(sidebarlog, 1, {message=m[i], color={r=255,g=255,b=255}})
 		end
 	end
+end
+
+--takes a nice long thing makes it short.
+--Will try to split up along spaces if possible.
+--If there's more than 10 characters that will be shifted
+--down, it puts a hyphen in.
+function parseLongThing(message)
+	local splitups = {0,0,0,0,0,0,0}
+	--fucking lua starts at fucking 1 what the fuck
+	local numsplits = 1
+	local i, spaceAt = 0, 0
+	
+	--print(#message .. ": #message length")
+	--See if there's a space at 24, 23, 22, etc.
+	while(#message > 24) do
+		for i = 0, CHARS_PER_LINE do
+			if(string.sub(message, CHARS_PER_LINE - i, CHARS_PER_LINE - i) == " ") then
+				spaceAt = CHARS_PER_LINE - i + 1
+				
+				--is the space at a reasonable splitting point?
+				if(spaceAt > 12) then
+					--add the chunk we just found to our list of splitups
+					splitups[numsplits] = string.sub(message, 1, spaceAt - 1)
+					message = string.sub(message,spaceAt)
+					break
+				else --oh shit we gotta hyphenate I guess...
+					splitups[numsplits] = string.sub(message, 1, 20) .. "-"
+					message = string.sub(message,20)
+				end
+			end
+		end
+		
+		numsplits = numsplits + 1
+	end
+	
+	splitups[numsplits] = message
+	message = ""
+	
+	--reassemble string with \n's in between each splitup
+	for i = 1, numsplits do
+		message = message .. "\n" .. splitups[i]
+	end
+	
+	return message
 end

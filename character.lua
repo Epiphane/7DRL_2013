@@ -2,7 +2,7 @@ char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, 
 -- For directions, 0 is neutral, 1 is positive, -1 is negative
 
 function char:hitByExplosion()
-	printSideWithColor("You get hit by a fiery\n explosion!", 255, 0, 0)
+	printSideWithColor("You get hit by a fiery explosion!", 255, 0, 0)
 	self:loseAmount(15)
 end
 
