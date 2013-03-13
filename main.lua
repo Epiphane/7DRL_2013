@@ -42,7 +42,7 @@ function love.load()
 											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
-	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
+	floorFont = love.graphics.newImageFont ("floorTiles.png", "123456789")
 
 	level = 1
 end
@@ -52,9 +52,8 @@ function initGame()
 	displayBig = true
 	-- Character location set in map function
 	
-	-- Build map
-	-- TODO: Make actual level initiation function, this is more of a placeholder
-	makeMap()
+	level = 1
+	initLevel()
 	
 	explosionTiles = {}
     for i=-13,13 do
@@ -85,12 +84,39 @@ dofile("objects.lua")
 -- and such values will max at 180
 dofile("character.lua")
 
--- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
-MAPWIDTH = 24
-MAPHEIGHT = 24
-ROOMNUM = 1
-WALL_NUM = 2 -- Wall num constant
-viewed_rooms = {}
+function initLevel()
+	if level == 1 then
+		MAPWIDTH = 24
+		MAPHEIGHT = 24
+		ROOMNUM = 1
+		viewed_rooms = {}
+		makeMap()
+	elseif level == 2 then
+		MAPWIDTH = 48
+		MAPHEIGHT = 48
+		ROOMNUM = 1
+		viewed_rooms = {}
+		makeMap()
+	end
+	
+	-- Set character location
+	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
+	char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
+	-- Set screen offset (for scrolling)
+	offset = {x=char["x"]-20, y=char["y"]-30}
+	while(map[char["x"]][char["y"]].blocker) do
+		char["x"] = char["x"] + 1
+		char["y"] = char["y"] + 1
+	end
+	char.prev_x = char.x
+	char.prev_y = char.y
+	
+	-- Put character in the room
+	k, v = next(map[char["x"]][char["y"]].room, nil)
+	char["room"] = k
+	viewed_rooms[k] = true
+end
+
 function makeMap()
 	map = {}
 	for i = 1, MAPWIDTH do
@@ -133,55 +159,47 @@ function makeMap()
 	until j == MAPHEIGHT
 	
 	-- Make boss room corridor
-	start_i = MAPWIDTH
 	CORRIDORWIDTH = 24 + math.random(8)
-	end_i = start_i + CORRIDORWIDTH
-	start_j = MAPHEIGHT/2
-	while(map[start_i-1][start_j].blocker) do -- In case we put corridor against a wall
-		start_j = start_j - 1
-	end
-	k, v = next(map[start_i-1][start_j].room, nil)
-	map[start_i][start_j] = CrackedWall:new{room={[998]=true, [k]=true}}
-	table.insert(map[start_i][start_j-1].room, {[998]=true})
-	table.insert(map[start_i][start_j+1].room, {[998]=true})
-	-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
-	if level == 1 then
-		spawnEnemy(start_i-1, start_j, Barrel)
-	end
 	
-	for i = start_i+1,end_i do
-		map[i] = {}
-		map[i][start_j - 1] = Wall:new{room={[998]=true}}
-		map[i][start_j] = Floor:new{room={[998]=true}}
-		map[i][start_j + 1] = Wall:new{room={[998]=true}}
+	orient = math.random(4)
+	if(orient == 2 or orient == 4) then orient = orient -1 end
+	if(orient == 1 or orient == 3) then
+		start_i = MAPWIDTH * (orient - 1) / 2 + (3 - orient) / 2
+		end_i = start_i + CORRIDORWIDTH * (orient - 2)
+		start_j = MAPHEIGHT/2
+		while(map[start_i-(orient-2)][start_j].blocker) do -- In case we put corridor against a wall
+			start_j = start_j + 1
+		end
+		k, v = next(map[start_i-(orient-2)][start_j].room, nil)
+		map[start_i][start_j] = CrackedWall:new{room={[998]=true, [k]=true}}
+		table.insert(map[start_i][start_j-1].room, {[998]=true})
+		table.insert(map[start_i][start_j+1].room, {[998]=true})
+		-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
+		if level == 1 then
+			spawnEnemy(start_i-(orient-2), start_j, Barrel)
+		end
+		
+		for i = start_i+(orient-2),end_i,(orient-2) do
+			map[i] = {}
+			map[i][start_j - 1] = Wall:new{room={[998]=true}}
+			map[i][start_j] = Floor:new{room={[998]=true}}
+			map[i][start_j + 1] = Wall:new{room={[998]=true}}
+		end
+		thunderingDoor = ThunderingDoor:new{room={[998]=true}}
+		map[end_i][start_j] = thunderingDoor -- Make thundering door
+		ROOMNUM = ROOMNUM + 1
+		
+		-- Make boss room!
+		start_i = end_i + (orient - 2)
+		end_i = start_i + 20 * (orient - 2)
+		for i=start_i,end_i,(orient-2) do map[i] = {} end -- Make rows
+		if(orient == 1) then
+			makeRoom(end_i, start_j - 10, start_i, start_j + 10, 999)
+		else
+			makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
+		end
+		map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2), y=start_j}} -- Make thundering door lever
 	end
-	thunderingDoor = ThunderingDoor:new{room={[998]=true}}
-	map[end_i][start_j] = thunderingDoor -- Make thundering door
-	ROOMNUM = ROOMNUM + 1
-	
-	-- Make boss room!
-	start_i = end_i + 1
-	end_i = start_i + 20
-	for i=start_i,end_i do map[i] = {} end -- Make rows
-	makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
-	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-1, y=start_j}} -- Make thundering door lever
-	
-	-- Set character location
-	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
-	char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
-	-- Set screen offset (for scrolling)
-	offset = {x=char["x"]-20, y=char["y"]-30}
-	while(map[char["x"]][char["y"]].blocker) do
-		char["x"] = char["x"] + 1
-		char["y"] = char["y"] + 1
-	end
-	char.prev_x = char.x
-	char.prev_y = char.y
-	
-	-- Put character in the room
-	k, v = next(map[char["x"]][char["y"]].room, nil)
-	char["room"] = k
-	viewed_rooms[k] = true
 end
 
 -- Automatically add doors to the room
