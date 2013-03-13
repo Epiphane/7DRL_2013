@@ -222,7 +222,25 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 			end
 			
 			if(i == trapX and j == trapY) then
-				map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
+				whichTrap = math.random(1,2)
+				if(whichTrap == 1) then
+					map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
+				elseif(whichTrap == 2) then
+					if(i - start_i > end_i - i) then
+						--catapult is closer to the LEFT side, point it right
+						cxdir = 5
+					else
+						cxdir = -5 --opposite k
+					end
+					
+					if(j - start_j > end_j - j) then
+						--catapult is closer to TOP, point it DOWN.
+						cydir = 5
+					else
+						cydir = -5 --opposite aite
+					end
+					map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
+				end
 			end
 			
 			-- if its the top or left of a room we need to make special...modifications
@@ -283,6 +301,16 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 		elseif(roomnum == 999) then
 			spawnEnemy(end_i - 3, start_j + (end_j - start_j) / 2, GiantRat)
 		end
+	end
+end
+
+--put a trap in the specified locale
+function makeTrap(i, j)
+	whichTrap = math.random(1,2)
+	if(whichTrap == 1) then
+		map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
+	elseif(whichTrap == 2) then
+		map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
 	end
 end
 
@@ -449,6 +477,19 @@ function updateGame()
 			if(char['fy'] < char["y"]) then newPosY = char["y"] - 1
 			elseif(char['fy'] > char["y"]) then newPosY = char["y"] + 1 end
 			
+			--hey, while we're here, let's move enemies that need to be moved.
+			for i=1,#enemies do
+				if(enemies[i].forcedMarch) then
+					newEnemyX, newEnemyY = enemies[i].x, enemies[i].y
+				
+					if(enemies[i].newX < enemies[i].x) then newEnemyX = enemies[i].x - 1
+					elseif(enemies[i].newX > enemies[i].x) then newEnemyX = enemies[i].x + 1 end
+					
+					if(enemies[i].newY < enemies[i].y) then newEnemyY = enemies[i].y - 1
+					elseif(enemies[i].newY > enemies[i].y) then newEnemyY = enemies[i].y + 1 end
+					
+				end
+			end
 			
 			if(map[newPosX]) then
 				tile = map[newPosX][newPosY]
