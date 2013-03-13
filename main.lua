@@ -248,7 +248,9 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 		if(roomnum == 1) then
 			spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Pistol)
 		elseif(roomnum == 2) then
-			spawnEnemy(5, 5, Rat)
+			spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Rat)
+			spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Rat)
+			spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Rat)
 		elseif(roomnum == 3) then
 		elseif(roomnum == 4) then
 		end
@@ -549,18 +551,26 @@ function checkThenMove(x, y)
 	
 	if tile.blocker then
 	elseif(enemy_in_space) then -- checks for monsters, etc. go here
-	else
-		-- empty square! we cool.
-		if(map[x][y]["tile"] == 8 and map[char["x"]][char["y"]]["tile"] == 5) then -- If this is the boss room lever
-			printSide("The door thunders closed.")
-			map[char["x"]][char["y"]]["tile"] = 2
-		end
 		
+	else
 		-- In case we're entering a new room soon
 		viewed_rooms[map[x-1][y]["room"]] = true
 		viewed_rooms[map[x][y-1]["room"]] = true
 		
+		char["prev_x"], char["prev_y"] = char["x"], char["y"]
 		char["x"], char["y"] = x, y
+		char.dirx=0
+		char.diry=0
+		if (char.x-char.prev_x) > 0 then
+			char.dirx = 1
+		else
+			char.dirx = -1
+		end
+		if (char.y-char.prev_y) > 0 then
+			char.diry = 1
+		else
+			char.diry = -1
+		end
 		k, v = next(map[char["x"]][char["y"]].room, nil)
 		char["room"] = k
 		viewed_rooms[k] = true

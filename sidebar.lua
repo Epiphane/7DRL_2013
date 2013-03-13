@@ -1,4 +1,5 @@
 sidebarlog = {{message="You wake up.", color={r=100,g=255,b=255}}}
+displayBig = 255
 
 function drawSidebar(start_x)
 	love.graphics.setFont(mainFont) -- Just in case

@@ -29,6 +29,10 @@ function Enemy:die()
 end
 
 function Enemy:hitByExplosion()
+	if self.alive then
+		printSide("The " .. self.name .. " explodes")
+		self:die()
+	end
 end
 
 Barrel = Enemy:new{name="Barrel", icon="O", health=1}
@@ -74,19 +78,13 @@ function Rat:getHit(dmg)
 	end
 end
 
-function Enemy:hitByExplosion()
-	if self.alive then
-		printSide("The rat explodes")
-		self:die()
-	end
-end
-
 function Rat:takeTurn()
-	diff = math.abs(char.x - self.x) + math.abs(char.y - self.y)
+	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
+	diff = math.abs(char.prev_x - self.x) + math.abs(char.prev_y - self.y)
 	if(diff == 1) then
 		return
 	end
-	local tileList = {[self.x]={[self.y]={x=self.x, y=self.y, open=true, f=diff, g=0, parent=false}}} -- Initialize with current pos
+	tileList = {[self.x]={[self.y]={x=self.x, y=self.y, open=true, f=diff, g=0, parent=false}}} -- Initialize with current pos
 	
 	-- Start stepping around at lowest F cost!
 	repeat
@@ -109,61 +107,57 @@ function Rat:takeTurn()
 		current_min.open = false
 		
 		-- Add up, down, left, right to open list
-		if(map[current_x-1] and map[current_x-1][current_y] and not map[current_x-1][current_y].blocker) then
-			if(not tileList[current_x-1]) then tileList[current_x-1] = {} end
-			diff = math.abs(char.x - (current_x - 1)) + math.abs(char.y - current_y)
-			if(not tileList[current_x-1][current_y]) then
-				tileList[current_x-1][current_y] = {x=current_x-1, y=current_y, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-			else
-				if(tileList[current_x-1][current_y].g > current_min.g+1) then
-					tileList[current_x-1][current_y] = {x=current_x-1, y=current_y, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-				end
-			end
+		if(char.dirx > 0 or char.diry > 0) then dir = 1 else dir = -1 end
+		if(math.random(10) > 5) then
+			addList(dir, 0)
+			addList(dir*-1, 0)
+			addList(0, dir)
+			addList(0, dir*-1)
+		else
+			addList(0, dir)
+			addList(0, dir*-1)
+			addList(dir, 0)
+			addList(dir*-1, 0)
 		end
-		if(map[current_x+1] and map[current_x+1][current_y] and not map[current_x+1][current_y].blocker) then
-			if(not tileList[current_x+1]) then tileList[current_x+1] = {} end
-			diff = math.abs(char.x - (current_x + 1)) + math.abs(char.y - current_y)
-			if(not tileList[current_x+1][current_y]) then
-				tileList[current_x+1][current_y] = {x=current_x+1, y=current_y, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-			else
-				if(tileList[current_x+1][current_y].g > current_min.g+1) then
-					tileList[current_x+1][current_y] = {x=current_x+1, y=current_y, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-				end
-			end
-		end
-		if(map[current_x] and map[current_x][current_y-1] and not map[current_x][current_y-1].blocker) then
-			if(not tileList[current_x]) then tileList[current_x] = {} end
-			diff = math.abs(char.x - (current_x)) + math.abs(char.y - (current_y-1))
-			if(not tileList[current_x][current_y-1]) then
-				tileList[current_x][current_y-1] = {x=current_x, y=current_y-1, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-			else
-				if(tileList[current_x][current_y-1].g > current_min.g+1) then
-					tileList[current_x][current_y-1] = {x=current_x, y=current_y-1, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-				end
-			end
-		end
-		if(map[current_x] and map[current_x][current_y+1] and not map[current_x][current_y+1].blocker) then
-			if(not tileList[current_x]) then tileList[current_x] = {} end
-			diff = math.abs(char.x - (current_x)) + math.abs(char.y - (current_y-1))
-			if(not tileList[current_x][current_y+1]) then
-				tileList[current_x][current_y+1] = {x=current_x, y=current_y+1, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-			else
-				if(tileList[current_x][current_y+1].g > current_min.g+1) then
-					tileList[current_x][current_y+1] = {x=current_x, y=current_y+1, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
-				end
-			end
-		end
-	until (current_x == char.x and current_y == char.y)
+	until (current_x == char.prev_x and current_y == char.prev_y)
 	
 	if current_min then
 		-- Follow the tree back
 		local current_tile = tileList[current_x][current_y]
 		while(current_tile.parent.parent) do current_tile = current_tile.parent end
-		self.x = current_tile.x
-		self.y = current_tile.y
-	
-		k, v = next(map[self.x][self.y].room,nil)
-		self.room = k
+		
+		local enemy_in_space = false
+		if(char.x == current_tile.x and char.y == current_tile.y) then enemy_in_space = true end
+		for i=1,#enemies do
+			print(enemies[i].name)
+			if(enemies[i].x == current_tile.x and enemies[i].y == current_tile.y) then
+				enemy_in_space = enemies[i]
+				break
+			end
+		end
+		
+		if not enemy_in_space then
+			self.x = current_tile.x
+			self.y = current_tile.y
+		
+			k, v = next(map[self.x][self.y].room,nil)
+			self.room = k
+		end
+	end
+end
+
+-- Adding stuff to open list
+function addList(xo, yo)
+	if(map[current_x+xo] and map[current_x+xo][current_y+yo] and not map[current_x+xo][current_y+yo].blocker) then
+		if(not tileList[current_x+xo]) then tileList[current_x+xo] = {} end
+		diff = math.abs(char.x - (current_x+xo)) + math.abs(char.y - (current_y+yo))
+		if(not tileList[current_x+xo][current_y+yo]) then
+			tileList[current_x+xo][current_y+yo] = {x=current_x+xo, y=current_y+yo, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
+		else
+			if(tileList[current_x+xo][current_y+yo].g > current_min.g+1) then
+				tileList[current_x+xo][current_y+yo] = {x=current_x+xo, y=current_y+yo, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
+			end
+		end
 	end
 end
 
