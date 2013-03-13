@@ -815,6 +815,5 @@ function string.explode(str, div)
         end
         o[#o+1],str = str:sub(1,pos1-1),str:sub(pos2+1)
     end
- --print(o[0] .. " and " .. o[1] .. " AND " .. o[2])
     return o
 end
