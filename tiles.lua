@@ -208,4 +208,40 @@ function CatapultTrap:checkTrap(victim)
 		victim:forceMarch(victim.x + math.random(-5,5), victim.y + math.random(-5,5))
 	end
 end
+
+--pits are special, they don't affect you if you're flyin' over them.
+--Also they constitute most of the "Bridge" style level so in that sense they're not really even a trap.
+Pit = Tile:new{tile=1, blocker = false, awesome_effect = -10}
+function Pit:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	return o
+end
+
+function Pit:checkTrap(victim)
+	--don't "doAction" in case we're just passing over
+	
+	if(victim == "you") then
+		if(char.forcedMarch) then
+			printSide("You soar over a pit!")
+		else
+			printSide("You fall into a deep, dank pit! (Press Enter to Continue)")
+			char:loseAwesome(10)
+			
+			char.inAPit = true
+			
+			--suspend user input and wipe the last keypress.
+			--it used to boot you right out the pit.
+			suspended = true
+		end
+	else
+		if(victim.forcedMarch) then
+			--do nothing.
+		else
+			printSide("The " .. string.lower(victim.name) .. " falls screaming into the abyss!")
+			victim:die()
+		end
+	end
+end
 --************END TRAPS**************************

@@ -30,6 +30,9 @@ explosion = {x=5, y=5, size=5, friendlyFire = false}
 
 gameState = 0
 
+--keeps track of keys pressed during suspended-mode
+susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+
 function love.load()
 	
 	-- Set background color black, cause it's a console you stupid bitch
@@ -122,8 +125,6 @@ function makeMap()
 	for i = 1, MAPWIDTH do
 		row = {}
 		for j = 1, MAPHEIGHT do
-			-- Create random thingy. Again - placeholder, we need to create functions
-			-- and algorithms and stuff
 			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
 				row[j] = Wall:new{room={[ROOMNUM]=true}}
 			else
@@ -223,25 +224,15 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 			end
 			
 			if(i == trapX and j == trapY) then
-				whichTrap = math.random(1,2)
+				--[[whichTrap = math.random(1,2)
 				if(whichTrap == 1) then
 					map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
 				elseif(whichTrap == 2) then
-					if(i - start_i > end_i - i) then
-						--catapult is closer to the LEFT side, point it right
-						cxdir = 5
-					else
-						cxdir = -5 --opposite k
-					end
-					
-					if(j - start_j > end_j - j) then
-						--catapult is closer to TOP, point it DOWN.
-						cydir = 5
-					else
-						cydir = -5 --opposite aite
-					end
+					cxdir = math.random(-6,6)
+					cydir = math.random(-6,6)
 					map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
-				end
+				end]]--
+				map[i][j] = Pit:new{room={[roomnum]=true}}
 			end
 			
 			-- if its the top or left of a room we need to make special...modifications
@@ -312,6 +303,25 @@ function makeTrap(i, j)
 		map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
 	elseif(whichTrap == 2) then
 		map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
+	end
+end
+
+
+function makeMap2()
+	MAPWIDTH = 256
+	MAPHEIGHT = 256
+
+	map = {}
+	for i = 1, MAPWIDTH do
+		row = {}
+		for j = 1, MAPHEIGHT do
+			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
+				row[j] = Wall:new{room={[ROOMNUM]=true}}
+			else
+				row[j] = Floor:new{room={[ROOMNUM]=true}}
+			end
+		end
+		map[i] = row
 	end
 end
 
@@ -424,6 +434,7 @@ function drawGame()
 end
 
 currtime = 0
+--this is for Falcon Punch** (TODO: organize diz betta)
 fpdirection = {}
 
 function love.update(dt)
@@ -492,7 +503,8 @@ function updateGame()
 				elseif(newPosX == char.fx and newPosY == char.fy) then
 					--check if we've hit the target
 					char['forcedMarch'] = false
-					char["x"], char["y"] = newPosX, newPosY
+					--being the last one, do a regular check'n'move
+					checkThenMove(newPosX, newPosY)
 				else --guess we're good to move the character here!
 					char["x"], char["y"] = newPosX, newPosY
 				end
@@ -539,20 +551,22 @@ function updateGame()
 	end
 	
 	--wait for directional input here
-	if(explosion["falcon"]) then --or a number of other flags
-		if(rightpress < REAL_BIG_NUMBER) then
+	if(explosion["falcon"]) then
+		if(susrightpress < REAL_BIG_NUMBER) then
 			fpdirection.x, fpdirection.y = 1, 0
 			falconPAWNCH(fpdirection)
-		elseif(leftpress < REAL_BIG_NUMBER) then
+		elseif(susleftpress < REAL_BIG_NUMBER) then
 			fpdirection.x, fpdirection.y = -1, 0
 			falconPAWNCH(fpdirection)
-		elseif(uppress < REAL_BIG_NUMBER) then
+		elseif(susuppress < REAL_BIG_NUMBER) then
 			fpdirection.x, fpdirection.y = 0, -1
 			falconPAWNCH(fpdirection)
-		elseif(downpress < REAL_BIG_NUMBER) then
+		elseif(susdownpress < REAL_BIG_NUMBER) then
 			fpdirection.x, fpdirection.y = 0, 1
 			falconPAWNCH(fpdirection)
 		end
+		
+		susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 	end
 end
 
@@ -635,10 +649,45 @@ function keyPressGame(key, unicode)
 	else	
 		--supension also is kicked in when the user has to choose a direction/location for something.
 		--pass the directional keys to any function that might want 'em.
-		if(key == "right") then rightpress = currtime
-		elseif(key == "left") then leftpress = currtime
-		elseif(key == "up") then uppress = currtime
-		elseif(key == "down") then downpress = currtime
+		if(key == "right") then susrightpress = currtime
+		elseif(key == "left") then susleftpress = currtime
+		elseif(key == "up") then susuppress = currtime
+		elseif(key == "down") then susdownpress = currtime
+		end
+	end
+	
+	if(key=="q") then
+		makeMap2()
+		gameState = "MAPDEBUG lol"
+	end
+	
+	--if the user hit "enter" and he or she is in a pit we should let him (or her) out
+	if(char.inAPit and key == "return") then
+		searchDistance = 1
+		escaped = false
+		while(not escaped) do 
+			px, py = 0, 0
+			--run a search using increasingly large squares.
+			for px = -searchDistance, searchDistance do
+				for py = -searchDistance, searchDistance do
+					print("Are YOU the problem? px = " .. px .. " py = " .. py .. " searchD is " .. searchDistance)
+					myTile = checkTile(px + char.x, py + char.y)
+					if(myTile ~= "null" and not myTile.blocker) then
+						--we did it!
+						escaped = true
+						checkThenMove(px + char.x, py + char.y)
+						printSide("You crawl out of the pit.")
+						
+						--escape from the forloop!
+						char.inAPit = false
+						suspended = false
+						susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+						return
+					end
+					--didn't find a valid square to move to.  Increment search distance.
+				end
+			end
+			searchDistance = searchDistance + 1
 		end
 	end
 end
@@ -747,6 +796,19 @@ function checkThenMove(x, y)
 	tile:doAction()
 	tile:checkTrap("you")
 	doTurn()
+end
+
+--handy function to grab a tile from x, y on map.
+--does the null-check for you.
+function checkTile(x, y)
+	if(map[x] == nil or map[x][y]	== nil) then 
+		--print("oh crap, tried to access a null tile!")
+		return "null" --** run a check to see if tile=="null" to avoid exceptions.
+	end
+	
+	tile = map[x][y]
+	
+	return tile
 end
 
 --spawns an enemy @ x, y
