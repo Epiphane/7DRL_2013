@@ -155,4 +155,26 @@ function SpikeTrap:checkTrap(victim)
 		victim:getHit(10)
 	end
 end
+
+CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=0}
+function CatapultTrap:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	
+	print(cdir)
+	return o
+end
+
+function CatapultTrap:checkTrap(victim)
+	Tile.doAction(self)
+	
+	if(victim == "you") then
+		printSide("A hidden catapult springs out of the ground and flings you across the room!")
+		char:forceMarch(char.x + math.random(-5,5), char.y + math.random(-5,5))
+	else
+		printSide("A hidden catapult springs out of the ground and flings the " .. string.lower(victim.name) .. "across the room!")
+		victim:getHit(5)
+	end
+end
 --************END TRAPS**************************

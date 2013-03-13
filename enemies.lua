@@ -1,6 +1,6 @@
 -- Constructor for the Tile Class
 -- param: o is an object, or table of information.
-Enemy = {name="Enemy", icon="E", room=1, x=1, y=1, health=1, alive=true}
+Enemy = {name="Enemy", icon="E", room=1, x=1, y=1, health=1, forcedMarch = false, alive=true}
 
 function Enemy:new(o)
 	o = o or {}				-- Set the tile's info to match passed params
@@ -244,4 +244,10 @@ end
 
 function Zombie:takeTurn()
 	
+end
+
+function Enemy:setForceMarch(newX, newY)
+	self.forcedMarch = true
+	self.targetX = newX
+	self.targetY = newY
 end
