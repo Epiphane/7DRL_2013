@@ -28,9 +28,26 @@ exploding = false
 explosionTiles = {}
 explosion = {x=5, y=5, size=5, friendlyFire = false}
 
-
+gameState = 0
 
 function love.load()
+	
+	-- Set background color black, cause it's a console you stupid bitch
+	love.graphics.setBackgroundColor( 0, 0, 0 )
+	
+	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
+	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
+											.. "xxxxxxxxxxxxxxxxxxxxx"
+											.. "xxxxxxxxxxxxOxxxxxxxxxxxx"
+											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+											.. "abcdefghijklmnopqrstuvwxyz")
+	-- Load floor tiles (for theming and shit)
+	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
+	
+	initGame()
+end
+
+function initGame()
 	level = 1
 	
 	-- Initialize functions that are used for creating the info bar
@@ -47,18 +64,6 @@ function love.load()
 	
 	-- Initialize everything that has to do with objects
 	dofile("objects.lua")
-	
-	-- Set background color black, cause it's a console you stupid bitch
-	love.graphics.setBackgroundColor( 0, 0, 0 )
-	
-	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
-	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
-											.. "xxxxxxxxxxxxxxxxxxxxx"
-											.. "xxxxxxxxxxxxOxxxxxxxxxxxx"
-											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-											.. "abcdefghijklmnopqrstuvwxyz")
-	-- Load floor tiles (for theming and shit)
-	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
 	
 	-- Initialize main character and shit
 	-- Side note: right now, with sizing and everything, it's looking like strength
@@ -175,6 +180,8 @@ function makeMap()
 		char["x"] = char["x"] + 1
 		char["y"] = char["y"] + 1
 	end
+	char.prev_x = char.x
+	char.prev_y = char.y
 	
 	-- Put character in the room
 	k, v = next(map[char["x"]][char["y"]].room, nil)
@@ -253,6 +260,8 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 			spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Rat)
 		elseif(roomnum == 3) then
 		elseif(roomnum == 4) then
+		elseif(roomnum == 999) then
+			spawnEnemy(end_i - 3, start_j + (end_j - start_j) / 2, GiantRat)
 		end
 	end
 end
@@ -265,6 +274,20 @@ DISPLAYHEIGHT = 50
 screenshake = 0
 
 function love.draw()
+	if(gameState == 0) then
+		drawWelcome()
+	elseif(gameState == 1) then
+		drawGame()
+	end
+end
+
+function drawWelcome()
+	love.graphics.setFont(mainFont)
+	love.graphics.setColor(255, 255, 255)
+	love.graphics.print("Welcome to AwesomeRogue.\n\nPress enter to be awesome", 100, 250)
+end
+
+function drawGame()
 	-- Draw the map
 	love.graphics.setFont(floorFont)
 	for i = 1, DISPLAYWIDTH do
@@ -350,6 +373,17 @@ currtime = 0
 fpdirection = {}
 
 function love.update(dt)
+	if(gameState == 0) then
+		updateWelcome()
+	elseif(gameState == 1) then
+		updateGame()
+	end
+end
+
+function updateWelcome()
+end
+
+function updateGame()
 	
 	--We need this timer here so that all timers are standardized.  Otherwise it's crazy
 	--crazy crazy god knows what time it is.
@@ -441,6 +475,21 @@ downpress = REAL_BIG_NUMBER
 
 suspended = false
 function love.keypressed(key, unicode)
+	if(gameState == 0) then
+		keyPressWelcome(key, unicode)
+	elseif(gameState == 1) then
+		keyPressGame(key, unicode)
+	end
+end
+	
+function keyPressWelcome(key, unicode)
+	if(key == "return") then
+		gameState = 1
+	end
+	--print("You pressed " .. key .. ", unicode: " .. unicode)
+end
+	
+function keyPressGame(key, unicode)
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
 	if(not suspended) then

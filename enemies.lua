@@ -18,7 +18,10 @@ end
 -- end draw()
 
 function Enemy:getHit(dmg)
-	health = health-dmg
+	self.health = self.health - dmg
+	if self.health <= 0 then
+		self:die()
+	end
 end
 
 function Enemy:takeTurn()
@@ -29,8 +32,8 @@ function Enemy:die()
 end
 
 function Enemy:hitByExplosion()
-	self:getHit(
-	if self.alive then
+	self:getHit(15)
+	if not self.alive then
 		printSide("The " .. self.name .. " explodes")
 		self:die()
 	end
@@ -161,13 +164,6 @@ function Rat:new(o)
 	return o				-- Return Barrel
 end
 
-function Rat:getHit(dmg)
-	self.health = self.health - dmg
-	if self.health <= 0 then
-		self:die()
-	end
-end
-
 function Rat:takeTurn()
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	if(diff_char == 1) then
@@ -195,20 +191,21 @@ function Rat:new(o)
 	return o				-- Return Barrel
 end
 
-function Rat:takeTurn()
+function GiantRat:takeTurn()
+	if(char.room ~= 999) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	if(diff_char == 1) then
-		m = math.random(4)
+		m = math.random(3)
 		if(m == 1) then
-			printSide("The Rat climbs up into your trowsers.")
+			printSide("The Giant Rat lubricates you with its saliva.")
 		elseif(m == 2) then
-			printSide("The Rat claws your face")
+			printSide("The Giant Rat claws your face")
 		elseif(m == 3) then
-			printSide("The Rat rips a small hole in your shirt.")
+			printSide("The Giant Rat rips your clothes.")
 		elseif(m == 4) then
-			printSide("The Rat nibbles your toe.")
+			printSide("The Giant Rat bites your foot.")
 		end
-		char:loseAwesome(5)
+		char:loseAwesome(15)
 		return
 	end
 	self:moveTowardsCharacter()
