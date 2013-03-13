@@ -35,6 +35,11 @@ function Tile:doAction()
 end
 -- end doAction()
 
+--checktraps: both enemies AND the player do this.
+function Tile:checkTrap(victim)
+	--uhh just chill for now
+end
+
 -- greatForce() is called for big changing effects
 -- such as explosions or kicking enemies
 -- It doesn't do anything in most cases.
@@ -129,3 +134,25 @@ function CrackedWall:greatForce()
 	self.tile = 8
 	self.blocker = false
 end
+
+--**********BEGIN TRAPS***********************
+SpikeTrap = Tile:new{tile=7, blocker=false, awesome_effect=-10}
+function SpikeTrap:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
+
+-- doAction(): hurts whoever walked over the trap.
+function SpikeTrap:checkTrap(victim)
+	Tile.doAction(self)
+	
+	if(victim == "you") then
+		printSide("Spikes shoot out of the ground and stab you in the shins!")
+	else
+		printSide("Spikes shoot out of the ground and stab the " .. victim.name .. "!")
+		victim:getHit(10)
+	end
+end
+--************END TRAPS**************************

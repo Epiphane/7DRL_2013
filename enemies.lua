@@ -29,7 +29,7 @@ function Enemy:die()
 end
 
 function Enemy:hitByExplosion()
-	self:getHit(
+	self:getHit(10)
 	if self.alive then
 		printSide("The " .. self.name .. " explodes")
 		self:die()
@@ -108,6 +108,13 @@ function Enemy:checkAndMove(x, y)
 		k, v = next(map[self.x][self.y].room,nil)
 		self.room = k
 	end
+	
+	if(map[x] == nil or map[x][y]	== nil) then --[[chill]]-- 
+	else
+		tile = map[x][y]
+	end
+	
+	tile:checkTrap(self)
 end
 
 -- Adding stuff to open list

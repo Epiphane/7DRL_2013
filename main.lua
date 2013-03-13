@@ -189,6 +189,10 @@ end
 
 -- Fill a room with generic wall/floor
 function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
+
+	--each room gets 1 trap.
+	local trapX, trapY = math.random(start_i, end_i), math.random(start_j, end_j)
+
 	for i = start_i, end_i do
 		if not map[i] then map[i] = {} end
 		for j = start_j, end_j do
@@ -196,6 +200,10 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 				map[i][j] = Wall:new{room={[roomnum]=true}} -- Wall
 			else
 				map[i][j] = Floor:new{room={[roomnum]=true}} -- Floor
+			end
+			
+			if(i == trapX and j == trapY) then
+				map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
 			end
 			
 			-- if its the top or left of a room we need to make special...modifications
@@ -600,7 +608,8 @@ function checkThenMove(x, y)
 			end
 		end
 	end
-	tile:doAction("you")
+	tile:doAction()
+	tile:checkTrap("you")
 	doTurn()
 end
 
