@@ -307,9 +307,6 @@ function love.draw()
 	--drawsplosion if we're sploding
 	if(exploding) then
 		iterateExplosion()
-	
-		love.graphics.setColor(255,255,0)
-		love.graphics.rectangle("fill",0,0,24,24)
 		for explosionX = -13, 13 do
 			for explosionY = -13, 13 do
 				
@@ -603,7 +600,7 @@ function checkThenMove(x, y)
 			end
 		end
 	end
-	tile:doAction()
+	tile:doAction("you")
 	doTurn()
 end
 
