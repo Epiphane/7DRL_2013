@@ -35,7 +35,7 @@ function Enemy:hitByExplosion()
 	char:gainAwesome(7)
 	self:getHit(15)
 	if not self.alive then
-		printSide("The " .. self.name .. " explodes")
+		printSide("The " .. self.name .. " explodes in a shower of blood")
 		self:die()
 	end
 end
@@ -148,6 +148,7 @@ function Barrel:getHit(dmg)
 	if dmg < 25 then return end
 	if(self.icon == "O") then
 		self.icon = "3"
+		printSide("Gas gushes out of the side of the barrel! Sparks fly!")
 	end
 end
 
