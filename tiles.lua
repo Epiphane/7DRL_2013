@@ -149,9 +149,17 @@ function SpikeTrap:checkTrap(victim)
 	Tile.doAction(self)
 	
 	if(victim == "you") then
-		printSide("Spikes shoot out of the ground and stab you in the shins!")
+		if(char.forcedMarch) then
+			printSide("As you fly through the air, a spike trap stabs your butt!")
+		else
+			printSide("Spikes shoot out of the ground and stab you in the shins!")
+		end
 	else
-		printSide("Spikes shoot out of the ground and stab the " .. string.lower(victim.name) .. "!")
+		if(victim.forcedMarch) then --enemy hit a spike trap while flying: AWEZZZOMMEE
+			printSide("The " .. string.lower(victim.name) .. " is shot full of spikes as it flies across the room!")
+		else
+			printSide("Spikes shoot out of the ground and stab the " .. string.lower(victim.name) .. "!")
+		end
 		victim:getHit(10)
 	end
 end
@@ -170,11 +178,19 @@ function CatapultTrap:checkTrap(victim)
 	Tile.doAction(self)
 	
 	if(victim == "you") then
-		printSide("A hidden catapult springs out of the ground and flings you across the room!")
+		if(char.forcedMarch) then
+			printSide("You land on a catapult, and are thrown across the air!")
+		else
+			printSide("A hidden catapult springs out of the ground and flings you across the room!")
+		end
 		char:forceMarch(char.x + math.random(-5,5), char.y + math.random(-5,5))
 	else
-		printSide("A hidden catapult springs out of the ground and flings the " .. string.lower(victim.name) .. "across the room!")
-		victim:getHit(5)
+		if(victim.forcedMarch) then --enemy hit a trap while flying: AWEZZZOMMEE
+			printSide("The " .. string.lower(victim.name) .. " lands on a catapult trap and is sent hurtling across the room!")
+		else
+			printSide("A hidden catapult springs out of the ground and flings the " .. string.lower(victim.name) .. "across the room!")
+		end
+		victim:forceMarch(victim.x + math.random(-5,5), victim.y + math.random(-5,5))
 	end
 end
 --************END TRAPS**************************

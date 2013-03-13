@@ -460,23 +460,14 @@ function updateGame()
 			if(char['fy'] < char["y"]) then newPosY = char["y"] - 1
 			elseif(char['fy'] > char["y"]) then newPosY = char["y"] + 1 end
 			
-			--hey, while we're here, let's move enemies that need to be moved.
-			for i=1,#enemies do
-				if(enemies[i].forcedMarch) then
-					newEnemyX, newEnemyY = enemies[i].x, enemies[i].y
-				
-					if(enemies[i].newX < enemies[i].x) then newEnemyX = enemies[i].x - 1
-					elseif(enemies[i].newX > enemies[i].x) then newEnemyX = enemies[i].x + 1 end
-					
-					if(enemies[i].newY < enemies[i].y) then newEnemyY = enemies[i].y - 1
-					elseif(enemies[i].newY > enemies[i].y) then newEnemyY = enemies[i].y + 1 end
-					
-				end
-			end
-			
+			--move character
 			if(map[newPosX]) then
 				tile = map[newPosX][newPosY]
 				--check if we've hit a wall.
+				
+				--check if we hit a trap during our flight pattern
+				tile:checkTrap("you")
+				
 				if(tile.blocker) then
 					printSide("You slam into a wall!")
 					char['forcedMarch'] = false
@@ -492,6 +483,39 @@ function updateGame()
 			
 			else
 				char['forcedMarch'] = false
+			end
+		end
+		
+		
+	end
+	
+	--hey, while we're here, let's move enemies that need to be moved.
+	for i=1,#enemies do
+		if(enemies[i].forcedMarch) then
+			newEnemyX, newEnemyY = enemies[i].x, enemies[i].y
+		
+			if(enemies[i].targetX < enemies[i].x) then newEnemyX = enemies[i].x - 1
+			elseif(enemies[i].targetX > enemies[i].x) then newEnemyX = enemies[i].x + 1 end
+			
+			if(enemies[i].targetY < enemies[i].y) then newEnemyY = enemies[i].y - 1
+			elseif(enemies[i].targetY > enemies[i].y) then newEnemyY = enemies[i].y + 1 end
+			
+			if(map[newEnemyX] and enemies[i].alive) then
+				tile = map[newEnemyX][newEnemyY]
+				
+				--check if there are traps that should go off (this is awesome btw)
+				tile:checkTrap(enemies[i])
+				
+				--check if the enemy hit a wall
+				if(tile.blocker) then
+					printSide("The " .. string.lower(enemies[i].name) .. " slams into a wall!")
+					enemies[i].forcedMarch = false
+				--check if the enemy ended up where it's supposed to get to
+				elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
+					enemies[i].forcedMarch = false
+				else --guess it's safe to move the enemy to a place
+					enemies[i].x, enemies[i].y = newEnemyX, newEnemyY
+				end
 			end
 		end
 	end
@@ -771,6 +795,24 @@ function makeExplosion(x, y, size, friendlyFire)
 			if(enemies[i].x > x-size/2 and enemies[i].x < x+size/2) then
 				if(enemies[i].y > y-size/2 and enemies[i].y < y+size/2) then
 					enemies[i]:hitByExplosion()
+					
+					local newX, newY = enemies[i].x, enemies[i].y
+			
+					--figure out where to push you
+					if(enemies[i].x > x) then
+						newX = enemies[i].x + 5
+					elseif(enemies[i].x < x) then
+						newX = enemies[i].x - 5
+					end
+					
+					if(enemies[i].y > y) then
+						newY = enemies[i].y + 5
+					elseif(enemies[i].y < y) then
+						newY = enemies[i].y - 5
+					end
+					
+					enemies[i]:forceMarch(newX, newY)
+					
 				end
 			end
 		end

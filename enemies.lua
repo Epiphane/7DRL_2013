@@ -35,7 +35,7 @@ function Enemy:hitByExplosion()
 	char:gainAwesome(7)
 	self:getHit(15)
 	if not self.alive then
-		printSide("The " .. self.name .. " explodes in a shower of blood")
+		printSide("The " .. self.name .. " explodes in a shower of blood!")
 		self:die()
 	end
 end
@@ -179,7 +179,7 @@ function Rat:takeTurn()
 	if(diff_char == 1) then
 		m = math.random(4)
 		if(m == 1) then
-			printSide("The Rat climbs up into your trowsers.")
+			printSide("The Rat climbs up into your trousers.")
 		elseif(m == 2) then
 			printSide("The Rat claws your face")
 		elseif(m == 3) then
@@ -246,7 +246,7 @@ function Zombie:takeTurn()
 	
 end
 
-function Enemy:setForceMarch(newX, newY)
+function Enemy:forceMarch(newX, newY)
 	self.forcedMarch = true
 	self.targetX = newX
 	self.targetY = newY
