@@ -2,9 +2,6 @@
 bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 hands = {}
 
---falcon punch cooldown
-fpcooldown = 0
-
 --Just a little thing I maaaade.
 --Direction is:
 
@@ -167,14 +164,12 @@ function hands:update()
 end
 
 --initiate FALCOOOONNEEE....   PAWWWWWWNNNCH!
+FalconPunch = {direction={}, cooldown=0}
 
---what direction is the falcon pawnch?
-fpdirection = {}
-function falconPAWNCH(fpdirection)
-	if(fpcooldown == 0) then
-		printSide("PAAAWWWWWWWWWWNCH!!!!!")
-		makeExplosion(char.x, char.y, 5, false)
-		char:forceMarch(char.x + fpdirection.x, char.y + fpdirection.y)
-		fpcooldown = 10
-	end
+function FalconPunch:useSkill()
+	if(self.cooldown ~= 0) then return end
+	printSide("PAAAWWWWWWWWWWNCH!!!!!")
+	makeExplosion(char.x, char.y, 5, false)
+	char:forceMarch(char.x + self.direction.x, char.y + self.direction.y)
+	fpcooldown = 10
 end

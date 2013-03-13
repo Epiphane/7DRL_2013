@@ -119,6 +119,8 @@ end
 
 function makeMap()
 	map = {}
+	filledRooms = {}
+	print(#filledRooms)
 	for i = 1, MAPWIDTH do
 		row = {}
 		for j = 1, MAPHEIGHT do
@@ -290,18 +292,35 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 	
 	-- TIME TO CUSTOMIZE THE ROOMS. THIS IS WHERE SHIT GETS REAL
 	-- SO WATCH OUT
-	if(level == 1) then -- Beginner level. we need specific rooms
-		if(roomnum == 1) then
-			spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Pistol)
-		elseif(roomnum == 2) then
-			spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Rat)
-			spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Rat)
-			spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), Rat)
-		elseif(roomnum == 3) then
-		elseif(roomnum == 4) then
-		elseif(roomnum == 999) then
-			spawnEnemy(end_i - 3, start_j + (end_j - start_j) / 2, GiantRat)
+	if(roomnum == 999) then -- Boss room
+		spawnEnemy(end_i - 3, start_j + (end_j - start_j) / 2, GiantRat)
+	else
+		if(level == 1) then -- Beginner level. we need specific rooms
+			possibleEnemies = {Rat}
+			possiblePassives = {Pistol}
+			possibleActives = {FZeroSuit}
+			-- Determine types
+			roomType = math.random(4)
+			while(filledRooms[roomType]) do
+				roomType = roomType + 1
+				if(roomType > 4) then roomType = 1 end
+			end
 		end
+	end
+	filledRooms[roomType] = true
+			
+	if(roomType == 1) then
+		o = possiblePassives[math.random(#possiblePassives)]
+		spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), o)
+	elseif(roomType == 2) then
+		e = possibleEnemies[math.random(#possibleEnemies)]
+		spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), e)
+		spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), e)
+		spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), e)
+	elseif(roomType == 3) then
+		o = possibleActives[math.random(#possibleActives)]
+		spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), o)
+	elseif(roomType == 4) then
 	end
 end
 
@@ -539,19 +558,19 @@ function updateGame()
 	end
 	
 	--wait for directional input here
-	if(explosion["falcon"]) then --or a number of other flags
+	if(explosion["falcon"] and char.active) then --or a number of other flags
 		if(rightpress < REAL_BIG_NUMBER) then
-			fpdirection.x, fpdirection.y = 1, 0
-			falconPAWNCH(fpdirection)
+			char.active.direction.x, char.active.direction.y = 1, 0
+			char.active:useSkill()
 		elseif(leftpress < REAL_BIG_NUMBER) then
-			fpdirection.x, fpdirection.y = -1, 0
-			falconPAWNCH(fpdirection)
+			char.active.direction.x, char.active.direction.y = -1, 0
+			char.active:useSkill()
 		elseif(uppress < REAL_BIG_NUMBER) then
-			fpdirection.x, fpdirection.y = 0, -1
-			falconPAWNCH(fpdirection)
+			char.active.direction.x, char.active.direction.y = 0, -1
+			char.active:useSkill()
 		elseif(downpress < REAL_BIG_NUMBER) then
-			fpdirection.x, fpdirection.y = 0, 1
-			falconPAWNCH(fpdirection)
+			char.active.direction.x, char.active.direction.y = 0, 1
+			char.active:useSkill()
 		end
 	end
 end
@@ -623,8 +642,8 @@ function keyPressGame(key, unicode)
 		end
 		
 		--press P for some PAWWWNCH
-		if(key == "p") then
-			if(fpcooldown == 0) then
+		if(key == "p" and char.active) then
+			if(char.active.cooldown == 0) then
 				suspended = true
 				--this flag indicates we're gonna wait for the user to input a direction
 				explosion["falcon"] = true
@@ -734,12 +753,12 @@ function checkThenMove(x, y)
 		--	end
 		
 		-- Look for objects in your spot
-		for i=1,#objects do
+		for i=#objects,1,-1 do
+			--print(objects[i].y .."=" .. y .. "? " .. objects[i].x .. "=" .. x .. "?")
 			if(objects[i].x == x and objects[i].y == y) then
 				objects[i]:interact()
 				if not objects[i].alive then
 					table.remove(objects, i)
-					i = i - 1
 				end
 			end
 		end
@@ -767,9 +786,9 @@ end
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
 	--decrement all cooldowns by one
-	if(fpcooldown > 0) then
-		fpcooldown = fpcooldown - 1
-		print("fpcooldown: " .. fpcooldown)
+	if(char.active and char.active.cooldown > 0) then
+		char.active.cooldown = char.active.cooldown - 1
+		print("fpcooldown: " .. char.active.cooldown)
 	end
 
 	for i = 1, # enemies do
