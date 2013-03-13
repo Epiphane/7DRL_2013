@@ -43,32 +43,13 @@ function love.load()
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "12345678")
-	
-	initGame()
+
+	level = 1
 end
 
 function initGame()
-	level = 1
-	
-	-- Initialize functions that are used for creating the info bar
-	dofile("sidebar.lua")
-	
-	-- Initialize everything Tile
-	dofile("tiles.lua")
-	
-	-- Initialize everything Enemy
-	dofile("enemies.lua")
-	
-	-- Initialize everything that has to do with weaponry
-	dofile("weapons.lua")
-	
-	-- Initialize everything that has to do with objects
-	dofile("objects.lua")
-	
-	-- Initialize main character and shit
-	-- Side note: right now, with sizing and everything, it's looking like strength
-	-- and such values will max at 180
-	dofile("character.lua")
+	sidebarlog = {{message="You wake up.", color={r=100,g=255,b=255}}}
+	displayBig = true
 	-- Character location set in map function
 	
 	-- Build map
@@ -82,13 +63,27 @@ function initGame()
 			explosionTiles[i][j] = "-1+-1+-1"
 		end
     end
-	
-	-- spawn enemies
-	-- TODO: where???
-	
-	-- Initialize line of sight functions MAYBE
-	--dofile("los_functions.lua")
 end
+	
+-- Initialize functions that are used for creating the info bar
+dofile("sidebar.lua")
+
+-- Initialize everything Tile
+dofile("tiles.lua")
+
+-- Initialize everything Enemy
+dofile("enemies.lua")
+
+-- Initialize everything that has to do with weaponry
+dofile("weapons.lua")
+
+-- Initialize everything that has to do with objects
+dofile("objects.lua")
+
+-- Initialize main character and shit
+-- Side note: right now, with sizing and everything, it's looking like strength
+-- and such values will max at 180
+dofile("character.lua")
 
 -- Temporary values...I'm thinking they'll change dynamically or just not be necessary one day
 MAPWIDTH = 24
@@ -286,6 +281,8 @@ function love.draw()
 		drawWelcome()
 	elseif(gameState == 1) then
 		drawGame()
+	elseif(gameState == 2) then
+		drawYouSuck()
 	end
 end
 
@@ -293,6 +290,12 @@ function drawWelcome()
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255, 255, 255)
 	love.graphics.print("Welcome to AwesomeRogue.\n\nPress enter to be awesome", 100, 250)
+end
+
+function drawYouSuck()
+	love.graphics.setFont(mainFont)
+	love.graphics.setColor(255, 255, 255)
+	love.graphics.print("You suck", 200, 250)
 end
 
 function drawGame()
@@ -480,7 +483,7 @@ downpress = REAL_BIG_NUMBER
 
 suspended = false
 function love.keypressed(key, unicode)
-	if(gameState == 0) then
+	if(gameState == 0 or gameState == 2) then
 		keyPressWelcome(key, unicode)
 	elseif(gameState == 1) then
 		keyPressGame(key, unicode)
@@ -490,6 +493,7 @@ end
 function keyPressWelcome(key, unicode)
 	if(key == "return") then
 		gameState = 1
+		initGame()
 	end
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 end

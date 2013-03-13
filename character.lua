@@ -9,7 +9,7 @@ end
 function char:loseAwesome(amt)
 	self.awesome = self.awesome - amt
 	if(self.awesome <= 0) then
-		love.quit()
+		gameState = 2
 	end
 end
 
