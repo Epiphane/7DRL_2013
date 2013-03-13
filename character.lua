@@ -8,6 +8,13 @@ end
 
 function char:loseAwesome(amt)
 	self.awesome = self.awesome - amt
+	if(self.awesome <= 0) then
+		love.quit()
+	end
+end
+
+function char:gainAwesome(amt)
+	self.awesome = self.awesome + amt
 end
 
 --this function forces you to move multiple tiles in one frame.
