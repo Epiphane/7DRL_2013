@@ -32,6 +32,7 @@ function Enemy:die()
 end
 
 function Enemy:hitByExplosion()
+	char:gainAwesome(7)
 	self:getHit(15)
 	if not self.alive then
 		printSide("The " .. self.name .. " explodes in a shower of blood")
@@ -173,6 +174,7 @@ function Rat:new(o)
 end
 
 function Rat:takeTurn()
+	if(math.random(4) == 3) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	if(diff_char == 1) then
 		m = math.random(4)
@@ -192,15 +194,21 @@ function Rat:takeTurn()
 end
 
 GiantRat = Enemy:new{name="Giant Rat", icon="R", health=100}
-function Rat:new(o)
+function GiantRat:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
 	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
 	self.__index = self		-- Define o as a Barrel
 	return o				-- Return Barrel
 end
 
+function GiantRat:die()
+	self.alive = false
+	char:gainAwesome(15)
+end
+
 function GiantRat:takeTurn()
 	if(char.room ~= 999) then return end
+	if(math.random(6) == 5) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	if(diff_char == 1) then
 		m = math.random(3)

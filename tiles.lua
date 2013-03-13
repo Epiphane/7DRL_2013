@@ -30,7 +30,7 @@ end
 
 -- Do an action whenever you walk on a space
 function Tile:doAction()
-	char['awesome'] = char['awesome'] + self.awesome_effect
+	char:gainAwesome(self.awesome_effect)
 	printSide(self.message)
 end
 -- end doAction()
@@ -83,7 +83,7 @@ end
 function ThunderingDoor:doAction()
 	Tile.doAction(self)
 	if(self.tile ~= 5) then
-		char["awesome"] = char["awesome"] + 10
+		char:gainAwesome(10)
 		printSide("The door thunders open.")
 	end
 	self.tile = 5

@@ -1,3 +1,4 @@
+
 sidebarlog = {{message="You wake up.", color={r=100,g=255,b=255}}}
 displayBig = true
 
