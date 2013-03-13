@@ -441,7 +441,7 @@ function love.keypressed(key, unicode)
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
 	if(not suspended) then
-		
+		displayBig = false
 		if(key == "right") then
 			checkThenMove(char["x"] + 1, char["y"])
 			rightpress = currtime + .55
