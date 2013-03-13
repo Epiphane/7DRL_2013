@@ -1,5 +1,5 @@
 sidebarlog = {{message="You wake up.", color={r=100,g=255,b=255}}}
-displayBig = 255
+displayBig = true
 
 function drawSidebar(start_x)
 	love.graphics.setFont(mainFont) -- Just in case
@@ -16,6 +16,15 @@ function drawSidebar(start_x)
 	-- And the health bars
 	love.graphics.setColor( 129, 129, 129 )
 	love.graphics.rectangle("fill", start_x+10, 30, char['awesome'], 10)
+	
+	-- Draw important message
+	for i=1,#sidebarlog do
+		love.graphics.setColor( sidebarlog[i].color.r, sidebarlog[i].color.g, sidebarlog[i].color.b )
+		love.graphics.print(sidebarlog[i].message, 25, 25+i*15)
+		if(sidebarlog[i].message == "break") then
+			break
+		end
+	end
 	
 	-- Draw message log
 	love.graphics.setColor( 255, 255, 255 )

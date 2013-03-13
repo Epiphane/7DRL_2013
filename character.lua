@@ -3,7 +3,11 @@ char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, 
 
 function char:hitByExplosion()
 	printSideWithColor("You get hit by a fiery\n explosion!", 255, 0, 0)
-	self.awesome = self.awesome - 15
+	self:loseAmount(15)
+end
+
+function char:loseAwesome(amt)
+	self.awesome = self.awesome - amt
 end
 
 --this function forces you to move multiple tiles in one frame.
