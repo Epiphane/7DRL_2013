@@ -136,7 +136,7 @@ function CrackedWall:greatForce()
 end
 
 --**********BEGIN STAIRCASE***********************
-Staircase = Tile:new{tile=7, blocker=false, awesome_effect=-10}
+Staircase = Tile:new{tile=9, blocker=false}
 function Staircase:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -171,7 +171,7 @@ function SpikeTrap:checkTrap(victim)
 	end
 end
 
-CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=0}
+CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=0, dir_x=0, dir_y=0}
 function CatapultTrap:new(o)
 	o = o or {}
 	setmetatable(o, self)

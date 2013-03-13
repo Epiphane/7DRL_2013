@@ -204,6 +204,7 @@ end
 function GiantRat:die()
 	self.alive = false
 	char:gainAwesome(15)
+	map[self.x][self.y] = Staircase:new{room={[999]=true}}
 end
 
 function GiantRat:takeTurn()
