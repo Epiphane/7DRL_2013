@@ -2,6 +2,8 @@
 bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 hands = {}
 
+pistolDamage = 25
+
 function bullet:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
 	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
@@ -121,7 +123,7 @@ function bullet:update()
 		if not self.target then -- Hitting enemies
 			for i = 1, # enemies do
 				if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
-					enemies[i]:getHit(25)
+					enemies[i]:getHit(pistolDamage)
 					self.over = true
 					suspended = false
 				end
@@ -191,8 +193,14 @@ function hands:shoot(direction)
 	
 	for i = 1, # enemies do
 		if(self.x + self.dx == enemies[i]["x"] and self.y + self.dy == enemies[i]["y"]) then
-			enemies[i]:getHit(10)
-			printSide("You punch the "..enemies[i].name)
+			if(char.invisible > 0) then
+				enemies[i]:getHit(30)
+				printSide("You strike from the shadows, backstabbing the " .. string.lower(enemies[i].name) .."!")
+				char.invisible = 0
+			else
+				enemies[i]:getHit(10)
+				printSide("You punch the "..enemies[i].name)
+			end
 			return
 		end
 	end
@@ -205,15 +213,4 @@ function hands:draw()
 end
 
 function hands:update()
-end
-
---initiate FALCOOOONNEEE....   PAWWWWWWNNNCH!
-FalconPunch = {direction={}, cooldown=0}
-
-function FalconPunch:useSkill()
-	if(self.cooldown ~= 0) then return end
-	printSide("PAAAWWWWWWWWWWNCH!!!!!")
-	makeExplosion(char.x, char.y, 5, false)
-	char:forceMarch(char.x + self.direction.x, char.y + self.direction.y)
-	fpcooldown = 10
 end

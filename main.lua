@@ -96,7 +96,7 @@ function initLevel()
 		viewed_rooms = {}
 		possibleEnemies = {{{enemy=Rat, num=3}}}
 		possiblePassives = {Pistol}
-		possibleActives = {FZeroSuit, CloakAndDagger}
+		possibleActives = {CloakAndDagger}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -807,7 +807,7 @@ function keyPressGame(key, unicode)
 		
 		--press "Z" for first active item
 		if(char.activeNum >= 1) then
-			if(key == "z" and char.actives[1].cooldown == 0) then
+			if(key == "z") then
 				if(char.actives[1].cooldown == 0) then 
 					--do whatever active this is
 					print(char.actives[1].name)
@@ -821,17 +821,27 @@ function keyPressGame(key, unicode)
 		
 		--press "X" for the second active item
 		if(char.activeNum >= 2) then
-			if(key == "x" and char.actives[2].cooldown == 0) then
-				print(char.actives[2].name)
-				char:doActive(char.actives[2].name)
+			if(key == "x") then
+				if(char.actives[2].cooldown == 0) then
+					print("Doing item: " .. char.actives[2].name)
+					char:doActive(char.actives[2].name)
+					char.actives[2].cooldown = char.actives[2].maxcooldown
+				else
+					printSide("That skill is on cooldown!")
+				end
 			end
 		end
 		
 		--press "C" for the third active item
 		if(char.activeNum >= 3) then
-			if(key == "c" and char.actives[3].cooldown == 0) then
-				print(char.actives[3].name)
-				char:doActive(char.actives[3].name)
+			if(key == "c") then
+				if(char.actives[3].cooldown == 0) then
+					print("Doing item: " .. char.actives[3].name)
+					char:doActive(char.actives[3].name)
+					char.actives[3].cooldown = char.actives[3].maxcooldown
+				else
+					printSide("That skill is on cooldown!")
+				end
 			end
 		end
 		
@@ -853,9 +863,9 @@ function keyPressGame(key, unicode)
 		end
 	end
 	
-	if(key=="q") then
+	--[[if(key=="q") then
 		gameState = "MAPDEBUG lol"
-	end
+	end]]--
 	
 	--if the user hit "enter" and he or she is in a pit we should let him (or her) out
 	if(char.inAPit and key == "return") then
@@ -1029,6 +1039,17 @@ function doTurn()
 	for i = 1, char.activeNum do
 		if(char.actives[i].cooldown > 0) then
 			char.actives[i].cooldown = char.actives[i].cooldown - 1
+		end
+	end
+	
+	--decrement invisibility if it's on
+	if(char.invisible > 0) then
+		char.invisible = char.invisible - 1
+		if(char.invisible == 10) then
+			printSide("You feel yourself about to become visible again")
+		end
+		if(char.invisible == 0) then
+			printSide("You fade back into view")
 		end
 	end
 

@@ -1,4 +1,5 @@
-char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, actives = {}, activeNum = 0}
+char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, 
+		actives = {}, activeNum = 0, invisible = 0}
 -- For directions, 0 is neutral, 1 is positive, -1 is negative
 
 function char:hitByExplosion()
@@ -66,16 +67,18 @@ function char:doActive(name)
 		printSide("FALCOOOOON... (choose a direction)")
 	elseif(name == "Cloak And Dagger") then
 		print("doin dat cloak and dagga")
+		printSide("You fade from view! Your next attack will critically strike.")
+		char.invisible = 50
 	end
 end
 
 function char:falconPunch(dx, dy)
+	printSide("PAWWWNNCHH!!!")
 	makeExplosion(self.x, self.y, 5, false)
 	explosion["direction"] = {}
 	explosion.direction.x = dx
 	explosion.direction.y = dy
 	self:forceMarch(char.x + dx*2, char.y + dy*2)
-	
 	
 end
 
