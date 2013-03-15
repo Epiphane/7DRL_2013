@@ -70,7 +70,7 @@ end
 function char:doActive(name)
 	print("we got into doactive at least")
 	if(name == "Falcon Punch") then
-		suspended = true
+		stackPause = stackPause + 1
 		--this flag indicates we're gonna wait for the user to input a direction
 		explosion["falcon"] = true
 		
@@ -89,6 +89,7 @@ function char:falconPunch(dx, dy)
 	explosion.direction.y = dy
 	self:forceMarch(char.x + dx*2, char.y + dy*2)
 	
+	stackPause = stackPause - 1
 end
 
 
