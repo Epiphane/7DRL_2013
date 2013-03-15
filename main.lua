@@ -604,7 +604,7 @@ function drawGame()
 	end
 	
 	-- Draw sidebar starting at x = 600
-	drawSidebar(600)
+	drawSidebar(700)
 end
 
 currtime = 0

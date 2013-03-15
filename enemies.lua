@@ -224,7 +224,7 @@ end
 function Rat:takeTurn()
 	if(math.random(4) == 3) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
-	if(diff_char == 1 and not char.invisible == 0) then
+	if(diff_char == 1 and char.invisible == 0) then
 		m = math.random(4)
 		if(m == 1) then
 			printSide("The Rat climbs up into your trousers.")

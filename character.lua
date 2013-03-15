@@ -76,7 +76,6 @@ function char:doActive(name)
 		
 		printSide("FALCOOOOON... (choose a direction)")
 	elseif(name == "Cloak And Dagger") then
-		print("doin dat cloak and dagga")
 		printSide("You fade from view! Your next attack will critically strike.")
 		char.invisible = 50
 	end
