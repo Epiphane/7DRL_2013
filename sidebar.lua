@@ -41,6 +41,13 @@ function drawSidebar(start_x)
 			fade = fade - 30
 		end
 	end
+	
+	love.graphics.setColor( 255, 255, 255)
+	for i = 1, #(char.actives) do
+		love.graphics.print(char.actives[i], 20*i, 500)
+		
+	end
+	
 end
 
 function printSideWithColor(message, r, g, b)

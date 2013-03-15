@@ -1,4 +1,4 @@
-char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false}
+char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, actives = {}}
 -- For directions, 0 is neutral, 1 is positive, -1 is negative
 
 function char:hitByExplosion()
@@ -37,5 +37,11 @@ function char:forceMarch(newx, newy)
 	
 	self.nextForcedMove = currtime + 0.05
 	--print("nfm is " .. self.nextForcedMove .. " ...fyi!")
+end
+
+function char:addActive(name)
+	self.actives[#self.actives + 1] = name
+	print("Does this work? " .. #self.actives + 1)
+	print("added " .. self.actives[1])
 end
 

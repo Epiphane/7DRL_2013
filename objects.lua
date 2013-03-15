@@ -46,7 +46,7 @@ end
 -- ******************** BEGIN FALCON PUNCH ***************************
 FZeroSuit = Object:new{name="F Zero Suit", icon=">"}
 
--- Pistol constructor seals a door
+-- Suit constructor seals a door
 function FZeroSuit:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -56,8 +56,27 @@ end
 -- end constructor
 
 function FZeroSuit:interact()
-	char.active = FalconPunch
+	char:addActive("FalconPunch")
 	printSide("You pick up the F-Zero Suit")
 	self.alive = false
 end
 -- ******************** END FALCON PUNCH ***************************
+
+-- ******************** BEGIN CLOAK AND DAGGER *********************
+CloakAndDagger = Object:new{name="Cloak and Dagger", icon=")"}
+
+function CloakAndDagger:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
+
+function CloakAndDagger:interact()
+	char:addActive("CloakAndDagger")
+	printSide("You pick up the Cloak and Dagger")
+	self.alive = false
+end
+
+
+-- ******************** END CLOAK AND DAGGER   *********************
