@@ -609,7 +609,6 @@ end
 
 currtime = 0
 --this is for Falcon Punch** (TODO: organize diz betta)
-fpdirection = {}
 
 function love.update(dt)
 	if(gameState == 0) then
@@ -949,8 +948,7 @@ function checkThenMove(x, y)
 	end
 	
 	if tile.blocker then
-	elseif(enemy_in_space) then -- checks for m
-	onsters, etc. go here
+	elseif(enemy_in_space) then -- checks for monsters, etc. go here
 		
 	else
 		-- In case we're entering a new room soon

@@ -128,14 +128,8 @@ function bullet:update()
 		if not self.target then -- Hitting enemies
 			for i = 1, # enemies do
 				if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
-<<<<<<< HEAD
-					enemies[i]:getHit(25)
-					self:die()
-=======
 					enemies[i]:getHit(pistolDamage)
-					self.over = true
-					suspended = false
->>>>>>> 9d5b8dceb2d3767c1a5053b00855b9b02f8d1519
+					self:die()
 				end
 			end
 		else
