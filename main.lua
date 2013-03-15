@@ -39,7 +39,7 @@ function love.load()
 	love.graphics.setBackgroundColor( 0, 0, 0 )
 	
 	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
-	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
+	mainFont = love.graphics.newImageFont ("arial12x12test.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
 											.. "xxxxxxxxxxxxxxxxxxxxx"
 											.. "xxxxxxxxxxxxOxxxxxxxxxxxx"
 											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -89,22 +89,35 @@ dofile("character.lua")
 
 function initLevel()
 	if level == 1 then
-		MAPWIDTH = 24
-		MAPHEIGHT = 24
-		ROOMNUM = 1
-		viewed_rooms = {}
-		makeMap()
-	elseif level == 2 then
+		leveltype = "rooms"
 		MAPWIDTH = 48
 		MAPHEIGHT = 48
 		ROOMNUM = 1
 		viewed_rooms = {}
-		makeMap()
+		makeMap(leveltype)
+	elseif level == 2 then
+		leveltype = "rooms"
+		MAPWIDTH = 48
+		MAPHEIGHT = 48
+		ROOMNUM = 1
+		viewed_rooms = {}
+		makeMap(leveltype)
+	elseif level == 3 then
+		leveltype = "sewers"
+		MAPWIDTH = 100
+		MAPHEIGHT = 100
+		ROOMNUM = 1
+		viewed_rooms = {}
+		makeMap(leveltype)
 	end
 	
-	-- Set character location
-	char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
-	char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
+	--if we're in the sewers then the character is already set
+	if(leveltype ~= "sewers") then
+		-- Set character location
+		char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
+		char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
+	end
+
 	-- Set screen offset (for scrolling)
 	offset = {x=char["x"]-20, y=char["y"]-30}
 	while(map[char["x"]][char["y"]].blocker) do
@@ -120,7 +133,7 @@ function initLevel()
 	viewed_rooms[k] = true
 end
 
-function makeMap()
+function makeMap(levelType)
 	map = {}
 	filledRooms = {}
 	print(#filledRooms)
@@ -136,72 +149,224 @@ function makeMap()
 		map[i] = row
 	end
 	
-	-- Create rooms
-	j = 1
-	repeat
-		next_j = j+8+math.random(8)
-		-- Boundary check
-		if(next_j + 5 > MAPHEIGHT) then 
-			next_j = MAPHEIGHT
-		end
-		
-		i = 1
+	if(levelType == "rooms") then
+		-- Create rooms
+		j = 1
 		repeat
-			next_i = i+8+math.random(8)
+			next_j = j+8+math.random(8)
 			-- Boundary check
-			if(next_i + 5 > MAPWIDTH) then 
-				next_i = MAPWIDTH 
+			if(next_j + 5 > MAPHEIGHT) then 
+				next_j = MAPHEIGHT
 			end
 			
-			-- Make a room with the coordinates as stated
-			makeRoomAndDoors(i, j, next_i, next_j, ROOMNUM)
-			i = next_i
+			i = 1
+			repeat
+				next_i = i+8+math.random(8)				-- Boundary check
+				if(next_i + 5 > MAPWIDTH) then 
+					next_i = MAPWIDTH 
+				end
+				
+				-- Make a room with the coordinates as stated
+				makeRoomAndDoors(i, j, next_i, next_j, ROOMNUM)
+				i = next_i
+				ROOMNUM = ROOMNUM + 1
+			until i == MAPWIDTH
+			j = next_j
+		until j == MAPHEIGHT
+		
+		-- Make boss room corridor
+		print("fuck you")
+		CORRIDORWIDTH = 24 + math.random(8)
+		
+		orient = math.random(4)
+		if(orient == 2 or orient == 4) then orient = orient -1 end
+		if(orient == 1 or orient == 3) then
+			start_i = MAPWIDTH * (orient - 1) / 2 + (3 - orient) / 2
+			end_i = start_i + CORRIDORWIDTH * (orient - 2)
+			start_j = MAPHEIGHT/2
+			while(map[start_i-(orient-2)][start_j].blocker) do -- In case we put corridor against a wall
+				start_j = start_j + 1
+			end
+			k, v = next(map[start_i-(orient-2)][start_j].room, nil)
+			map[start_i][start_j] = CrackedWall:new{room={[998]=true, [k]=true}}
+			table.insert(map[start_i][start_j-1].room, {[998]=true})
+			table.insert(map[start_i][start_j+1].room, {[998]=true})
+			-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
+			if level == 1 then
+				spawnEnemy(start_i-(orient-2), start_j, Barrel)
+			end
+			
+			for i = start_i+(orient-2),end_i,(orient-2) do
+				map[i] = {}
+				map[i][start_j - 1] = Wall:new{room={[998]=true}}
+				map[i][start_j] = Floor:new{room={[998]=true}}
+				map[i][start_j + 1] = Wall:new{room={[998]=true}}
+			end
+			thunderingDoor = ThunderingDoor:new{room={[998]=true}}
+			map[end_i][start_j] = thunderingDoor -- Make thundering door
 			ROOMNUM = ROOMNUM + 1
-		until i == MAPWIDTH
-		j = next_j
-	until j == MAPHEIGHT
-	
-	-- Make boss room corridor
-	CORRIDORWIDTH = 24 + math.random(8)
-	
-	orient = math.random(4)
-	if(orient == 2 or orient == 4) then orient = orient -1 end
-	if(orient == 1 or orient == 3) then
-		start_i = MAPWIDTH * (orient - 1) / 2 + (3 - orient) / 2
-		end_i = start_i + CORRIDORWIDTH * (orient - 2)
-		start_j = MAPHEIGHT/2
-		while(map[start_i-(orient-2)][start_j].blocker) do -- In case we put corridor against a wall
-			start_j = start_j + 1
+			
+			print("213")
+			
+			-- Make boss room!
+			start_i = end_i + (orient - 2)
+			end_i = start_i + 20 * (orient - 2)
+			for i=start_i,end_i,(orient-2) do map[i] = {} end -- Make rows
+			if(orient == 1) then
+				makeRoom(end_i, start_j - 10, start_i, start_j + 10, 999)
+			else
+				makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
+			end
+			map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2), y=start_j}} -- Make thundering door lever
 		end
-		k, v = next(map[start_i-(orient-2)][start_j].room, nil)
-		map[start_i][start_j] = CrackedWall:new{room={[998]=true, [k]=true}}
-		table.insert(map[start_i][start_j-1].room, {[998]=true})
-		table.insert(map[start_i][start_j+1].room, {[998]=true})
-		-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
-		if level == 1 then
-			spawnEnemy(start_i-(orient-2), start_j, Barrel)
+	elseif(levelType == "sewers") then
+	
+		--[[for i = 1, MAPWIDTH do
+			row = {}
+			for j = 1, MAPHEIGHT do
+				if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
+					row[j] = Wall:new{room={[ROOMNUM]=true}}
+				else
+					row[j] = Pit:new{room={[ROOMNUM]=true}}
+				end
+			end
+			map[i] = row
+		end]]--
+	
+		--first off.  We got 8 "nodes," 2 for each of the walls around the bigass room.
+		NUMNODES = 8
+		
+		nodes = {}
+		for i = 1, NUMNODES + 1 do
+			nodes[i] = {}
 		end
 		
-		for i = start_i+(orient-2),end_i,(orient-2) do
-			map[i] = {}
-			map[i][start_j - 1] = Wall:new{room={[998]=true}}
-			map[i][start_j] = Floor:new{room={[998]=true}}
-			map[i][start_j + 1] = Wall:new{room={[998]=true}}
-		end
-		thunderingDoor = ThunderingDoor:new{room={[998]=true}}
-		map[end_i][start_j] = thunderingDoor -- Make thundering door
-		ROOMNUM = ROOMNUM + 1
+		--establish position of the nodes
+		local mapWthird = math.ceil(MAPWIDTH/3)
+		local mapHthird = math.ceil(MAPHEIGHT/3)
+		nodes[1]["x"], nodes[1]["y"] = mapWthird, 2
+		nodes[2]["x"], nodes[2]["y"] = 2 * mapWthird, 2
+		nodes[3]["x"], nodes[3]["y"] = MAPWIDTH - 2, mapHthird
+		nodes[4]["x"], nodes[4]["y"] = MAPWIDTH - 2, 2 * mapHthird   ---~~~~~~~~~~~~~~~~~~
+		nodes[5]["x"], nodes[5]["y"] = 2 * mapWthird, mapHthird   ---~~~~~~~~~~~~~~~~~~~ lol it's a penis
+		nodes[6]["x"], nodes[6]["y"] = mapWthird, MAPHEIGHT - 2
+		nodes[7]["x"], nodes[7]["y"] = 2, 2 * mapHthird
+		nodes[8]["x"], nodes[8]["y"] = 2, mapHthird
 		
-		-- Make boss room!
-		start_i = end_i + (orient - 2)
-		end_i = start_i + 20 * (orient - 2)
-		for i=start_i,end_i,(orient-2) do map[i] = {} end -- Make rows
-		if(orient == 1) then
-			makeRoom(end_i, start_j - 10, start_i, start_j + 10, 999)
-		else
-			makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
+		for i = 1, NUMNODES do
+			nodes[i]["friend"] = false
 		end
-		map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2), y=start_j}} -- Make thundering door lever
+		
+		--match two of each of the "nodes" together
+		--don't match adjacent nodes (no incest plz)
+		--just kind of go around haphazardly matching nodes until all of them have a pair.
+		done = false
+		while(not done) do
+			for i = 1, NUMNODES do
+				done = true
+				if(nodes[i].friend == false) then
+					newFriend = ( math.random(1,6) + i ) % NUMNODES + 1 --math enough for ya??
+					for j = 1, NUMNODES do
+						--here, check 'em all to see if we're done.
+						if(not nodes[j].friend) then
+							done = false
+						end
+					end
+					
+					if done then break end
+					
+					for j = 1, NUMNODES do
+						--here, make sure if "i" or "newFriend" had a pair that guy is TERMINATED
+						if(nodes[j].friend == i) then nodes[j].friend = false end
+						if(nodes[j].friend == newFriend) then nodes[j].friend = false end
+					end
+					
+					--give 'em their newfriends :D
+					nodes[newFriend].friend = i
+					nodes[i].friend = newFriend
+					
+					--print("matched " .. newFriend .. " and " .. i)
+				end
+			end
+			for j = 1, NUMNODES do
+				--here, check 'em all to see if we're done.
+				if(not nodes[j].friend) then
+					done = false
+				end
+			end
+		end
+		
+		for i = 1, NUMNODES do
+			if(nodes[i].friend) then
+				print("oh boy! " .. i .. " is friends with " .. nodes[i].friend .. "!!")
+			else
+				print("OH GOD " .. i .. " I AM SO ALONE")
+			end
+		end
+			
+		--create a "walker" for each of the matched nodes that will move towards each other, leaving
+		--a trail of floor tiles.
+		for i = 1, NUMNODES do
+			if(nodes[nodes[i].friend].walker == nil) then
+				nodes[i].walker = {} --spawn a walker at the current location, only if your friend doesn't already have one
+				nodes[i].walker.x, nodes[i].walker.y = nodes[i].x, nodes[i].y
+				nodes[i].walker.targetX, nodes[i].walker.targetY = nodes[nodes[i].friend].x, nodes[nodes[i].friend].y
+			end
+		end
+		
+		--walk da walkers until dey done walkin
+		done = false
+		while(not done) do
+			done = true
+			for i = 1, NUMNODES do
+				currWalker = nodes[i].walker
+				if(currWalker) then --ensures the walker exists
+					--walker shits out a floorseed where it's at
+					map[currWalker.x][currWalker.y].tile=7
+					
+					local deltaX = math.sign(currWalker.targetX - currWalker.x)
+					local deltaY = math.sign(currWalker.targetY - currWalker.y)
+					
+					--halfhearted randomization
+					randoCommando = math.random(0,100)
+					if(randoCommando > 40) then
+						currWalker.x = currWalker.x + deltaX
+					end
+					randoCommando = math.random(0,100)
+					if(randoCommando > 40) then
+						currWalker.y = currWalker.y + deltaY
+					end
+					
+					if(currWalker.x ~= currWalker.targetX or currWalker.y ~= currWalker.targetY) then
+						done = false
+					end
+				end
+			end
+		end
+		
+		--finally, for each floorseed, add tiles to the 3x3 area around it.
+		for mx = 1, MAPWIDTH do
+			for my = 1, MAPHEIGHT do
+				if(map[mx][my].tile == 7) then
+					--for dx = math.random(-4,-2), math.random(1,3) do
+						--for dy = math.random(-4,-2), math.random(1,3) do
+					for dx = -2, 2 do
+						for dy = -2, 2 do
+							if(map[mx + dx] and map[mx + dx][my + dy] and map[mx + dx][my + dy].tile ~= 2) then 
+							--make sure tile exists and is not a wall
+								map[mx + dx][my + dy] = Floor:new{room={[ROOMNUM]=true}}
+							end
+						end
+					end
+					
+					map[mx][my].tile = 9
+				end
+			end
+		end
+		
+		--plop the character down on a random node
+		charNode = math.random(1,NUMNODES)
+		char.x, char.y = nodes[charNode].x, nodes[charNode].y
 	end
 end
 
@@ -224,7 +389,6 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 			else
 				map[i][j] = Floor:new{room={[roomnum]=true}} -- Floor
 			end
-			
 			if(i == trapX and j == trapY) then
 				--[[whichTrap = math.random(1,2)
 				if(whichTrap == 1) then
@@ -322,25 +486,6 @@ function makeTrap(i, j)
 		map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
 	elseif(whichTrap == 2) then
 		map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
-	end
-end
-
-
-function makeMap2()
-	MAPWIDTH = 256
-	MAPHEIGHT = 256
-
-	map = {}
-	for i = 1, MAPWIDTH do
-		row = {}
-		for j = 1, MAPHEIGHT do
-			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
-				row[j] = Wall:new{room={[ROOMNUM]=true}}
-			else
-				row[j] = Floor:new{room={[ROOMNUM]=true}}
-			end
-		end
-		map[i] = row
 	end
 end
 
@@ -561,7 +706,7 @@ function updateGame()
 					enemies[i].forcedMarch = false
 				--check if the enemy ended up where it's supposed to get to
 				elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
-					enemies[i].forcedMarch = false
+					enemies[i]:checkAndMove(newEnemyX, newEnemyY)
 				else --guess it's safe to move the enemy to a place
 					enemies[i].x, enemies[i].y = newEnemyX, newEnemyY
 				end
@@ -676,7 +821,6 @@ function keyPressGame(key, unicode)
 	end
 	
 	if(key=="q") then
-		makeMap2()
 		gameState = "MAPDEBUG lol"
 	end
 	
@@ -689,9 +833,9 @@ function keyPressGame(key, unicode)
 			--run a search using increasingly large squares.
 			for px = -searchDistance, searchDistance do
 				for py = -searchDistance, searchDistance do
-					print("Are YOU the problem? px = " .. px .. " py = " .. py .. " searchD is " .. searchDistance)
+					--print("Are YOU the problem? px = " .. px .. " py = " .. py .. " searchD is " .. searchDistance)
 					myTile = checkTile(px + char.x, py + char.y)
-					if(myTile ~= "null" and not myTile.blocker) then
+					if(myTile.tile == 3) then
 						--we did it!
 						escaped = true
 						checkThenMove(px + char.x, py + char.y)
@@ -1005,7 +1149,7 @@ function iterateExplosion()
 				--hold up! if it's falcon-splosion mode make it vaguely directional.
 				--restrict angle to be moderately behind the player.
 				if(explosion["falcon"]) then
-					--print("direction.x: " .. fpdirection.x .. " and direction.y: " .. fpdirection.y)
+					--print("direction.x: " .. char.active.direction.x .. " and direction.y: " .. char.active.direction.y)
 					--basically, "shorten" radius if it is directly in front of the player's pawnch.
 					if(fpdirection.y == -1 and not (angle < 3 / 2 * math.pi + 0.2 and angle > 3 / 2 * math.pi - 0.2 )) then
 						radius = 1.5
@@ -1057,6 +1201,8 @@ function iterateExplosion()
 	
 end
 
+--put this in util.lua eventually I guess
+
 --wheredja get this?
 --I STOOOLED IT
 function string.explode(str, div)
@@ -1071,4 +1217,14 @@ function string.explode(str, div)
         o[#o+1],str = str:sub(1,pos1-1),str:sub(pos2+1)
     end
     return o
+end
+
+function math.sign(x)
+   if x<0 then
+     return -1
+   elseif x>0 then
+     return 1
+   else
+     return 0
+   end
 end

@@ -231,17 +231,12 @@ function Pit:checkTrap(victim)
 			
 			char.inAPit = true
 			
-			--suspend user input and wipe the last keypress.
-			--it used to boot you right out the pit.
+			--suspend user input and wait for the user to hit "Enter"
 			suspended = true
 		end
 	else
-		if(victim.forcedMarch) then
-			--do nothing.
-		else
-			printSide("The " .. string.lower(victim.name) .. " falls screaming into the abyss!")
-			victim:die()
-		end
+		printSide("The " .. string.lower(victim.name) .. " falls screaming into the abyss!")
+		victim:die()
 	end
 end
 --************END TRAPS**************************
