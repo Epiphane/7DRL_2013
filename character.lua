@@ -7,7 +7,7 @@ function char:hitByExplosion()
 end
 
 function char:getHit(dmg)
-	loseAwesome(dmg)
+	self:loseAwesome(dmg)
 end
 
 function char:loseAwesome(amt)

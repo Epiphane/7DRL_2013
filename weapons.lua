@@ -118,7 +118,7 @@ function bullet:update()
 			suspended = false
 		end
 		
-		if not target then -- Hitting enemies
+		if not self.target then -- Hitting enemies
 			for i = 1, # enemies do
 				if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
 					enemies[i]:getHit(25)
@@ -127,10 +127,8 @@ function bullet:update()
 				end
 			end
 		else
-			print("x: "..self.x..", target.x:" .. target.x)
-			print("y: "..self.y..", target.y:" .. target.y)
-			if(self.x == target.x and self.y == target.y) then
-				target:getHit(25)
+			if(self.x == self.target.x and self.y == self.target.y) then
+				self.target:getHit(25)
 				self.over = true
 				suspended = false
 			end

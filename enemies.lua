@@ -47,17 +47,18 @@ function Enemy:moveTowardsCharacter(dir_influence)
 	if not self.possiblePath then return end
 	
 	if(dir_influence) then -- Directional influence if you want to be offset from the character
-		goal = {x=dir_influence.x + char.prev_x, y=dir_influence.y + char.prev_y}
+		goal = {x=dir_influence.x + char.x, y=dir_influence.y + char.y}
 	else -- OR just chase the char
 		goal = {x=char.prev_x, y=char.prev_y}
 	end
 	
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	diff = math.abs(goal.x - self.x) + math.abs(goal.y - self.y)
+	
 	if(diff_char == 1) then
 		return
-	elseif(diff == 1) then
-		self:checkAndMove(goal.prev_x, goal.y)
+	elseif(diff <= 1) then
+		self:checkAndMove(goal.x, goal.y)
 		return 
 	end
 	tileList = {[self.x]={[self.y]={x=self.x, y=self.y, open=true, f=diff, g=0, parent=false}}} -- Initialize with current pos
@@ -108,7 +109,10 @@ function Enemy:moveTowardsCharacter(dir_influence)
 	end
 end
 
-function Enemy:checkAndMove(x, y)		
+function Enemy:checkAndMove(x, y)	
+	if(map[x] == nil or map[x][y] == nil or map[x][y].blocker) then --[[chill]]-- 
+		return
+	end
 	local enemy_in_space = false
 	if(char.x == x and char.y == y) then enemy_in_space = true end
 	for i=1,#enemies do
@@ -126,10 +130,7 @@ function Enemy:checkAndMove(x, y)
 		self.room = k
 	end
 	
-	if(map[x] == nil or map[x][y]	== nil) then --[[chill]]-- 
-	else
-		tile = map[x][y]
-	end
+	tile = map[x][y]
 	
 	tile:checkTrap(self)
 end
@@ -166,6 +167,12 @@ function Barrel:getHit(dmg)
 		self.icon = "3"
 		printSide("Gas gushes out of the side of the barrel! Sparks fly!")
 	end
+end
+
+function Barrel:hitByExplosion()
+	char:gainAwesome(15)
+	self:die()
+	makeExplosion(self.x, self.y, 5, true)
 end
 
 function Barrel:takeTurn()
@@ -287,6 +294,7 @@ end
 -- o | o | o
 
 function Skeleton:takeTurn()
+	if(math.random(6) == 5) then return end
 	d_i = {x=0, y=0}
 	if(self.x > char.x) then d_i.x = 3
 	elseif(self.x < char.x) then d_i.x = -3 end
@@ -294,17 +302,19 @@ function Skeleton:takeTurn()
 	elseif(self.y < char.y) then d_i.y = -3 end
 	self:moveTowardsCharacter(d_i)
 	
-	if(math.abs(char.x - self.x) == math.abs(char.y - self.y) and math.abs(char.y - self.y) <= 3) then
+	local dx = math.abs(char.x- self.x)
+	local dy = math.abs(char.y- self.y)
+	local m = 0
+	if(math.random(6) >= 3 and dx <= 3 and dy <= 3) then
 		self.weapon:shoot_nonChar({x=d_i.x/-3, y=d_i.y/-3}, self)
 		m = math.random(3)
-		if(m == 1) then
-			printSide("The Skeleton chucks a pelvis at you.")
-		elseif(m == 2) then
-			printSide("The Skeleton chucks a humorous bone at you. HA.")
-		elseif(m == 3) then
-			printSide("The Skeleton chucks a skull at you.")
-		end
-		return
+	end
+	if(m == 1) then
+		printSide("The Skeleton chucks a pelvis at you.")
+	elseif(m == 2) then
+		printSide("The Skeleton chucks a humorous bone at you. HA.")
+	elseif(m == 3) then
+		printSide("The Skeleton chucks a skull at you.")
 	end
 end
 
