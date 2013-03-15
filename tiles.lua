@@ -67,9 +67,14 @@ end
 -- doAction(): sets the door tile to open, and passibility to passible
 function Door:doAction()
 	Tile.doAction(self)
-	if(self.tile ~= 5) then printSide("You open the door.") end
-	self.tile = 5
-	self.blocker = false
+	if(self.tile ~= 5) then 
+		printSide("You open the door.")
+		self.tile = 5
+		self.blocker = false
+		for i=1,#enemies do
+			enemies[i].possiblePath = true
+		end
+	end
 end
 
 ThunderingDoor = Door:new{tile=7, blocker=true}
@@ -108,6 +113,9 @@ function DoorSealer:doAction()
 		map[self.door_to_seal.x][self.door_to_seal.y] = Wall:new{room=door_room}
 		self.door_to_seal.x = nil -- Can't seal again
 		printSide("The door shudders closed behind you.")
+		for i=1,#enemies do
+			enemies[i].possiblePath = true
+		end
 	end
 end
 -- end seal()

@@ -73,11 +73,11 @@ dofile("sidebar.lua")
 -- Initialize everything Tile
 dofile("tiles.lua")
 
--- Initialize everything Enemy
-dofile("enemies.lua")
-
 -- Initialize everything that has to do with weaponry
 dofile("weapons.lua")
+
+-- Initialize everything Enemy
+dofile("enemies.lua")
 
 -- Initialize everything that has to do with objects
 dofile("objects.lua")
@@ -88,12 +88,16 @@ dofile("objects.lua")
 dofile("character.lua")
 
 function initLevel()
-	if level == 1 then
+	if level == 1 then -- Beginner level. we need specific rooms
 		leveltype = "rooms"
-		MAPWIDTH = 48
-		MAPHEIGHT = 48
+		MAPWIDTH = 24
+		MAPHEIGHT = 24
 		ROOMNUM = 1
 		viewed_rooms = {}
+		possibleEnemies = {{{enemy=Rat, num=3}}}
+		possiblePassives = {Pistol}
+		possibleActives = {FZeroSuit}
+		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
 		leveltype = "rooms"
@@ -108,8 +112,13 @@ function initLevel()
 		MAPHEIGHT = 100
 		ROOMNUM = 1
 		viewed_rooms = {}
+		possiblePassives = {Pistol}
+		possibleActives = {FZeroSuit}
+		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
+		Boss = Skeleton
 		makeMap(leveltype)
 	end
+	print("get on my level: " .. level)
 	
 	--if we're in the sewers then the character is already set
 	if(leveltype ~= "sewers") then
@@ -175,7 +184,6 @@ function makeMap(levelType)
 		until j == MAPHEIGHT
 		
 		-- Make boss room corridor
-		print("fuck you")
 		CORRIDORWIDTH = 24 + math.random(8)
 		
 		orient = math.random(4)
@@ -368,6 +376,7 @@ function makeMap(levelType)
 		charNode = math.random(1,NUMNODES)
 		char.x, char.y = nodes[charNode].x, nodes[charNode].y
 	end
+	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2)*2, y=start_j}} -- Make thundering door lever
 end
 
 -- Automatically add doors to the room
@@ -448,34 +457,29 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 	-- TIME TO CUSTOMIZE THE ROOMS. THIS IS WHERE SHIT GETS REAL
 	-- SO WATCH OUT
 	if(roomnum == 999) then -- Boss room
-		spawnEnemy(end_i - 3, start_j + (end_j - start_j) / 2, GiantRat)
-	else
-		if(level == 1) then -- Beginner level. we need specific rooms
-			possibleEnemies = {Rat}
-			possiblePassives = {Pistol}
-			possibleActives = {FZeroSuit}
-			-- Determine types
-			roomType = math.random(4)
-			while(filledRooms[roomType]) do
-				roomType = roomType + 1
-				if(roomType > 4) then roomType = 1 end
-			end
-		end
+		spawnEnemy(end_i - 3, start_j + (end_j - start_j) / 2, Boss:new{boss=true})
 	end
-	filledRooms[roomType] = true
-			
+	-- Determine types
+	roomType = math.random(3)
+	while(filledRooms[roomType]) do
+		roomType = roomType + 1
+		if(roomType > 3) then roomType = 1 end
+	end
+	if(roomType ~= 3) then filledRooms[roomType] = true end
+
 	if(roomType == 1) then
 		o = possiblePassives[math.random(#possiblePassives)]
 		spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), o)
 	elseif(roomType == 2) then
-		e = possibleEnemies[math.random(#possibleEnemies)]
-		spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), e)
-		spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), e)
-		spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), e)
-	elseif(roomType == 3) then
 		o = possibleActives[math.random(#possibleActives)]
 		spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), o)
-	elseif(roomType == 4) then
+	else
+		e = possibleEnemies[math.random(#possibleEnemies)]
+		for k, e_table in pairs(e) do
+			for e_num=1,e_table.num do
+				spawnEnemy(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), e_table.enemy:new())
+			end
+		end
 	end
 end
 
@@ -878,6 +882,7 @@ function love.mousepressed(x, y, button)
 end
 
 function love.mousereleased(x, y, button)
+	print(suspended)
 end
 
 function love.quit()
