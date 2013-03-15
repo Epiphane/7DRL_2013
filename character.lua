@@ -6,6 +6,10 @@ function char:hitByExplosion()
 	self:loseAwesome(15)
 end
 
+function char:getHit(dmg)
+	loseAwesome(dmg)
+end
+
 function char:loseAwesome(amt)
 	self.awesome = self.awesome - amt
 	if(self.awesome <= 0) then

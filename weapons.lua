@@ -2,6 +2,13 @@
 bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 hands = {}
 
+function bullet:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
 --Just a little thing I maaaade.
 --Direction is:
 
@@ -68,6 +75,34 @@ function bullet:shoot(direction)
 end
 --end shoot()
 
+function bullet:shoot_nonChar(direction, origin)
+	self.x = origin.x
+	self.y = origin.y
+	
+	self.dx = direction.x
+	self.dy = direction.y
+	
+	--now, animate the bullet shootin.
+	--suspend user input
+	suspended = true
+	
+	--move bullet once so it's not on top of our character
+	self.x = self.x + self.dx
+	self.y = self.y + self.dy
+	
+	self.over = false
+	self.distance = 0
+	self.range = 5
+	
+	self.nextmove = currtime + .08
+	
+	--are we shooting at a wall?
+	if(map[self.x][self.y].blocker) then
+		self.over = true
+		suspended = false
+	end
+end
+
 function bullet:draw()
 	if(not self.over) then
 		love.graphics.print("!", (self.x - offset["x"] - 1)*12, (self.y - offset["y"] - 1)*12 + screenshake)
@@ -76,15 +111,24 @@ end
 
 function bullet:update()
 	if(currtime > self.nextmove and not self.over)	then
-	
+		
 		--did we hit something?
-		if(map[self.x + self.dx][self.y + self.dy].blocker) then
+		if(not map[self.x + self.dx] or not map[self.x + self.dx][self.y + self.dy] or map[self.x + self.dx][self.y + self.dy].blocker) then
 			self.over = true
 			suspended = false
 		end
-		for i = 1, # enemies do
-			if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
-				enemies[i]:getHit(25)
+		
+		if not target then -- Hitting enemies
+			for i = 1, # enemies do
+				if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
+					enemies[i]:getHit(25)
+					self.over = true
+					suspended = false
+				end
+			end
+		else
+			if(self.x == target.x and self.y == target.y) then
+				target:getHit(25)
 				self.over = true
 				suspended = false
 			end
@@ -112,7 +156,7 @@ function bullet:update()
 end
 
 -- SHOOTIN WITH YOUR HANDS
-function hands:shoot(direction)	
+function hands:shoot(direction)
 	self.x = char.x
 	self.y = char.y
 	

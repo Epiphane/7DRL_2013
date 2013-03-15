@@ -16,6 +16,10 @@ end
 function Object:draw()
 	if(self.room == char.room) then
 		love.graphics.print(self.icon, (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
+	elseif viewed_rooms[self.room] then
+		love.graphics.print(self.icon, (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
+	else
+		love.graphics.print("?", (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
 	end
 end
 -- end draw()

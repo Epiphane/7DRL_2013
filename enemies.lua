@@ -1,6 +1,6 @@
 -- Constructor for the Tile Class
 -- param: o is an object, or table of information.
-Enemy = {name="Enemy", icon="E", room=1, x=1, y=1, health=1, forcedMarch = false, alive=true}
+Enemy = {name="Enemy", icon="E", room=1, x=1, y=1, health=1, forcedMarch = false, alive=true, possiblePath=true}
 
 function Enemy:new(o)
 	o = o or {}				-- Set the tile's info to match passed params
@@ -40,7 +40,15 @@ function Enemy:hitByExplosion()
 	end
 end
 
-function Enemy:moveTowardsCharacter()
+function Enemy:moveTowardsCharacter(dir_influence)
+	if not self.possiblePath then return end
+	
+	if(dir_influence) then -- Directional influence if you want to be offset from the character
+		goal = {x=dir_influence.x + char.prev_x, y=dir.influence.y + char.prev_y}
+	else -- OR just chase the char
+		goal = {x=char.prev_x, y=char.prev_y}
+	end
+	
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	diff = math.abs(char.prev_x - self.x) + math.abs(char.prev_y - self.y)
 	if(diff_char == 1) then
@@ -84,7 +92,7 @@ function Enemy:moveTowardsCharacter()
 			addList(dir, 0)
 			addList(dir*-1, 0)
 		end
-	until (current_x == char.prev_x and current_y == char.prev_y)
+	until (current_x == goal.x and current_y == goal.y)
 	
 	if current_min then
 		-- Follow the tree back
@@ -92,6 +100,8 @@ function Enemy:moveTowardsCharacter()
 		while(current_tile.parent.parent) do current_tile = current_tile.parent end
 		
 		self:checkAndMove(current_tile.x, current_tile.y)
+	else
+		self.possiblePath = false
 	end
 end
 
@@ -193,7 +203,7 @@ function Rat:takeTurn()
 	self:moveTowardsCharacter()
 end
 
-GiantRat = Enemy:new{name="Giant Rat", icon="R", health=100}
+GiantRat = Enemy:new{name="Giant Rat", icon="R", health=100, boss=false}
 function GiantRat:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
 	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
@@ -204,11 +214,12 @@ end
 function GiantRat:die()
 	self.alive = false
 	char:gainAwesome(15)
-	map[self.x][self.y] = Staircase:new{room={[999]=true}}
+	if self.boss then
+		map[self.x][self.y] = Staircase:new{room={[999]=true}}
+	end
 end
 
 function GiantRat:takeTurn()
-	if(char.room ~= 999) then return end
 	if(math.random(6) == 5) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	if(diff_char == 1) then
@@ -228,7 +239,7 @@ function GiantRat:takeTurn()
 	self:moveTowardsCharacter()
 end
 
-Zombie = Enemy:new{name="Zombie", icon="Z", health=100}
+Zombie = Enemy:new{name="Zombie", icon="Z", health=200}
 function Zombie:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
 	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
@@ -236,15 +247,60 @@ function Zombie:new(o)
 	return o				-- Return Barrel
 end
 
-function Zombie:getHit(dmg)
-	health = health - dmg
-	if health <= 0 then
-		self:die()
+function Zombie:takeTurn()
+	if(math.random(3) ~= 3) then return end
+	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
+	if(diff_char == 1) then
+		m = math.random(3)
+		if(m == 1) then
+			printSide("The Zombie grabs your neck.")
+		elseif(m == 2) then
+			printSide("The Zombie hugs you longingly")
+		elseif(m == 3) then
+			printSide("The Zombie feels you up.")
+		end
+		char:loseAwesome(10)
+		return
 	end
+	self:moveTowardsCharacter()
 end
 
-function Zombie:takeTurn()
+Skeleton = Enemy:new{name="Skeleton", icon="S", health=75, weapon=bullet:new{target=char}}
+function Skeleton:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
+-- Skeleton tries to get to the o's depending on where it's closer to
+-- o | o | o
+-- \ \ | / /
+-- o - x - o
+-- / / | \ \
+-- o | o | o
+
+function Skeleton:takeTurn()
+	if(math.random(3) ~= 3) then return end
+	d_i = {x=0, y=0}
+	if(self.x > char.x) then d_i.x = 3
+	elseif(self.x < char.x) then d_i.x = -3 end
+	if(self.y > char.y) then d_i.y = 3
+	elseif(self.y < char.y) then d_i.y = -3 end
+	self:moveTowardsCharacter()
 	
+	if(math.abs(char.x - self.x) == math.abs(char.y - self.y) and math.abs(char.y - self.y) <= 3) then
+		self.weapon.shoot_nonChar({x=d_i.x/3, y=d_i.y/3}, self)
+		m = math.random(3)
+		if(m == 1) then
+			printSide("The Skeleton chucks a pelvis at you.")
+		elseif(m == 2) then
+			printSide("The Skeleton chucks a humorous bone at you. HA.")
+		elseif(m == 3) then
+			printSide("The Skeleton chucks a skull at you.")
+		end
+		return
+	end
 end
 
 function Enemy:forceMarch(newX, newY)
