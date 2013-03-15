@@ -95,7 +95,9 @@ function initLevel()
 		ROOMNUM = 1
 		viewed_rooms = {}
 		possibleEnemies = {{{enemy=Rat, num=3}}}
-		possiblePassives = {Pistol}
+		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
+		--passive items just give passive benefits
+		possiblePassives = {SpeedBoots}
 		possibleActives = {CloakAndDagger}
 		Boss = GiantRat
 		makeMap(leveltype)
@@ -1053,12 +1055,26 @@ function doTurn()
 		end
 	end
 
+	--COCAINE??? COCAINE!!!
+	--or "Speedboots" as I guess I'm calling it :(
+	skipEnemyTurn = false
+	if(char.passives.gottagofast) then
+		if(char.passives.speedincrement == 0) then
+			skipEnemyTurn = true
+			char.passives.speedincrement = 3
+		else
+			char.passives.speedincrement = char.passives.speedincrement - 1
+		end
+	end
+	
 	for i = 1, # enemies do
 		if enemies[i] then
 			if not enemies[i].alive then
 				table.remove(enemies, i)
 			else
-				enemies[i]:takeTurn()
+				if(not skipEnemyTurn) then
+					enemies[i]:takeTurn()
+				end
 			end
 		end
 	end

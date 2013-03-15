@@ -80,3 +80,24 @@ end
 
 
 -- ******************** END CLOAK AND DAGGER   *********************
+
+-- ******************** BEGIN SPEED BOOTS      *********************
+--speed boots!
+--wanted to call them "Cocaine" but I decided against it :/
+--basically every 3 turns none of the enemies take a turn.
+--GOTTA GO FEEEYAAST
+-- ^^^^^^^^^^^^^^^^  (must be said out loud + obnoxiously)
+SpeedBoots = Object:new{name="Speed Boots", icon="["}
+function SpeedBoots:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	return o
+end
+
+function SpeedBoots:interact()
+	char:addPassive("Speed Boots")
+	printSide("You find some speed boots! GOTTA GO FAAAST")
+	self.alive = false
+end
+-- ******************** END SPEED BOOTS		   *********************

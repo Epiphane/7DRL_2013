@@ -1,5 +1,5 @@
-char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, 
-		actives = {}, activeNum = 0, invisible = 0}
+char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, passiveNum = 0,
+		actives = {}, passives = {}, activeNum = 0, invisible = 0}
 -- For directions, 0 is neutral, 1 is positive, -1 is negative
 
 function char:hitByExplosion()
@@ -38,6 +38,16 @@ function char:forceMarch(newx, newy)
 	
 	self.nextForcedMove = currtime + 0.05
 	--print("nfm is " .. self.nextForcedMove .. " ...fyi!")
+end
+
+char.passives.gottagofast = false
+function char:addPassive(name)
+	if(name == "Speed Boots") then
+		self.passives.gottagofast = true
+		self.passiveNum = self.passiveNum + 1
+		--keeps track of the last time we skipped an enemy turn
+		self.passives.speedincrement = 0
+	end
 end
 
 function char:addActive(name)
@@ -81,4 +91,5 @@ function char:falconPunch(dx, dy)
 	self:forceMarch(char.x + dx*2, char.y + dy*2)
 	
 end
+
 
