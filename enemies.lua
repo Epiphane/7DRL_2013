@@ -13,6 +13,9 @@ end
 function Enemy:draw()
 	if(self.alive and self.room == char.room) then
 		love.graphics.print(self.icon, (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
+		if(self.weapon) then
+			self.weapon:draw()
+		end
 	end
 end
 -- end draw()
@@ -44,17 +47,17 @@ function Enemy:moveTowardsCharacter(dir_influence)
 	if not self.possiblePath then return end
 	
 	if(dir_influence) then -- Directional influence if you want to be offset from the character
-		goal = {x=dir_influence.x + char.prev_x, y=dir.influence.y + char.prev_y}
+		goal = {x=dir_influence.x + char.prev_x, y=dir_influence.y + char.prev_y}
 	else -- OR just chase the char
 		goal = {x=char.prev_x, y=char.prev_y}
 	end
 	
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
-	diff = math.abs(char.prev_x - self.x) + math.abs(char.prev_y - self.y)
+	diff = math.abs(goal.x - self.x) + math.abs(goal.y - self.y)
 	if(diff_char == 1) then
 		return
 	elseif(diff == 1) then
-		self:checkAndMove(char.prev_x, char.prev_y)
+		self:checkAndMove(goal.prev_x, goal.y)
 		return 
 	end
 	tileList = {[self.x]={[self.y]={x=self.x, y=self.y, open=true, f=diff, g=0, parent=false}}} -- Initialize with current pos
@@ -132,10 +135,10 @@ function Enemy:checkAndMove(x, y)
 end
 
 -- Adding stuff to open list
-function addList(xo, yo)
+function addList(xo, yo) -- global goal
 	if(map[current_x+xo] and map[current_x+xo][current_y+yo] and not map[current_x+xo][current_y+yo].blocker) then
 		if(not tileList[current_x+xo]) then tileList[current_x+xo] = {} end
-		diff = math.abs(char.x - (current_x+xo)) + math.abs(char.y - (current_y+yo))
+		diff = math.abs(goal.x - (current_x+xo)) + math.abs(goal.y - (current_y+yo))
 		if(not tileList[current_x+xo][current_y+yo]) then
 			tileList[current_x+xo][current_y+yo] = {x=current_x+xo, y=current_y+yo, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
 		else
@@ -144,6 +147,9 @@ function addList(xo, yo)
 			end
 		end
 	end
+end
+
+function Enemy:update()
 end
 
 Barrel = Enemy:new{name="Barrel", icon="O", health=1}
@@ -281,16 +287,15 @@ end
 -- o | o | o
 
 function Skeleton:takeTurn()
-	if(math.random(3) ~= 3) then return end
 	d_i = {x=0, y=0}
 	if(self.x > char.x) then d_i.x = 3
 	elseif(self.x < char.x) then d_i.x = -3 end
 	if(self.y > char.y) then d_i.y = 3
 	elseif(self.y < char.y) then d_i.y = -3 end
-	self:moveTowardsCharacter()
+	self:moveTowardsCharacter(d_i)
 	
 	if(math.abs(char.x - self.x) == math.abs(char.y - self.y) and math.abs(char.y - self.y) <= 3) then
-		self.weapon.shoot_nonChar({x=d_i.x/3, y=d_i.y/3}, self)
+		self.weapon:shoot_nonChar({x=d_i.x/-3, y=d_i.y/-3}, self)
 		m = math.random(3)
 		if(m == 1) then
 			printSide("The Skeleton chucks a pelvis at you.")
@@ -301,6 +306,10 @@ function Skeleton:takeTurn()
 		end
 		return
 	end
+end
+
+function Skeleton:update()
+	self.weapon:update()
 end
 
 function Enemy:forceMarch(newX, newY)

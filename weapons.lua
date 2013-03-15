@@ -127,6 +127,8 @@ function bullet:update()
 				end
 			end
 		else
+			print("x: "..self.x..", target.x:" .. target.x)
+			print("y: "..self.y..", target.y:" .. target.y)
 			if(self.x == target.x and self.y == target.y) then
 				target:getHit(25)
 				self.over = true

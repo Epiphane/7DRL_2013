@@ -96,7 +96,7 @@ function initLevel()
 		possibleEnemies = {{{enemy=Rat, num=3}}}
 		possiblePassives = {Pistol}
 		possibleActives = {FZeroSuit}
-		Boss = GiantRat
+		Boss = Skeleton
 		makeMap()
 	elseif level == 2 then
 		MAPWIDTH = 48
@@ -544,6 +544,7 @@ function updateGame()
 	
 	--hey, while we're here, let's move enemies that need to be moved.
 	for i=1,#enemies do
+		enemies[i]:update()
 		if(enemies[i].forcedMarch) then
 			newEnemyX, newEnemyY = enemies[i].x, enemies[i].y
 		
@@ -1058,8 +1059,6 @@ function iterateExplosion()
 		--make sure falcon mode is deactivated
 		explosion["falcon"] = false
 	end
-	
-	
 end
 
 --wheredja get this?
