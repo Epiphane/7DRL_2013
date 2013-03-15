@@ -39,7 +39,7 @@ function love.load()
 	love.graphics.setBackgroundColor( 0, 0, 0 )
 	
 	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
-	mainFont = love.graphics.newImageFont ("arial12x12test.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
+	mainFont = love.graphics.newImageFont ("arial12x12.png", " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_'{|}~"
 											.. "xxxxxxxxxxxxxxxxxxxxx"
 											.. "xxxxxxxxxxxxOxxxxxxxxxxxx"
 											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -500,8 +500,8 @@ function makeTrap(i, j)
 end
 
 -- Amount of tiles to display (proportional to display size / 12)
-DISPLAYWIDTH = 40
-DISPLAYHEIGHT = 50
+DISPLAYWIDTH = 70
+DISPLAYHEIGHT = 70
 
 --how much offset to have for the screenshake
 screenshake = 0
@@ -604,7 +604,7 @@ function drawGame()
 	end
 	
 	-- Draw sidebar starting at x = 600
-	drawSidebar(480)
+	drawSidebar(600)
 end
 
 currtime = 0
@@ -749,6 +749,11 @@ function keyPressWelcome(key, unicode)
 end
 	
 function keyPressGame(key, unicode)
+	--escaaaape
+	if(key == "escape") then
+		love.quit()
+	end
+
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
 	if stackPause==0 and not char.inAPit then

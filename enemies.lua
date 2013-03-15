@@ -53,12 +53,14 @@ function Enemy:moveTowardsCharacter(dir_influence)
 		willMove = math.random(0,100)
 		if(willMove < 15) then
 			dx, dy = math.random(-1,1), math.random(-1,1)
-			if(map[self.x + dx][self.y + dy]) then
-				tile = map[self.x + dx][self.y + dy]
-				if(tile.trap) then
-					--don't move into a trap, silly
-				else
-					self:checkAndMove(self.x + dx, self.y + dy)
+			if(map[self.x + dx] ~= nil) then
+				if(map[self.x + dx][self.y + dy]) then
+					tile = map[self.x + dx][self.y + dy]
+					if(tile.trap) then
+						--don't move into a trap, silly
+					else
+						self:checkAndMove(self.x + dx, self.y + dy)
+					end
 				end
 			end
 		end
