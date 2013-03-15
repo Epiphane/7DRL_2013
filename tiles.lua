@@ -238,6 +238,7 @@ function Pit:checkTrap(victim)
 			char:loseAwesome(10)
 			
 			char.inAPit = true
+			stackPause = stackPause + 1
 		end
 	else
 		printSide("The " .. string.lower(victim.name) .. " falls screaming into the abyss!")

@@ -688,8 +688,6 @@ function updateGame()
 				char['forcedMarch'] = false
 			end
 		end
-		
-		
 	end
 	
 	--hey, while we're here, let's move enemies that need to be moved.
@@ -722,21 +720,6 @@ function updateGame()
 				end
 			end
 		end
-	end
-	
-	--wait for directional input here
-	if(explosion["falcon"]) then --or a number of other flags
-		if(susrightpress < REAL_BIG_NUMBER) then
-			char:falconPunch(1,0)
-		elseif(susleftpress < REAL_BIG_NUMBER) then
-			char:falconPunch(-1,0)
-		elseif(susuppress < REAL_BIG_NUMBER) then
-			char:falconPunch(0,-1)
-		elseif(susdownpress < REAL_BIG_NUMBER) then
-			char:falconPunch(0,1)
-		end
-		
-		susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 	end
 end
 
@@ -845,56 +828,48 @@ function keyPressGame(key, unicode)
 				end
 			end
 		end
-		
-		--press P for some PAWWWNCH (debug: you can now paunch whenever you want with P)
-		if(key == "p") then
-			suspended = true
-			--this flag indicates we're gonna wait for the user to input a direction
-			explosion["falcon"] = true
-			
-			printSide("FALCOOOOON... (choose a direction)")
-		end
 	else	
-		--supension also is kicked in when the user has to choose a direction/location for something.
-		--pass the directional keys to any function that might want 'em.
-		if(key == "right") then susrightpress = currtime
-		elseif(key == "left") then susleftpress = currtime
-		elseif(key == "up") then susuppress = currtime
-		elseif(key == "down") then susdownpress = currtime
-		end
-	end
-	
-	--[[if(key=="q") then
-		gameState = "MAPDEBUG lol"
-	end]]--
-	
-	--if the user hit "enter" and he or she is in a pit we should let him (or her) out
-	if(char.inAPit and key == "return") then
-		searchDistance = 1
-		escaped = false
-		while(not escaped) do 
-			px, py = 0, 0
-			--run a search using increasingly large squares.
-			for px = -searchDistance, searchDistance do
-				for py = -searchDistance, searchDistance do
-					--print("Are YOU the problem? px = " .. px .. " py = " .. py .. " searchD is " .. searchDistance)
-					myTile = checkTile(px + char.x, py + char.y)
-					if(myTile.tile == 3) then
-						--we did it!
-						escaped = true
-						checkThenMove(px + char.x, py + char.y)
-						printSide("You crawl out of the pit.")
-						
-						--escape from the forloop!
-						char.inAPit = false
-						stackPause = stackPause - 1
-						susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
-						return
-					end
-					--didn't find a valid square to move to.  Increment search distance.
-				end
+		--wait for directional input here
+		if(explosion["falcon"]) then --or a number of other flags
+			if(key == "right") then
+				char:falconPunch(2,0)
+			elseif(key == "left") then
+				char:falconPunch(-2,0)
+			elseif(key == "up") then
+				char:falconPunch(0,-2)
+			elseif(key == "down") then
+				char:falconPunch(0,2)
 			end
-			searchDistance = searchDistance + 1
+		end
+	
+		--if the user hit "enter" and he or she is in a pit we should let him (or her) out
+		if(char.inAPit and key == "return") then
+			searchDistance = 1
+			escaped = false
+			while(not escaped) do 
+				px, py = 0, 0
+				--run a search using increasingly large squares.
+				for px = -searchDistance, searchDistance do
+					for py = -searchDistance, searchDistance do
+						--print("Are YOU the problem? px = " .. px .. " py = " .. py .. " searchD is " .. searchDistance)
+						myTile = checkTile(px + char.x, py + char.y)
+						if(myTile.tile == 3) then
+							--we did it!
+							escaped = true
+							checkThenMove(px + char.x, py + char.y)
+							printSide("You crawl out of the pit.")
+							
+							--escape from the forloop!
+							char.inAPit = false
+							stackPause = stackPause - 1
+							susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
+							return
+						end
+						--didn't find a valid square to move to.  Increment search distance.
+					end
+				end
+				searchDistance = searchDistance + 1
+			end
 		end
 	end
 end

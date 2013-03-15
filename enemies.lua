@@ -53,7 +53,6 @@ function Enemy:moveTowardsCharacter(dir_influence)
 		willMove = math.random(0,100)
 		if(willMove < 15) then
 			dx, dy = math.random(-1,1), math.random(-1,1)
-			print("dx: " .. dx .. " dy: " .. dy)
 			if(map[self.x + dx][self.y + dy]) then
 				tile = map[self.x + dx][self.y + dy]
 				if(tile.trap) then
@@ -194,8 +193,7 @@ end
 
 function Barrel:hitByExplosion()
 	char:gainAwesome(15)
-	self:die()
-	makeExplosion(self.x, self.y, 5, true)
+	self:getHit(25)
 end
 
 function Barrel:takeTurn()
