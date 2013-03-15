@@ -1,4 +1,4 @@
-char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, actives = {}}
+char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, actives = {}, activeNum = 0}
 -- For directions, 0 is neutral, 1 is positive, -1 is negative
 
 function char:hitByExplosion()
@@ -40,8 +40,42 @@ function char:forceMarch(newx, newy)
 end
 
 function char:addActive(name)
-	self.actives[#self.actives + 1] = name
-	print("Does this work? " .. #self.actives + 1)
-	print("added " .. self.actives[1])
+	if(name == "Falcon Punch") then
+		self.activeNum = self.activeNum + 1
+		self.actives[self.activeNum] = {}
+		self.actives[self.activeNum].name = "Falcon Punch"
+		self.actives[self.activeNum].maxcooldown = 10
+		self.actives[self.activeNum].cooldown = 0
+	elseif(name == "Cloak And Dagger") then
+		self.activeNum = self.activeNum + 1
+		print("addin dat cloak and dagga")
+		self.actives[self.activeNum] = {}
+		self.actives[self.activeNum].name = "Cloak And Dagger"
+		self.actives[self.activeNum].maxcooldown = 10
+		self.actives[self.activeNum].cooldown = 0
+	end
+end
+
+function char:doActive(name)
+	print("we got into doactive at least")
+	if(name == "Falcon Punch") then
+		suspended = true
+		--this flag indicates we're gonna wait for the user to input a direction
+		explosion["falcon"] = true
+		
+		printSide("FALCOOOOON... (choose a direction)")
+	elseif(name == "Cloak And Dagger") then
+		print("doin dat cloak and dagga")
+	end
+end
+
+function char:falconPunch(dx, dy)
+	makeExplosion(self.x, self.y, 5, false)
+	explosion["direction"] = {}
+	explosion.direction.x = dx
+	explosion.direction.y = dy
+	self:forceMarch(char.x + dx*2, char.y + dy*2)
+	
+	
 end
 

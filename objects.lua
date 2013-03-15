@@ -44,7 +44,7 @@ end
 -- ******************** END PISTOL ***************************
 
 -- ******************** BEGIN FALCON PUNCH ***************************
-FZeroSuit = Object:new{name="F Zero Suit", icon=">"}
+FZeroSuit = Object:new{name="F Zero Suit", icon=">", cooldown=10}
 
 -- Suit constructor seals a door
 function FZeroSuit:new(o)
@@ -56,14 +56,14 @@ end
 -- end constructor
 
 function FZeroSuit:interact()
-	char:addActive("FalconPunch")
+	char:addActive("Falcon Punch")
 	printSide("You pick up the F-Zero Suit")
 	self.alive = false
 end
 -- ******************** END FALCON PUNCH ***************************
 
 -- ******************** BEGIN CLOAK AND DAGGER *********************
-CloakAndDagger = Object:new{name="Cloak and Dagger", icon=")"}
+CloakAndDagger = Object:new{name="Cloak and Dagger", icon=")", cooldown=10}
 
 function CloakAndDagger:new(o)
 	o = o or {}
@@ -73,7 +73,7 @@ function CloakAndDagger:new(o)
 end
 
 function CloakAndDagger:interact()
-	char:addActive("CloakAndDagger")
+	char:addActive("Cloak And Dagger")
 	printSide("You pick up the Cloak and Dagger")
 	self.alive = false
 end
