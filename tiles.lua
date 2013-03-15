@@ -120,7 +120,7 @@ function DoorSealer:doAction()
 end
 -- end seal()
 
-Wall = Tile:new{tile=2, blocker=true, awesome_effect=-1, message="You walk headlong into a wall..."}
+Wall = Tile:new{tile=2, blocker=true, awesome_effect=-1, message="You walk headlong into a wall...", trap = false}
 function Wall:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -128,7 +128,7 @@ function Wall:new(o)
 	return o
 end
 
-CrackedWall = Wall:new{tile=6, awesome_effect=0}
+CrackedWall = Wall:new{tile=6, awesome_effect=0, trap = false}
 function CrackedWall:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -144,7 +144,7 @@ function CrackedWall:greatForce()
 end
 
 --**********BEGIN STAIRCASE***********************
-Staircase = Tile:new{tile=9, blocker=false}
+Staircase = Tile:new{tile=9, blocker=false, trap = false}
 function Staircase:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -159,7 +159,7 @@ end
 --************END STAIRCASE**************************
 
 --**********BEGIN TRAPS***********************
-SpikeTrap = Tile:new{tile=7, blocker=false, awesome_effect=-10}
+SpikeTrap = Tile:new{tile=7, blocker=false, awesome_effect=-10, trap = true}
 function SpikeTrap:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -187,7 +187,7 @@ function SpikeTrap:checkTrap(victim)
 	end
 end
 
-CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=0, dir_x=0, dir_y=0}
+CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=0, dir_x=0, dir_y=0, trap = true}
 function CatapultTrap:new(o)
 	o = o or {}
 	setmetatable(o, self)
@@ -219,7 +219,7 @@ end
 
 --pits are special, they don't affect you if you're flyin' over them.
 --Also they constitute most of the "Bridge" style level so in that sense they're not really even a trap.
-Pit = Tile:new{tile=1, blocker = false, awesome_effect = -10}
+Pit = Tile:new{tile=1, blocker = false, awesome_effect = -10, trap = true}
 function Pit:new(o)
 	o = o or {}
 	setmetatable(o, self)

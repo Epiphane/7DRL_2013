@@ -47,6 +47,25 @@ function Enemy:hitByExplosion()
 end
 
 function Enemy:moveTowardsCharacter(dir_influence)
+	--I decided to implement the "invisible" check here!
+	--15% chance of moving randomly. Won't fall into traps.
+	if(char.invisible > 0) then
+		willMove = math.random(0,100)
+		if(willMove < 15) then
+			dx, dy = math.random(-1,1), math.random(-1,1)
+			print("dx: " .. dx .. " dy: " .. dy)
+			if(map[self.x + dx][self.y + dy]) then
+				tile = map[self.x + dx][self.y + dy]
+				if(tile.trap) then
+					--don't move into a trap, silly
+				else
+					self:checkAndMove(self.x + dx, self.y + dy)
+				end
+			end
+		end
+		return
+	end
+
 	if not self.possiblePath then return end
 	
 	if(dir_influence) then -- Directional influence if you want to be offset from the character
@@ -113,6 +132,7 @@ function Enemy:moveTowardsCharacter(dir_influence)
 end
 
 function Enemy:checkAndMove(x, y)	
+
 	if(map[x] == nil or map[x][y] == nil or map[x][y].blocker) then --[[chill]]-- 
 		return
 	end
@@ -202,7 +222,7 @@ end
 function Rat:takeTurn()
 	if(math.random(4) == 3) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
-	if(diff_char == 1) then
+	if(diff_char == 1 and not char.invisible == 0) then
 		m = math.random(4)
 		if(m == 1) then
 			printSide("The Rat climbs up into your trousers.")
@@ -230,7 +250,7 @@ end
 function GiantRat:takeTurn()
 	if(math.random(6) == 5) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
-	if(diff_char == 1) then
+	if(diff_char == 1  and not char.invisible == 0) then
 		m = math.random(3)
 		if(m == 1) then
 			printSide("The Giant Rat lubricates you with its saliva.")
@@ -258,7 +278,7 @@ end
 function Zombie:takeTurn()
 	if(math.random(3) ~= 3) then return end
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
-	if(diff_char == 1) then
+	if(diff_char == 1  and not char.invisible == 0) then
 		m = math.random(3)
 		if(m == 1) then
 			printSide("The Zombie grabs your neck.")

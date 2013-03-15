@@ -95,8 +95,10 @@ function initLevel()
 		ROOMNUM = 1
 		viewed_rooms = {}
 		possibleEnemies = {{{enemy=Rat, num=3}}}
-		possiblePassives = {Pistol}
-		possibleActives = {FZeroSuit}
+		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
+		--passive items just give passive benefits
+		possiblePassives = {SpeedBoots}
+		possibleActives = {CloakAndDagger}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -724,19 +726,15 @@ function updateGame()
 	end
 	
 	--wait for directional input here
-	if(explosion["falcon"] and char.active) then --or a number of other flags
+	if(explosion["falcon"]) then --or a number of other flags
 		if(susrightpress < REAL_BIG_NUMBER) then
-			char.active.direction.x, char.active.direction.y = 1, 0
-			char.active:useSkill()
+			char:falconPunch(1,0)
 		elseif(susleftpress < REAL_BIG_NUMBER) then
-			char.active.direction.x, char.active.direction.y = -1, 0
-			char.active:useSkill()
+			char:falconPunch(-1,0)
 		elseif(susuppress < REAL_BIG_NUMBER) then
-			char.active.direction.x, char.active.direction.y = 0, -1
-			char.active:useSkill()
+			char:falconPunch(0,-1)
 		elseif(susdownpress < REAL_BIG_NUMBER) then
-			char.active.direction.x, char.active.direction.y = 0, 1
-			char.active:useSkill()
+			char:falconPunch(0,1)
 		end
 		
 		susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
@@ -809,15 +807,53 @@ function keyPressGame(key, unicode)
 			char:forceMarch(char["x"], char["y"] + 5)
 		end
 		
-		--press P for some PAWWWNCH
-		if(key == "p" and char.active) then
-			if(char.active.cooldown == 0) then
-				stackPause = stackPause + 1
-				--this flag indicates we're gonna wait for the user to input a direction
-				explosion["falcon"] = true
-				
-				printSide("FALCOOOOON... (choose a direction)")
+		--press "Z" for first active item
+		if(char.activeNum >= 1) then
+			if(key == "z") then
+				if(char.actives[1].cooldown == 0) then 
+					--do whatever active this is
+					print(char.actives[1].name)
+					char:doActive(char.actives[1].name)
+					char.actives[1].cooldown = char.actives[1].maxcooldown
+				else
+					printSide("That skill is on cooldown!")
+				end
 			end
+		end
+		
+		--press "X" for the second active item
+		if(char.activeNum >= 2) then
+			if(key == "x") then
+				if(char.actives[2].cooldown == 0) then
+					print("Doing item: " .. char.actives[2].name)
+					char:doActive(char.actives[2].name)
+					char.actives[2].cooldown = char.actives[2].maxcooldown
+				else
+					printSide("That skill is on cooldown!")
+				end
+			end
+		end
+		
+		--press "C" for the third active item
+		if(char.activeNum >= 3) then
+			if(key == "c") then
+				if(char.actives[3].cooldown == 0) then
+					print("Doing item: " .. char.actives[3].name)
+					char:doActive(char.actives[3].name)
+					char.actives[3].cooldown = char.actives[3].maxcooldown
+				else
+					printSide("That skill is on cooldown!")
+				end
+			end
+		end
+		
+		--press P for some PAWWWNCH (debug: you can now paunch whenever you want with P)
+		if(key == "p") then
+			suspended = true
+			--this flag indicates we're gonna wait for the user to input a direction
+			explosion["falcon"] = true
+			
+			printSide("FALCOOOOON... (choose a direction)")
 		end
 	else	
 		--supension also is kicked in when the user has to choose a direction/location for something.
@@ -829,9 +865,9 @@ function keyPressGame(key, unicode)
 		end
 	end
 	
-	if(key=="q") then
+	--[[if(key=="q") then
 		gameState = "MAPDEBUG lol"
-	end
+	end]]--
 	
 	--if the user hit "enter" and he or she is in a pit we should let him (or her) out
 	if(char.inAPit and key == "return") then
@@ -1003,17 +1039,43 @@ end
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
 	--decrement all cooldowns by one
-	if(char.active and char.active.cooldown > 0) then
-		char.active.cooldown = char.active.cooldown - 1
-		print("fpcooldown: " .. char.active.cooldown)
+	for i = 1, char.activeNum do
+		if(char.actives[i].cooldown > 0) then
+			char.actives[i].cooldown = char.actives[i].cooldown - 1
+		end
+	end
+	
+	--decrement invisibility if it's on
+	if(char.invisible > 0) then
+		char.invisible = char.invisible - 1
+		if(char.invisible == 10) then
+			printSide("You feel yourself about to become visible again")
+		end
+		if(char.invisible == 0) then
+			printSide("You fade back into view")
+		end
 	end
 
+	--COCAINE??? COCAINE!!!
+	--or "Speedboots" as I guess I'm calling it :(
+	skipEnemyTurn = false
+	if(char.passives.gottagofast) then
+		if(char.passives.speedincrement == 0) then
+			skipEnemyTurn = true
+			char.passives.speedincrement = 3
+		else
+			char.passives.speedincrement = char.passives.speedincrement - 1
+		end
+	end
+	
 	for i = 1, # enemies do
 		if enemies[i] then
 			if not enemies[i].alive then
 				table.remove(enemies, i)
 			else
-				enemies[i]:takeTurn()
+				if(not skipEnemyTurn) then
+					enemies[i]:takeTurn()
+				end
 			end
 		end
 	end
@@ -1033,11 +1095,11 @@ end
 function makeExplosion(x, y, size, friendlyFire)
 	-- Hit environment
 	for i=math.ceil(x-size/2),math.ceil(x+size/2) do
-	for j=math.ceil(y-size/2),math.ceil(y+size/2) do
-		if(map[i] and map[i][j]) then
-			map[i][j]:greatForce()
+		for j=math.ceil(y-size/2),math.ceil(y+size/2) do
+			if(map[i] and map[i][j]) then
+				map[i][j]:greatForce()
+			end
 		end
-	end
 	end
 	
 	--initialize dat screenshake
@@ -1162,16 +1224,16 @@ function iterateExplosion()
 				if(explosion["falcon"]) then
 					--print("direction.x: " .. char.active.direction.x .. " and direction.y: " .. char.active.direction.y)
 					--basically, "shorten" radius if it is directly in front of the player's pawnch.
-					if(fpdirection.y == -1 and not (angle < 3 / 2 * math.pi + 0.2 and angle > 3 / 2 * math.pi - 0.2 )) then
+					if(explosion.direction.y == -1 and not (angle < 3 / 2 * math.pi + 0.2 and angle > 3 / 2 * math.pi - 0.2 )) then
 						radius = 1.5
 					end
-					if(fpdirection.y == 1 and not (angle < 1 / 2 * math.pi + 0.2 and angle > 1 / 2 * math.pi - 0.2 )) then
+					if(explosion.direction.y == 1 and not (angle < 1 / 2 * math.pi + 0.2 and angle > 1 / 2 * math.pi - 0.2 )) then
 						radius = 1.5
 					end
-					if(fpdirection.x == -1 and not (angle < math.pi + 0.2 and angle > math.pi - 0.2 )) then
+					if(explosion.direction.x == -1 and not (angle < math.pi + 0.2 and angle > math.pi - 0.2 )) then
 						radius = 1.5
 					end
-					if(fpdirection.x == 1 and not (angle < 0.2 or angle > 2 * math.pi - 0.2 )) then
+					if(explosion.direction.x == 1 and not (angle < 0.2 or angle > 2 * math.pi - 0.2 )) then
 						radius = 1.5
 					end
 				end
