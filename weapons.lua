@@ -213,7 +213,6 @@ function hands:draw()
 end
 
 function hands:update()
-<<<<<<< HEAD
 end
 
 --initiate FALCOOOONNEEE....   PAWWWWWWNNNCH!
@@ -225,6 +224,4 @@ function FalconPunch:useSkill()
 	makeExplosion(char.x, char.y, 5, false)
 	char:forceMarch(char.x + self.direction.x, char.y + self.direction.y)
 	self.cooldown = 10
-=======
->>>>>>> 9d5b8dceb2d3767c1a5053b00855b9b02f8d1519
 end
