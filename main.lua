@@ -76,16 +76,16 @@ dofile("tiles.lua")
 -- Initialize everything that has to do with weaponry
 dofile("weapons.lua")
 
+-- Initialize main character and shit
+-- Side note: right now, with sizing and everything, it's looking like strength
+-- and such values will max at 180
+dofile("character.lua")
+
 -- Initialize everything Enemy
 dofile("enemies.lua")
 
 -- Initialize everything that has to do with objects
 dofile("objects.lua")
-
--- Initialize main character and shit
--- Side note: right now, with sizing and everything, it's looking like strength
--- and such values will max at 180
-dofile("character.lua")
 
 function initLevel()
 	if level == 1 then -- Beginner level. we need specific rooms
@@ -104,6 +104,10 @@ function initLevel()
 		MAPWIDTH = 48
 		MAPHEIGHT = 48
 		ROOMNUM = 1
+		possiblePassives = {Pistol}
+		possibleActives = {FZeroSuit}
+		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
+		Boss = Skeleton
 		viewed_rooms = {}
 		makeMap(leveltype)
 	elseif level == 3 then
@@ -689,6 +693,7 @@ function updateGame()
 	
 	--hey, while we're here, let's move enemies that need to be moved.
 	for i=1,#enemies do
+		enemies[i]:update()
 		if(enemies[i].forcedMarch) then
 			newEnemyX, newEnemyY = enemies[i].x, enemies[i].y
 		
@@ -1039,7 +1044,7 @@ function makeExplosion(x, y, size, friendlyFire)
 	
 	-- Hit enemies
 	for i = 1, # enemies do
-		if enemies[i] then
+		if enemies[i] and enemies[i].alive then
 			if(enemies[i].x > x-size/2 and enemies[i].x < x+size/2) then
 				if(enemies[i].y > y-size/2 and enemies[i].y < y+size/2) then
 					enemies[i]:hitByExplosion()
@@ -1202,8 +1207,6 @@ function iterateExplosion()
 		--make sure falcon mode is deactivated
 		explosion["falcon"] = false
 	end
-	
-	
 end
 
 --put this in util.lua eventually I guess

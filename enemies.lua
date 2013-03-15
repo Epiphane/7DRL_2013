@@ -13,6 +13,9 @@ end
 function Enemy:draw()
 	if(self.alive and self.room == char.room) then
 		love.graphics.print(self.icon, (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
+		if(self.weapon) then
+			self.weapon:draw()
+		end
 	end
 end
 -- end draw()
@@ -44,17 +47,18 @@ function Enemy:moveTowardsCharacter(dir_influence)
 	if not self.possiblePath then return end
 	
 	if(dir_influence) then -- Directional influence if you want to be offset from the character
-		goal = {x=dir_influence.x + char.prev_x, y=dir.influence.y + char.prev_y}
+		goal = {x=dir_influence.x + char.x, y=dir_influence.y + char.y}
 	else -- OR just chase the char
 		goal = {x=char.prev_x, y=char.prev_y}
 	end
 	
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
-	diff = math.abs(char.prev_x - self.x) + math.abs(char.prev_y - self.y)
+	diff = math.abs(goal.x - self.x) + math.abs(goal.y - self.y)
+	
 	if(diff_char == 1) then
 		return
-	elseif(diff == 1) then
-		self:checkAndMove(char.prev_x, char.prev_y)
+	elseif(diff <= 1) then
+		self:checkAndMove(goal.x, goal.y)
 		return 
 	end
 	tileList = {[self.x]={[self.y]={x=self.x, y=self.y, open=true, f=diff, g=0, parent=false}}} -- Initialize with current pos
@@ -105,7 +109,10 @@ function Enemy:moveTowardsCharacter(dir_influence)
 	end
 end
 
-function Enemy:checkAndMove(x, y)		
+function Enemy:checkAndMove(x, y)	
+	if(map[x] == nil or map[x][y] == nil or map[x][y].blocker) then --[[chill]]-- 
+		return
+	end
 	local enemy_in_space = false
 	if(char.x == x and char.y == y) then enemy_in_space = true end
 	for i=1,#enemies do
@@ -123,19 +130,16 @@ function Enemy:checkAndMove(x, y)
 		self.room = k
 	end
 	
-	if(map[x] == nil or map[x][y]	== nil) then --[[chill]]-- 
-	else
-		tile = map[x][y]
-	end
+	tile = map[x][y]
 	
 	tile:checkTrap(self)
 end
 
 -- Adding stuff to open list
-function addList(xo, yo)
+function addList(xo, yo) -- global goal
 	if(map[current_x+xo] and map[current_x+xo][current_y+yo] and not map[current_x+xo][current_y+yo].blocker) then
 		if(not tileList[current_x+xo]) then tileList[current_x+xo] = {} end
-		diff = math.abs(char.x - (current_x+xo)) + math.abs(char.y - (current_y+yo))
+		diff = math.abs(goal.x - (current_x+xo)) + math.abs(goal.y - (current_y+yo))
 		if(not tileList[current_x+xo][current_y+yo]) then
 			tileList[current_x+xo][current_y+yo] = {x=current_x+xo, y=current_y+yo, open=true, f=diff+current_min.g+1, g=current_min.g+1, parent=current_min}
 		else
@@ -144,6 +148,9 @@ function addList(xo, yo)
 			end
 		end
 	end
+end
+
+function Enemy:update()
 end
 
 Barrel = Enemy:new{name="Barrel", icon="O", health=1}
@@ -160,6 +167,12 @@ function Barrel:getHit(dmg)
 		self.icon = "3"
 		printSide("Gas gushes out of the side of the barrel! Sparks fly!")
 	end
+end
+
+function Barrel:hitByExplosion()
+	char:gainAwesome(15)
+	self:die()
+	makeExplosion(self.x, self.y, 5, true)
 end
 
 function Barrel:takeTurn()
@@ -281,26 +294,32 @@ end
 -- o | o | o
 
 function Skeleton:takeTurn()
-	if(math.random(3) ~= 3) then return end
+	if(math.random(6) == 5) then return end
 	d_i = {x=0, y=0}
 	if(self.x > char.x) then d_i.x = 3
 	elseif(self.x < char.x) then d_i.x = -3 end
 	if(self.y > char.y) then d_i.y = 3
 	elseif(self.y < char.y) then d_i.y = -3 end
-	self:moveTowardsCharacter()
+	self:moveTowardsCharacter(d_i)
 	
-	if(math.abs(char.x - self.x) == math.abs(char.y - self.y) and math.abs(char.y - self.y) <= 3) then
-		self.weapon.shoot_nonChar({x=d_i.x/3, y=d_i.y/3}, self)
+	local dx = math.abs(char.x- self.x)
+	local dy = math.abs(char.y- self.y)
+	local m = 0
+	if(math.random(6) >= 3 and dx <= 3 and dy <= 3) then
+		self.weapon:shoot_nonChar({x=d_i.x/-3, y=d_i.y/-3}, self)
 		m = math.random(3)
-		if(m == 1) then
-			printSide("The Skeleton chucks a pelvis at you.")
-		elseif(m == 2) then
-			printSide("The Skeleton chucks a humorous bone at you. HA.")
-		elseif(m == 3) then
-			printSide("The Skeleton chucks a skull at you.")
-		end
-		return
 	end
+	if(m == 1) then
+		printSide("The Skeleton chucks a pelvis at you.")
+	elseif(m == 2) then
+		printSide("The Skeleton chucks a humorous bone at you. HA.")
+	elseif(m == 3) then
+		printSide("The Skeleton chucks a skull at you.")
+	end
+end
+
+function Skeleton:update()
+	self.weapon:update()
 end
 
 function Enemy:forceMarch(newX, newY)
