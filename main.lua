@@ -97,14 +97,17 @@ function initLevel()
 		possibleEnemies = {{{enemy=Rat, num=3}}}
 		possiblePassives = {Pistol}
 		possibleActives = {FZeroSuit}
-		Boss = Skeleton
-		--Boss = GiantRat
+		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
 		leveltype = "rooms"
 		MAPWIDTH = 48
 		MAPHEIGHT = 48
 		ROOMNUM = 1
+		possiblePassives = {Pistol}
+		possibleActives = {FZeroSuit}
+		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
+		Boss = Skeleton
 		viewed_rooms = {}
 		makeMap(leveltype)
 	elseif level == 3 then
