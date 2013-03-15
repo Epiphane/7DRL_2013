@@ -32,6 +32,9 @@ end
 
 function Enemy:die()
 	self.alive = false
+	if self.boss then
+		map[self.x][self.y] = Staircase:new{room={[999]=true}}
+	end
 end
 
 function Enemy:hitByExplosion()
@@ -244,14 +247,6 @@ function GiantRat:new(o)
 	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
 	self.__index = self		-- Define o as a Barrel
 	return o				-- Return Barrel
-end
-
-function GiantRat:die()
-	self.alive = false
-	char:gainAwesome(15)
-	if self.boss then
-		map[self.x][self.y] = Staircase:new{room={[999]=true}}
-	end
 end
 
 function GiantRat:takeTurn()
