@@ -30,7 +30,7 @@ explosion = {x=5, y=5, size=5, friendlyFire = false}
 
 gameState = 0
 
---keeps track of keys pressed during suspended-mode
+--keeps track of keys pressed during stackPause-mode
 susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 
 function love.load()
@@ -751,7 +751,7 @@ leftpress = REAL_BIG_NUMBER
 uppress = REAL_BIG_NUMBER
 downpress = REAL_BIG_NUMBER
 
-suspended = false
+stackPause = 0
 function love.keypressed(key, unicode)
 	if(gameState == 0 or gameState == 2) then
 		keyPressWelcome(key, unicode)
@@ -771,7 +771,7 @@ end
 function keyPressGame(key, unicode)
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
-	if(not suspended) then
+	if stackPause==0 and not char.inAPit then
 		displayBig = false
 		if(key == "right") then
 			checkThenMove(char["x"] + 1, char["y"])
@@ -812,7 +812,7 @@ function keyPressGame(key, unicode)
 		--press P for some PAWWWNCH
 		if(key == "p" and char.active) then
 			if(char.active.cooldown == 0) then
-				suspended = true
+				stackPause = stackPause + 1
 				--this flag indicates we're gonna wait for the user to input a direction
 				explosion["falcon"] = true
 				
@@ -852,7 +852,7 @@ function keyPressGame(key, unicode)
 						
 						--escape from the forloop!
 						char.inAPit = false
-						suspended = false
+						stackPause = stackPause - 1
 						susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 						return
 					end
@@ -887,7 +887,7 @@ function love.mousepressed(x, y, button)
 end
 
 function love.mousereleased(x, y, button)
-	print(suspended)
+	print(stackPause)
 end
 
 function love.quit()
@@ -913,7 +913,8 @@ function checkThenMove(x, y)
 	end
 	
 	if tile.blocker then
-	elseif(enemy_in_space) then -- checks for monsters, etc. go here
+	elseif(enemy_in_space) then -- checks for m
+	onsters, etc. go here
 		
 	else
 		-- In case we're entering a new room soon
@@ -1104,7 +1105,7 @@ function makeExplosion(x, y, size, friendlyFire)
 	explosion["size"] = size
 	explosion["friendlyFire"] = friendlyFire
 	
-	suspended = true --suspend user until explosion is over
+	stackPause = stackPause + 1 --suspend user until explosion is over
 	exploding = true -- duh
 
 	starttime = love.timer.getMicroTime()
@@ -1119,7 +1120,7 @@ function iterateExplosion()
 	--[[if(endsplosion < currtime) then
 		print("done exploding!")
 		exploding = false
-		suspended = false
+		stackPause = false
 	end]]--
 
 	--draw a bunch of yellow/red/orange rectangles, centered at x, y
@@ -1192,7 +1193,7 @@ function iterateExplosion()
 	--we reached the end of the size array! reset everything
 	if(explosion["size"] == 0) then
 		exploding = false
-		suspended = false
+		stackPause = stackPause - 1
 		sizeindex = 1
 		
 		--wipe explosion tiles

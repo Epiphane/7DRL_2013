@@ -238,9 +238,6 @@ function Pit:checkTrap(victim)
 			char:loseAwesome(10)
 			
 			char.inAPit = true
-			
-			--suspend user input and wait for the user to hit "Enter"
-			suspended = true
 		end
 	else
 		printSide("The " .. string.lower(victim.name) .. " falls screaming into the abyss!")

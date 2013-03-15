@@ -55,7 +55,7 @@ function bullet:shoot(direction)
 	
 	--now, animate the bullet shootin.
 	--suspend user input
-	suspended = true
+	stackPause = stackPause + 1
 	
 	--move bullet once so it's not on top of our character
 	self.x = self.x + self.dx
@@ -70,7 +70,7 @@ function bullet:shoot(direction)
 	--are we shooting at a wall?
 	if(map[self.x][self.y].blocker) then
 		self.over = true
-		suspended = false
+		stackPause = stackPause - 1
 	end
 end
 --end shoot()
@@ -84,7 +84,7 @@ function bullet:shoot_nonChar(direction, origin)
 	
 	--now, animate the bullet shootin.
 	--suspend user input
-	suspended = true
+	stackPause = stackPause + 1
 	
 	--move bullet once so it's not on top of our character
 	self.x = self.x + self.dx
@@ -99,38 +99,42 @@ function bullet:shoot_nonChar(direction, origin)
 	--are we shooting at a wall?
 	if(map[self.x][self.y].blocker) then
 		self.over = true
-		suspended = false
+		stackPause = stackPause - 1
+	end
+end
+
+function bullet:die()
+	if not self.over then
+		self.over = true
+		stackPause = stackPause - 1
 	end
 end
 
 function bullet:draw()
-	if(not self.over) then
+	if(not self.over) then -- Dont wanna unpause three times!
 		love.graphics.print("!", (self.x - offset["x"] - 1)*12, (self.y - offset["y"] - 1)*12 + screenshake)
 	end
 end
 
 function bullet:update()
 	if(currtime > self.nextmove and not self.over)	then
-		
 		--did we hit something?
 		if(not map[self.x + self.dx] or not map[self.x + self.dx][self.y + self.dy] or map[self.x + self.dx][self.y + self.dy].blocker) then
-			self.over = true
-			suspended = false
+			self:die()
 		end
 		
 		if not self.target then -- Hitting enemies
 			for i = 1, # enemies do
 				if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
 					enemies[i]:getHit(25)
-					self.over = true
-					suspended = false
+					self:die()
 				end
 			end
 		else
 			if(self.x == self.target.x and self.y == self.target.y) then
 				self.target:getHit(25)
 				self.over = true
-				suspended = false
+				stackPause = stackPause - 1
 			end
 		end
 		
@@ -141,17 +145,13 @@ function bullet:update()
 		self.nextmove = currtime + .1
 		
 		if(self.distance >= self.range) then
-			self.over = true
-			suspended = false
-			self.distance = 9999
+			self:die()
 		end
 	end
 	
 	--make sure bullet stops if it reaches its maximum range.
 	if(self.distance >= self.range) then
-		self.over = true
-		suspended = false
-		bullet_distance = 9999
+		self:die()
 	end
 end
 
@@ -215,5 +215,5 @@ function FalconPunch:useSkill()
 	printSide("PAAAWWWWWWWWWWNCH!!!!!")
 	makeExplosion(char.x, char.y, 5, false)
 	char:forceMarch(char.x + self.direction.x, char.y + self.direction.y)
-	fpcooldown = 10
+	self.cooldown = 10
 end
