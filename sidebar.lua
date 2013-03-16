@@ -16,11 +16,11 @@ function drawSidebar(start_x)
 	love.graphics.setColor( 255, 255, 255 )
 	
 	-- Draw strength and corresponding health
-	love.graphics.print("Awesome Levels:", 100, 600)
+	love.graphics.print("Awesome Levels:", 15, 735)
 	
 	-- And the health bars
 	love.graphics.setColor( 129, 129, 129 )
-	love.graphics.rectangle("fill", start_x+10, 30, char['awesome'], 10)
+	love.graphics.rectangle("fill", 10, 750, char['awesome']*2, 25)
 	
 	-- Draw important message
 	for i=1,#sidebarlog do
@@ -44,9 +44,6 @@ function drawSidebar(start_x)
 	end
 	
 	love.graphics.setColor( 255, 255, 255)
-	love.graphics.print("(Z)", 0, 680)
-	love.graphics.print("(X)", 200, 680)
-	love.graphics.print("(C)", 400, 680)
 	for i = 1, #(char.actives) do
 		love.graphics.print(char.actives[i].name, 20 + 200 * (i-1), 700)
 		if(char.actives[i].cooldown > 0) then
@@ -55,13 +52,13 @@ function drawSidebar(start_x)
 		end
 	end
 	if(char.activeNum > 0) then
-		love.graphics.print("Z:", 100 + 200 * (0), 488)
+		love.graphics.print("(Z)", 0, 680)
 	end
 	if(char.activeNum > 1) then
-		love.graphics.print("Z:", 100 + 200 * (1), 488)
+		love.graphics.print("(X)", 200, 680)
 	end
 	if(char.activeNum > 2) then
-		love.graphics.print("Z:", 100 + 200 * (2), 488)
+		love.graphics.print("(C)", 400, 680)
 	end
 end
 
