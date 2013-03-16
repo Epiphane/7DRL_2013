@@ -15,7 +15,7 @@ function drawSidebar(start_x)
 	love.graphics.setColor( 255, 255, 255 )
 	
 	-- Draw strength and corresponding health
-	love.graphics.print("Awesome", start_x+10, 10)
+	love.graphics.print("Awesome Levels:", 100, 600)
 	
 	-- And the health bars
 	love.graphics.setColor( 129, 129, 129 )
@@ -49,6 +49,15 @@ function drawSidebar(start_x)
 			love.graphics.setColor(200,200,200)
 			love.graphics.print("[" .. char.actives[i].cooldown .. "]", 100 + 200 * (i - 1), 512)
 		end
+	end
+	if(char.activeNum > 0) then
+		love.graphics.print("Z:", 100 + 200 * (0), 488)
+	end
+	if(char.activeNum > 1) then
+		love.graphics.print("Z:", 100 + 200 * (1), 488)
+	end
+	if(char.activeNum > 2) then
+		love.graphics.print("Z:", 100 + 200 * (2), 488)
 	end
 end
 
