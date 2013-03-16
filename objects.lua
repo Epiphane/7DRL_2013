@@ -25,7 +25,7 @@ end
 -- end draw()
 
 -- ******************** BEGIN PISTOL ***************************
-Pistol = Object:new{name="Pistol", icon=";"}
+Pistol = Object:new{name="Pistol", icon="p"}
 
 -- Pistol constructor seals a door
 function Pistol:new(o)
@@ -42,6 +42,44 @@ function Pistol:interact()
 	self.alive = false
 end
 -- ******************** END PISTOL ***************************
+
+-- ******************** BEGIN LIGHTSABER ***************************
+Lightsaber = Object:new{name="Lightsaber", icon="!"}
+
+-- Pistol constructor seals a door
+function Lightsaber:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
+-- end constructor
+
+function Lightsaber:interact()
+	char.weapon = lightsaber
+	printSide("You pick up the Lightsaber")
+	self.alive = false
+end
+-- ******************** END LIGHTSABER ***************************
+
+-- ******************** BEGIN SWORD OF DEMACIA ***************************
+SwordOfDemacia = Object:new{name="Sword of Demacia", icon="t"}
+
+-- Pistol constructor seals a door
+function SwordOfDemacia:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
+-- end constructor
+
+function SwordOfDemacia:interact()
+	char.weapon = swordOfDemacia
+	printSide("You pick up the Sword of Demacia")
+	self.alive = false
+end
+-- ******************** END SWORD OF DEMACIA ***************************
 
 -- *********************** GENERIC ACTIVE *************************
 ActiveItem = Object:new{name="No Name", icon=" ", cooldown=10}

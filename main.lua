@@ -74,6 +74,9 @@ dofile("sidebar.lua")
 -- Initialize everything Tile
 dofile("tiles.lua")
 
+-- Initialize everything that has to do with objects
+dofile("objects.lua")
+
 -- Initialize everything that has to do with weaponry
 dofile("weapons.lua")
 
@@ -84,9 +87,6 @@ dofile("character.lua")
 
 -- Initialize everything Enemy
 dofile("enemies.lua")
-
--- Initialize everything that has to do with objects
-dofile("objects.lua")
 
 function initLevel()
 	enemies = {}
@@ -100,7 +100,7 @@ function initLevel()
 		possibleEnemies = {{{enemy=Rat, num=3}}, {{enemy=Rat, num=2}}}
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
-		possiblePassives = {SpeedBoots}
+		possiblePassives = {SwordOfDemacia}
 		possibleActives = {BagOMines}
 		Boss = GiantRat
 		makeMap(leveltype)
