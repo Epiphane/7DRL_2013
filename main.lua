@@ -98,7 +98,7 @@ function initLevel()
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
 		possiblePassives = {SpeedBoots}
-		possibleActives = {CloakAndDagger}
+		possibleActives = {Whip}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -568,6 +568,11 @@ function drawGame()
 		enemies[i]:draw()
 	end
 	
+	-- draw whip
+	if(waitingOn == "whip") then
+		WhipWeapon:draw()
+	end
+	
 	--drawsplosion if we're sploding
 	if(exploding) then
 		iterateExplosion()
@@ -649,6 +654,10 @@ function updateGame()
 	end
 
 	char.weapon:update()
+	
+	if(waitingOn == "whip") then
+		WhipWeapon:update()
+	end
 	
 	--are we in a forced march?
 	if(char['forcedMarch']) then
@@ -756,7 +765,7 @@ function keyPressGame(key, unicode)
 
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
-	if stackPause==0 and not char.inAPit then
+	if stackPause==0 then
 		displayBig = false
 		if(key == "right") then
 			checkThenMove(char["x"] + 1, char["y"])
@@ -835,7 +844,7 @@ function keyPressGame(key, unicode)
 		end
 	else	
 		--wait for directional input here
-		if(explosion["falcon"]) then --or a number of other flags
+		if(waitingOn == "falcon") then --or a number of other flags
 			if(key == "right") then
 				char:falconPunch(2,0)
 			elseif(key == "left") then
@@ -845,35 +854,51 @@ function keyPressGame(key, unicode)
 			elseif(key == "down") then
 				char:falconPunch(0,2)
 			end
-		end
-	
-		--if the user hit "enter" and he or she is in a pit we should let him (or her) out
-		if(char.inAPit and key == "return") then
-			searchDistance = 1
-			escaped = false
-			while(not escaped) do 
-				px, py = 0, 0
-				--run a search using increasingly large squares.
-				for px = -searchDistance, searchDistance do
-					for py = -searchDistance, searchDistance do
-						--print("Are YOU the problem? px = " .. px .. " py = " .. py .. " searchD is " .. searchDistance)
-						myTile = checkTile(px + char.x, py + char.y)
-						if(myTile.tile == 3) then
-							--we did it!
-							escaped = true
-							checkThenMove(px + char.x, py + char.y)
-							printSide("You crawl out of the pit.")
-							
-							--escape from the forloop!
-							char.inAPit = false
-							stackPause = stackPause - 1
-							susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
-							return
+			if(string.sub(key,0,2) == "kp") then
+				char:falconPunch(string.sub(key,3))
+				doTurn()
+			end
+		elseif(waitingOn == "whip") then --or a number of other flags
+			if(key == "right") then
+				char:throwWhip(1,0)
+			elseif(key == "left") then
+				char:throwWhip(-1,0)
+			elseif(key == "up") then
+				char:throwWhip(0,-1)
+			elseif(key == "down") then
+				char:throwWhip(0,1)
+			end
+			if(string.sub(key,0,2) == "kp") then
+				char:throwWhip(string.sub(key,3))
+				doTurn()
+			end
+		elseif(waitingOn == "pit") then
+			if(key == "return") then
+				searchDistance = 1
+				escaped = false
+				while(not escaped) do 
+					px, py = 0, 0
+					--run a search using increasingly large squares.
+					for px = -searchDistance, searchDistance do
+						for py = -searchDistance, searchDistance do
+							--print("Are YOU the problem? px = " .. px .. " py = " .. py .. " searchD is " .. searchDistance)
+							myTile = checkTile(px + char.x, py + char.y)
+							if(myTile.tile == 3) then
+								--we did it!
+								escaped = true
+								checkThenMove(px + char.x, py + char.y)
+								printSide("You crawl out of the pit.")
+								
+								--escape from the forloop!
+								char.inAPit = false
+								stackPause = stackPause - 1
+								return
+							end
+							--didn't find a valid square to move to.  Increment search distance.
 						end
-						--didn't find a valid square to move to.  Increment search distance.
 					end
+					searchDistance = searchDistance + 1
 				end
-				searchDistance = searchDistance + 1
 			end
 		end
 	end

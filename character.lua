@@ -64,6 +64,13 @@ function char:addActive(name)
 		self.actives[self.activeNum].name = "Cloak And Dagger"
 		self.actives[self.activeNum].maxcooldown = 10
 		self.actives[self.activeNum].cooldown = 0
+	elseif(name == "Whip") then
+		self.activeNum = self.activeNum + 1
+		print("addin dat whip")
+		self.actives[self.activeNum] = {}
+		self.actives[self.activeNum].name = "Whip"
+		self.actives[self.activeNum].maxcooldown = 10
+		self.actives[self.activeNum].cooldown = 0
 	end
 end
 
@@ -71,6 +78,7 @@ function char:doActive(name)
 	print("we got into doactive at least")
 	if(name == "Falcon Punch") then
 		stackPause = stackPause + 1
+		waitingOn = "falcon"
 		--this flag indicates we're gonna wait for the user to input a direction
 		explosion["falcon"] = true
 		
@@ -78,6 +86,12 @@ function char:doActive(name)
 	elseif(name == "Cloak And Dagger") then
 		printSide("You fade from view! Your next attack will critically strike.")
 		char.invisible = 50
+	elseif(name == "Whip") then
+		stackPause = stackPause + 1
+		waitingOn = "whip"
+		
+		print("doin dat whip")
+		printSide("You ready your whip. (choose a direction)")
 	end
 end
 
@@ -85,11 +99,74 @@ function char:falconPunch(dx, dy)
 	printSide("PAWWWNNCHH!!!")
 	makeExplosion(self.x, self.y, 5, false)
 	explosion["direction"] = {}
-	explosion.direction.x = dx
-	explosion.direction.y = dy
+	-- If they used numpad
+	if(dx == "7") then
+		explosion.direction.x = -1
+		explosion.direction.y = -1
+	elseif(dx == "8") then
+		explosion.direction.x = 0
+		explosion.direction.y = -1
+	elseif(dx == "9") then
+		explosion.direction.x = 1
+		explosion.direction.y = -1
+	elseif(dx == "4") then
+		explosion.direction.x = -1
+		explosion.direction.y = 0
+	elseif(dx == "6") then
+		explosion.direction.x = 1
+		explosion.direction.y = 0
+	elseif(dx == "1") then
+		explosion.direction.x = -1
+		explosion.direction.y = 1
+	elseif(dx == "2") then
+		explosion.direction.x = 0
+		explosion.direction.y = 1
+	elseif(dx == "3") then
+		explosion.direction.x = 1
+		explosion.direction.y = 1
+	else
+		explosion.direction.x = dx
+		explosion.direction.y = dy
+	end
 	self:forceMarch(char.x + dx*2, char.y + dy*2)
 	
 	stackPause = stackPause - 1
 end
 
+function char:throwWhip(dx, dy)
+	printSide("Swhoop!")
 
+	WhipWeapon.direction = {}
+	-- If they used numpad
+	if(dx == "7") then
+		WhipWeapon.direction.x = -1
+		WhipWeapon.direction.y = -1
+	elseif(dx == "8") then
+		WhipWeapon.direction.x = 0
+		WhipWeapon.direction.y = -1
+	elseif(dx == "9") then
+		WhipWeapon.direction.x = 1
+		WhipWeapon.direction.y = -1
+	elseif(dx == "4") then
+		WhipWeapon.direction.x = -1
+		WhipWeapon.direction.y = 0
+	elseif(dx == "6") then
+		WhipWeapon.direction.x = 1
+		WhipWeapon.direction.y = 0
+	elseif(dx == "1") then
+		WhipWeapon.direction.x = -1
+		WhipWeapon.direction.y = 1
+	elseif(dx == "2") then
+		WhipWeapon.direction.x = 0
+		WhipWeapon.direction.y = 1
+	elseif(dx == "3") then
+		WhipWeapon.direction.x = 1
+		WhipWeapon.direction.y = 1
+	else
+		WhipWeapon.direction.x = dx
+		WhipWeapon.direction.y = dy
+	end
+	WhipWeapon:shoot(WhipWeapon.direction.x, WhipWeapon.direction.y)
+	
+	stackPause = stackPause - 1
+end
