@@ -14,11 +14,6 @@ end
 --Just a little thing I maaaade.
 --Direction is:
 
--- 7   8   9
---
--- 4  you  6
--- 
--- 1   2   3
 
 --Fire bullets with the numpad, scoob.
 
@@ -26,34 +21,7 @@ function bullet:shoot(direction)
 	self.x = char.x
 	self.y = char.y
 	
-	self.dx = 0
-	self.dy = 0
-	
-	if(direction == "7") then
-		self.dx = -1
-		self.dy = -1
-	elseif(direction == "8") then
-		self.dx = 0
-		self.dy = -1
-	elseif(direction == "9") then
-		self.dx = 1
-		self.dy = -1
-	elseif(direction == "4") then
-		self.dx = -1
-		self.dy = 0
-	elseif(direction == "6") then
-		self.dx = 1
-		self.dy = 0
-	elseif(direction == "1") then
-		self.dx = -1
-		self.dy = 1
-	elseif(direction == "2") then
-		self.dx = 0
-		self.dy = 1
-	elseif(direction == "3") then
-		self.dx = 1
-		self.dy = 1
-	end
+	self.dx, self.dy = getDirectionByKey(direction)
 	
 	--now, animate the bullet shootin.
 	--suspend user input
@@ -162,34 +130,7 @@ function hands:shoot(direction)
 	self.x = char.x
 	self.y = char.y
 	
-	self.dx = 0
-	self.dy = 0
-	
-	if(direction == "7") then
-		self.dx = -1
-		self.dy = -1
-	elseif(direction == "8") then
-		self.dx = 0
-		self.dy = -1
-	elseif(direction == "9") then
-		self.dx = 1
-		self.dy = -1
-	elseif(direction == "4") then
-		self.dx = -1
-		self.dy = 0
-	elseif(direction == "6") then
-		self.dx = 1
-		self.dy = 0
-	elseif(direction == "1") then
-		self.dx = -1
-		self.dy = 1
-	elseif(direction == "2") then
-		self.dx = 0
-		self.dy = 1
-	elseif(direction == "3") then
-		self.dx = 1
-		self.dy = 1
-	end
+	self.dx, self.dy = getDirectionByKey(direction)
 	
 	for i = 1, # enemies do
 		if(self.x + self.dx == enemies[i]["x"] and self.y + self.dy == enemies[i]["y"]) then
@@ -336,3 +277,24 @@ function WhipWeapon:update()
 	end
 end
 -- ********************************** END WHIP ****************************
+
+-- ****************************** BEGIN SPARTAN BOOTS
+SpartanBootsWeapon = {}
+function SpartanBootsWeapon:shoot(dx, dy)
+	self.x = char.x
+	self.y = char.y
+	
+	self.dx, self.dy = getDirectionByKey(dx, dy)
+	
+	for i = 1, # enemies do
+		if(self.x + self.dx == enemies[i]["x"] and self.y + self.dy == enemies[i]["y"]) then
+			enemies[i]:getHit(15)
+			enemies[i]:forceMarch(self.x+self.dx*4,self.y+self.dy*4)
+			printSide("SPARTAAAAA!!!!!!!!")
+			return
+		end
+	end
+	
+	printSide("You kick yourself over like Charlie Brown")
+end
+-- *************************** END SPARTAN BOOTS
