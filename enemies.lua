@@ -228,6 +228,19 @@ function Grenade:getThrown(dx, dy)
 	self.icon = "3"
 end
 
+function Grenade:takeTurn()
+	if self.icon == "3" then
+		self.icon = "2"
+	elseif self.icon == "2" then
+		self.icon = "1"
+	elseif self.icon == "1" then
+		self.icon = "0"
+	elseif self.icon == "0" then
+		makeExplosion(self.x, self.y, 5, true)
+		self:die()
+	end
+end
+
 Rat = Enemy:new{name="Rat", icon="r", health=10}
 function Rat:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
