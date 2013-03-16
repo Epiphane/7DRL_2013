@@ -43,11 +43,11 @@ function Pistol:interact()
 end
 -- ******************** END PISTOL ***************************
 
--- ******************** BEGIN FALCON PUNCH ***************************
-FZeroSuit = Object:new{name="F Zero Suit", icon=">", cooldown=10}
+-- *********************** GENERIC ACTIVE *************************
+ActiveItem = Object:new{name="No Name", icon=" ", cooldown=10}
 
 -- Suit constructor seals a door
-function FZeroSuit:new(o)
+function ActiveItem:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
 	self.__index = self		-- Define o as a Tile
@@ -55,50 +55,28 @@ function FZeroSuit:new(o)
 end
 -- end constructor
 
-function FZeroSuit:interact()
-	char:addActive("Falcon Punch")
-	printSide("You pick up the F-Zero Suit")
+function ActiveItem:interact()
+	char:addActive(self.name)
+	printSide("You pick up the "..self.name)
 	self.alive = false
 end
+-- *********************** END GENERIC ACTIVE *************************
+
+-- ******************** BEGIN FALCON PUNCH ***************************
+FZeroSuit = ActiveItem:new{name="F Zero Suit", icon=">", cooldown=10}
 -- ******************** END FALCON PUNCH ***************************
 
 -- ******************** BEGIN CLOAK AND DAGGER *********************
-CloakAndDagger = Object:new{name="Cloak and Dagger", icon=")", cooldown=10}
-
-function CloakAndDagger:new(o)
-	o = o or {}
-	setmetatable(o, self)	-- Inherit methods and stuff from Tile
-	self.__index = self		-- Define o as a Tile
-	return o
-end
-
-function CloakAndDagger:interact()
-	char:addActive("Cloak And Dagger")
-	printSide("You pick up the Cloak and Dagger")
-	self.alive = false
-end
-
-
+CloakAndDagger = ActiveItem:new{name="Cloak and Dagger", icon=")", cooldown=10}
 -- ******************** END CLOAK AND DAGGER   *********************
 
 -- ******************** BEGIN WHIP *********************
-Whip = Object:new{name="Whip", icon="j", cooldown=10}
-
-function Whip:new(o)
-	o = o or {}
-	setmetatable(o, self)	-- Inherit methods and stuff from Object
-	self.__index = self		-- Define o as a Whip
-	return o
-end
-
-function Whip:interact()
-	char:addActive("Whip")
-	printSide("You pick up the Whip")
-	self.alive = false
-end
-
-
+Whip = ActiveItem:new{name="Whip", icon="j", cooldown=10}
 -- ******************** END WHIP   *********************
+
+-- ******************** BEGIN SPARTAN BOOTS *********************
+SpartanBoots = ActiveItem:new{name="Spartan Boots", icon="L", cooldown=10}
+-- ******************** END SPARTAN BOOTS   *********************
 
 -- ******************** BEGIN SPEED BOOTS      *********************
 --speed boots!

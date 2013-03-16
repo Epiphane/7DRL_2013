@@ -98,7 +98,7 @@ function initLevel()
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
 		possiblePassives = {SpeedBoots}
-		possibleActives = {Whip}
+		possibleActives = {SpartanBoots}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -613,7 +613,6 @@ function drawGame()
 end
 
 currtime = 0
---this is for Falcon Punch** (TODO: organize diz betta)
 
 function love.update(dt)
 	if(gameState == 0) then
@@ -871,6 +870,20 @@ function keyPressGame(key, unicode)
 			end
 			if(string.sub(key,0,2) == "kp") then
 				char:throwWhip(string.sub(key,3))
+				doTurn()
+			end
+		elseif(waitingOn == "spartan") then --or a number of other flags
+			if(key == "right") then
+				char:spartanKick(1,0)
+			elseif(key == "left") then
+				char:spartanKick(-1,0)
+			elseif(key == "up") then
+				char:spartanKick(0,-1)
+			elseif(key == "down") then
+				char:spartanKick(0,1)
+			end
+			if(string.sub(key,0,2) == "kp") then
+				char:spartanKick(string.sub(key,3))
 				doTurn()
 			end
 		elseif(waitingOn == "pit") then
@@ -1302,4 +1315,44 @@ function math.sign(x)
    else
      return 0
    end
+end
+
+-- I'm tired of copying all the numpad code
+
+-- 7   8   9
+--
+-- 4  you  6
+-- 
+-- 1   2   3
+
+-- You can also put in dx and dy and it gives them back
+function getDirectionByKey(direction, dy)
+	dx, dy = direction, dy
+	if(direction == "7") then
+		dx = -1
+		dy = -1
+	elseif(direction == "8") then
+		dx = 0
+		dy = -1
+	elseif(direction == "9") then
+		dx = 1
+		dy = -1
+	elseif(direction == "4") then
+		dx = -1
+		dy = 0
+	elseif(direction == "6") then
+		dx = 1
+		dy = 0
+	elseif(direction == "1") then
+		dx = -1
+		dy = 1
+	elseif(direction == "2") then
+		dx = 0
+		dy = 1
+	elseif(direction == "3") then
+		dx = 1
+		dy = 1
+	end
+	
+	return dx, dy
 end
