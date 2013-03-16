@@ -288,13 +288,33 @@ function SpartanBootsWeapon:shoot(dx, dy)
 	
 	for i = 1, # enemies do
 		if(self.x + self.dx == enemies[i]["x"] and self.y + self.dy == enemies[i]["y"]) then
-			enemies[i]:getHit(15)
-			enemies[i]:forceMarch(self.x+self.dx*4,self.y+self.dy*4)
-			printSide("SPARTAAAAA!!!!!!!!")
+			if(enemies[i].health <= 15) then
+				printSide("SPARTAAAAA!!!!!!!! The " .. enemies[i].name .. " is reduced to a sticky puddle.")
+			else
+				enemies[i]:getHit(15)
+				
+				enemies[i]:forceMarch(self.x+self.dx*4,self.y+self.dy*4)
+				printSide("SPARTAAAAA!!!!!!!!")
+			end
 			return
 		end
 	end
 	
-	printSide("You kick yourself over like Charlie Brown")
+	printSide("You kick at the air and fall over like Charlie Brown")
+	char:getHit(10)
 end
 -- *************************** END SPARTAN BOOTS
+
+-- ****************************** BEGIN GRENADESACK
+GrenadeWeapon = {}
+function GrenadeWeapon:shoot(dx, dy)
+	spawnEnemy(char.x, char.y, Grenade)
+	--push grenade
+	for i=1,#enemies do
+		if(enemies[i].name == "Grenade") then
+			enemies[i]:getThrown(dx, dy)
+			break
+		end
+	end
+end
+-- *************************** END GRENADESACK
