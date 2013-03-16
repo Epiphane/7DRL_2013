@@ -225,3 +225,114 @@ function FalconPunch:useSkill()
 	char:forceMarch(char.x + self.direction.x, char.y + self.direction.y)
 	self.cooldown = 10
 end
+
+-- **************************************** BEGIN WHIP ********************
+WhipWeapon = {icon=".", x=5, y=5, dx=0, dy=0, over=true, range=7, distance=0, nextmove=0, pullDist=2, start_x=1, start_y=1}
+function WhipWeapon:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
+function WhipWeapon:shoot(dx, dy)
+	self.x = char.x
+	self.y = char.y
+	
+	self.start_x = char.x
+	self.start_y = char.y
+	
+	self.dx = dx
+	self.dy = dy
+	
+	if(self.dx < 0) then
+		if(self.dy < 0) then
+			self.icon = "\\"
+		elseif(self.dy > 0) then
+			self.icon = "/"
+		else
+			self.icon = "-"
+		end
+	elseif(self.dx == 0) then
+		self.icon = "|"
+	else
+		if(self.dy < 0) then
+			self.icon = "/"
+		elseif(self.dy > 0) then
+			self.icon = "\\"
+		else
+			self.icon = "-"
+		end
+	end
+	
+	--now, animate the WhipWeapon shootin.
+	--suspend user input
+	stackPause = stackPause + 1
+	
+	--move WhipWeapon once so it's not on top of our character
+	self.x = self.x + self.dx
+	self.y = self.y + self.dy
+	
+	self.over = false
+	self.distance = 0
+	self.range = 5
+	
+	self.nextmove = currtime + .08
+	
+	--are we shooting at a wall?
+	if(map[self.x][self.y].blocker) then
+		self.over = true
+		stackPause = stackPause - 1
+	end
+	
+	print("Shwoop starting")
+end
+--end shoot()
+
+function WhipWeapon:die()
+	if not self.over then
+		self.over = true
+		stackPause = stackPause - 1
+		if(waitingOn == "whip") then waitingOn = nil end
+	end
+end
+
+function WhipWeapon:draw()
+	if(not self.over) then -- Dont wanna unpause three times!
+		for i=1,self.distance do
+			love.graphics.print(self.icon, (self.start_x - offset["x"] - 1 + self.dx*i)*12, (self.start_y - offset["y"] - 1 + self.dy*i)*12 + screenshake)
+		end
+	end
+end
+
+function WhipWeapon:update()
+	if(currtime > self.nextmove and not self.over)	then
+		--did we hit something?
+		if(not map[self.x + self.dx] or not map[self.x + self.dx][self.y + self.dy] or map[self.x + self.dx][self.y + self.dy].blocker) then
+			self:die()
+		end
+		
+		for i = 1, # enemies do
+			if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
+				enemies[i]:forceMarch(enemies[i].x + self.dx*-1, enemies[i].y + self.dy*-1)
+				self:die()
+			end	
+		end
+		
+		self.x = self.x + self.dx
+		self.y = self.y + self.dy
+		
+		self.distance = self.distance + 1
+		self.nextmove = currtime + .1
+		
+		if(self.distance >= self.range) then
+			self:die()
+		end
+	end
+	
+	--make sure WhipWeapon stops if it reaches its maximum range.
+	if(self.distance >= self.range) then
+		self:die()
+	end
+end
+-- ********************************** END WHIP ****************************

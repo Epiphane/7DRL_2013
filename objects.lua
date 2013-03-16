@@ -81,6 +81,25 @@ end
 
 -- ******************** END CLOAK AND DAGGER   *********************
 
+-- ******************** BEGIN WHIP *********************
+Whip = Object:new{name="Whip", icon="j", cooldown=10}
+
+function Whip:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Object
+	self.__index = self		-- Define o as a Whip
+	return o
+end
+
+function Whip:interact()
+	char:addActive("Whip")
+	printSide("You pick up the Whip")
+	self.alive = false
+end
+
+
+-- ******************** END WHIP   *********************
+
 -- ******************** BEGIN SPEED BOOTS      *********************
 --speed boots!
 --wanted to call them "Cocaine" but I decided against it :/

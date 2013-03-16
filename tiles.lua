@@ -237,7 +237,7 @@ function Pit:checkTrap(victim)
 			printSide("You fall into a deep, dank pit! (Press Enter to Continue)")
 			char:loseAwesome(10)
 			
-			char.inAPit = true
+			waitingOn = "pit"
 			stackPause = stackPause + 1
 		end
 	else
