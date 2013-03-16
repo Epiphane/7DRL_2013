@@ -255,7 +255,7 @@ function WhipWeapon:update()
 		
 		for i = 1, # enemies do
 			if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
-				enemies[i]:forceMarch(enemies[i].x + self.dx*-1, enemies[i].y + self.dy*-1)
+				enemies[i]:forceMarch(enemies[i].x - self.dx*self.distance/2, enemies[i].y - self.dy*self.distance/2)
 				self:die()
 			end	
 		end
@@ -318,3 +318,10 @@ function GrenadeWeapon:shoot(dx, dy)
 	end
 end
 -- *************************** END GRENADESACK
+
+-- ****************************** BEGIN MINEBAG
+MineDropper = {}
+function MineDropper:shoot()
+	spawnEnemy(char.x, char.y, Mine)
+end
+-- *************************** END MINEBAG

@@ -33,7 +33,7 @@ end
 function Enemy:die()
 	self.alive = false
 	if self.boss then
-		map[self.x][self.y] = Staircase:new{room={[999]=true}}
+		map[doorSealer.x][doorSealer.y] = Staircase:new{room={[999]=true}}
 	end
 end
 
@@ -140,7 +140,7 @@ function Enemy:checkAndMove(x, y)
 	local enemy_in_space = false
 	if(char.x == x and char.y == y) then enemy_in_space = true end
 	for i=1,#enemies do
-		if(enemies[i].x == x and enemies[i].y == y) then
+		if(enemies[i].x == x and enemies[i].y == y and enemies[i].name ~= "Mine") then
 			enemy_in_space = enemies[i]
 			break
 		end
@@ -239,6 +239,32 @@ function Grenade:takeTurn()
 	elseif self.icon == "0" then
 		makeExplosion(self.x, self.y, 5, true)
 		self:die()
+	end
+end
+
+Mine = Enemy:new{name="Mine", icon="X", health=1}
+function Mine:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	return o
+end
+
+function Mine:getHit(dmg)
+	return
+end
+
+function Mine:takeTurn()
+	if(char.x == self.x and char.y == self.y) then
+		makeExplosion(self.x, self.y, 5, true)
+		self:die()
+		return
+	end
+	for i=1,#enemies do
+		if(enemies[i].x == self.x and enemies[i].y == self.y and enemies[i] ~= self) then
+			makeExplosion(self.x, self.y, 5, true)
+			self:die()
+		end
 	end
 end
 
