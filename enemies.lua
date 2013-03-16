@@ -32,6 +32,11 @@ end
 
 function Enemy:die()
 	self.alive = false
+	
+	if( not (self.name == "Barrel" or self.name == "Grenade" or self.name == "Mine")) then
+		printSide("The " .. string.lower(self.name) .. " has been slain!")
+	end
+	
 	if self.boss then
 		map[doorSealer.x][doorSealer.y] = Staircase:new{room={[999]=true}}
 	end
@@ -77,6 +82,11 @@ function Enemy:moveTowardsCharacter(dir_influence)
 	
 	diff_char = math.abs(char.x - self.x) + math.abs(char.y - self.y)
 	diff = math.abs(goal.x - self.x) + math.abs(goal.y - self.y)
+	
+	if(diff_char > 20 and leveltype == "sewers") then
+		--fuck it, too far.
+		return
+	end
 	
 	if(diff_char == 1) then
 		return

@@ -187,7 +187,7 @@ function SpikeTrap:checkTrap(victim)
 	end
 end
 
-CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=0, dir_x=0, dir_y=0, trap = true}
+CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=5, dir_x=0, dir_y=0, trap = true}
 function CatapultTrap:new(o)
 	o = o or {}
 	setmetatable(o, self)
