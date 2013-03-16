@@ -90,6 +90,7 @@ dofile("objects.lua")
 
 function initLevel()
 	enemies = {}
+	objects = {}
 	if level == 1 then -- Beginner level. we need specific rooms
 		leveltype = "rooms"
 		MAPWIDTH = 24
@@ -100,7 +101,7 @@ function initLevel()
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
 		possiblePassives = {SpeedBoots}
-		possibleActives = {SackOGrenades}
+		possibleActives = {BagOMines}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -234,6 +235,7 @@ function makeMap(levelType)
 				makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
 			end
 			map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2), y=start_j}} -- Make thundering door lever
+			doorSealer = {x=start_i, y=start_j}
 		end
 	elseif(levelType == "sewers") then
 	
@@ -768,7 +770,8 @@ function keyPressGame(key, unicode)
 
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
-	if stackPause==0 then
+	if stackPause<=0 then
+		stackPause = 0
 		displayBig = false
 		if(key == "right") then
 			checkThenMove(char["x"] + 1, char["y"])
@@ -977,7 +980,7 @@ function checkThenMove(x, y)
 	tile = map[x][y]	
 	local enemy_in_space = nil
 	for i=1,#enemies do
-		if(enemies[i].x == x and enemies[i].y == y) then
+		if(enemies[i].x == x and enemies[i].y == y and enemies[i].name ~= "Mine") then
 			enemy_in_space = enemies[i]
 			break
 		end
@@ -1072,6 +1075,7 @@ end
 --called whenever player shoots/moves/pulls lever/whatever.
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
+	recentChange = nil
 	--decrement all cooldowns by one
 	for i = 1, char.activeNum do
 		if(char.actives[i].cooldown > 0) then
@@ -1356,6 +1360,9 @@ function getDirectionByKey(direction, dy)
 		dy = -1
 	elseif(direction == "4") then
 		dx = -1
+		dy = 0
+	elseif(direction == "5") then
+		dx = 0
 		dy = 0
 	elseif(direction == "6") then
 		dx = 1

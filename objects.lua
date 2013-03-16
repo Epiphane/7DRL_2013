@@ -79,6 +79,7 @@ SpartanBoots = ActiveItem:new{name="Spartan Boots", icon="L", cooldown=10}
 -- ******************** END SPARTAN BOOTS   *********************
 
 SackOGrenades = ActiveItem:new{name="Sack O' Grenades", icon="B", cooldown=10}
+BagOMines = ActiveItem:new{name="Bag O' Mines", icon="M", cooldown=10}
 
 -- ******************** BEGIN SPEED BOOTS      *********************
 --speed boots!

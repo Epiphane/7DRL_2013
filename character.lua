@@ -16,10 +16,12 @@ function char:loseAwesome(amt)
 	if(self.awesome <= 0) then
 		gameState = 2
 	end
+	recentChange = {changeType="loss", amount=amt}
 end
 
 function char:gainAwesome(amt)
 	self.awesome = self.awesome + amt
+	recentChange = {changeType="gain", amount=amt}
 end
 
 --this function forces you to move multiple tiles in one frame.
@@ -85,6 +87,13 @@ function char:addActive(name)
 		self.actives[self.activeNum].name = "Sack O' Grenades"
 		self.actives[self.activeNum].maxcooldown = SackOGrenades.cooldown
 		self.actives[self.activeNum].cooldown = 0
+	elseif(name == "Bag O' Mines") then
+		self.activeNum = self.activeNum + 1
+		
+		self.actives[self.activeNum] = {}
+		self.actives[self.activeNum].name = "Bag O' Mines"
+		self.actives[self.activeNum].maxcooldown = BagOMines.cooldown
+		self.actives[self.activeNum].cooldown = 0
 	end
 end
 
@@ -116,6 +125,10 @@ function char:doActive(name)
 		waitingOn = "grenade"
 		
 		printSide("You pull the pin on a grenade (choose a direction)")
+	elseif(name == "Bag O' Mines") then
+		MineDropper:shoot()
+		
+		printSide("You secretly place a mine in the ground")
 	end
 end
 

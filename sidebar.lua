@@ -1,4 +1,4 @@
-
+recentChange = nil
 sidebarlog = {{message="You wake up.", color={r=100,g=255,b=255}}}
 displayBig = true
 
@@ -21,6 +21,17 @@ function drawSidebar(start_x)
 	-- And the health bars
 	love.graphics.setColor( 129, 129, 129 )
 	love.graphics.rectangle("fill", 10, 750, char['awesome']*2, 25)
+	
+	-- Did awesome change?
+	if recentChange then
+		if(recentChange.changeType == "loss") then
+			love.graphics.setColor( 129, 0, 0 )
+			love.graphics.rectangle("fill", char['awesome']*2+10, 750, recentChange.amount, 25)
+		else
+			love.graphics.setColor( 0, 129, 0 )
+			love.graphics.rectangle("fill", char['awesome']*2+10-recentChange.amount, 750, recentChange.amount, 25)
+		end
+	end
 	
 	-- Draw important message
 	for i=1,#sidebarlog do
