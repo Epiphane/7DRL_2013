@@ -9,7 +9,8 @@ function drawSidebar(start_x)
 	love.graphics.setFont(mainFont) -- Just in case
 	
 	love.graphics.setColor( 0, 0, 0 ) -- Set color to black for the terminalish feel
-	love.graphics.rectangle("fill", start_x, 0, 200, 600) -- Fill sidebar
+	love.graphics.rectangle("fill", start_x, 0, 400, 800) -- Fill sidebar
+	love.graphics.rectangle("fill", 0, 660, 1000, 140) -- Fill sidebar
 	
 	-- White is write!
 	love.graphics.setColor( 255, 255, 255 )
@@ -43,11 +44,14 @@ function drawSidebar(start_x)
 	end
 	
 	love.graphics.setColor( 255, 255, 255)
+	love.graphics.print("(Z)", 0, 680)
+	love.graphics.print("(X)", 200, 680)
+	love.graphics.print("(C)", 400, 680)
 	for i = 1, #(char.actives) do
-		love.graphics.print(char.actives[i].name, 20 + 200 * (i-1), 500)
+		love.graphics.print(char.actives[i].name, 20 + 200 * (i-1), 700)
 		if(char.actives[i].cooldown > 0) then
 			love.graphics.setColor(200,200,200)
-			love.graphics.print("[" .. char.actives[i].cooldown .. "]", 100 + 200 * (i - 1), 512)
+			love.graphics.print("[" .. char.actives[i].cooldown .. "]", 100 + 200 * (i - 1), 712)
 		end
 	end
 end

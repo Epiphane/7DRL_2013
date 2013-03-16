@@ -34,6 +34,7 @@ gameState = 0
 susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER, REAL_BIG_NUMBER
 
 function love.load()
+	controlImage = love.graphics.newImage("controls.png")
 	
 	-- Set background color black, cause it's a console you stupid bitch
 	love.graphics.setBackgroundColor( 0, 0, 0 )
@@ -88,6 +89,7 @@ dofile("enemies.lua")
 dofile("objects.lua")
 
 function initLevel()
+	enemies = {}
 	if level == 1 then -- Beginner level. we need specific rooms
 		leveltype = "rooms"
 		MAPWIDTH = 24
@@ -107,7 +109,7 @@ function initLevel()
 		MAPHEIGHT = 48
 		ROOMNUM = 1
 		possiblePassives = {Pistol}
-		possibleActives = {FZeroSuit}
+		possibleActives = {Whip}
 		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
 		Boss = Skeleton
 		viewed_rooms = {}
@@ -520,6 +522,7 @@ function drawWelcome()
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255, 255, 255)
 	love.graphics.print("Welcome to AwesomeRogue.\n\nPress enter to be awesome", 100, 250)
+	love.graphics.draw(controlImage, 250, 450)
 end
 
 function drawYouSuck()
