@@ -211,6 +211,23 @@ function Barrel:takeTurn()
 	end
 end
 
+Grenade = Enemy:new{name="Grenade", icon="o", health=1}
+function Grenade:new(o)
+	o = o or {}
+	setmetatabe(o, self)
+	self.__index = self
+	return o
+end
+
+function Grenade:getHit(dmg)
+	return
+end
+
+function Grenade:getThrown(dx, dy)
+	self:forceMarch(self.x + dx * 5, self.y + dy * 5)
+	self.icon = "3"
+end
+
 Rat = Enemy:new{name="Rat", icon="r", health=10}
 function Rat:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params

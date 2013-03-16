@@ -724,6 +724,7 @@ function updateGame()
 				--check if the enemy ended up where it's supposed to get to
 				elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
 					enemies[i]:checkAndMove(newEnemyX, newEnemyY)
+					enemies[i].forcedMarch = false
 				else --guess it's safe to move the enemy to a place
 					enemies[i].x, enemies[i].y = newEnemyX, newEnemyY
 				end
