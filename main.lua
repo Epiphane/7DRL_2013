@@ -100,7 +100,7 @@ function initLevel()
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
 		possiblePassives = {SpeedBoots}
-		possibleActives = {SpartanBoots}
+		possibleActives = {SackOGrenades}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -889,6 +889,20 @@ function keyPressGame(key, unicode)
 				char:spartanKick(string.sub(key,3))
 				doTurn()
 			end
+		elseif(waitingOn == "grenade") then
+			if(key == "right") then
+				char:throwGrenade(1,0)
+			elseif(key == "left") then
+				char:throwGrenade(-1,0)
+			elseif(key == "up") then
+				char:throwGrenade(0,-1)
+			elseif(key == "down") then
+				char:throwGrenade(0,1)
+			end
+			if(string.sub(key,0,2) == "kp") then
+				char:throwGrenade(string.sub(key,3))
+				doTurn()
+			end
 		elseif(waitingOn == "pit") then
 			if(key == "return") then
 				searchDistance = 1
@@ -1053,7 +1067,7 @@ function spawnObject(x, y, which_object)
 	k, v = next(map[x][y].room, nil)
 	table.insert(objects, which_object:new{x=x, y=y, room=k})
 end
---end spawnEnemy
+--end spawnObject
 
 --called whenever player shoots/moves/pulls lever/whatever.
 --all enemies get to move, bombs go off, fires spread, whatever.
@@ -1130,7 +1144,7 @@ function makeExplosion(x, y, size, friendlyFire)
 		if enemies[i] and enemies[i].alive then
 			if(enemies[i].x > x-size/2 and enemies[i].x < x+size/2) then
 				if(enemies[i].y > y-size/2 and enemies[i].y < y+size/2) then
-					enemies[i]:hitByExplosion()
+					enemies[i]:hitByExplosion(size)
 					
 					local newX, newY = enemies[i].x, enemies[i].y
 			

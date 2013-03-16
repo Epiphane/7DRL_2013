@@ -78,7 +78,7 @@ Whip = ActiveItem:new{name="Whip", icon="j", cooldown=10}
 SpartanBoots = ActiveItem:new{name="Spartan Boots", icon="L", cooldown=10}
 -- ******************** END SPARTAN BOOTS   *********************
 
-SackOGrenades = ActiveItem:new{name="Sack o' grenades", icon="B", cooldown=10}
+SackOGrenades = ActiveItem:new{name="Sack O' Grenades", icon="B", cooldown=10}
 
 -- ******************** BEGIN SPEED BOOTS      *********************
 --speed boots!

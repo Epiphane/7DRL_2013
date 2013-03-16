@@ -37,9 +37,9 @@ function Enemy:die()
 	end
 end
 
-function Enemy:hitByExplosion()
+function Enemy:hitByExplosion(size)
 	char:gainAwesome(7)
-	self:getHit(15)
+	self:getHit(size*5)
 	if not self.alive then
 		printSide("The " .. self.name .. " explodes in a shower of blood!")
 		self:die()
@@ -214,7 +214,7 @@ end
 Grenade = Enemy:new{name="Grenade", icon="o", health=1}
 function Grenade:new(o)
 	o = o or {}
-	setmetatabe(o, self)
+	setmetatable(o, self)
 	self.__index = self
 	return o
 end
@@ -224,7 +224,8 @@ function Grenade:getHit(dmg)
 end
 
 function Grenade:getThrown(dx, dy)
-	self:forceMarch(self.x + dx * 5, self.y + dy * 5)
+	print("char.x: " .. char.x .. " char.y: " .. char.y)
+	self:forceMarch(char.x + dx * 5, char.y + dy * 5)
 	self.icon = "3"
 end
 
@@ -241,7 +242,7 @@ function Grenade:takeTurn()
 	end
 end
 
-Rat = Enemy:new{name="Rat", icon="r", health=10}
+Rat = Enemy:new{name="Rat", icon="r", health=20}
 function Rat:new(o)
 	o = o or {}				-- Set the Barrel's info to match passed params
 	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
