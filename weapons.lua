@@ -1,5 +1,6 @@
 --Table info about all the weapons (functions to come later
 bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
+lightsaber = {over=true, sweep=1, sweepdist=3, nextmove=0, damage=45}
 hands = {}
 
 pistolDamage = 25
@@ -124,6 +125,110 @@ function bullet:update()
 		self:die()
 	end
 end
+
+-- **************************** END BULLETS *****************
+
+-- ************************* BEGIN LIGHTSABER **************
+function lightsaber:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
+function lightsaber:shoot(direction)
+	self.x = char.x
+	self.y = char.y
+	
+	self.sweep=1
+	
+	self.dx, self.dy = getDirectionByKey(direction)
+	if(self.dx == self.dy) then
+		self.icon = "|"
+		self.dx = 0
+	elseif(self.dx == 0) then
+		self.icon = "/"
+		self.dx = self.dy * -1
+	elseif(self.dx == self.dy * -1) then
+		self.icon = "-"
+		self.dy = 0
+	elseif(self.dy == 0) then
+		self.icon = "\\"
+		self.dy = self.dx
+	end
+	
+	--now, animate the bullet shootin.
+	--suspend user input
+	stackPause = stackPause + 1
+	
+	self.nextmove = currtime + .08
+	self.over = false
+end
+--end shoot()
+
+function lightsaber:die()
+	if not self.over then
+		self.over = true
+		stackPause = stackPause - 1
+	end
+end
+
+function lightsaber:draw()
+	if(not self.over) then -- Dont wanna unpause three times!
+		love.graphics.setColor( 0, 100, 255 )
+		love.graphics.print(self.icon, (self.x - offset["x"] - 1+self.dx)*12, (self.y - offset["y"] - 1+self.dy)*12 + screenshake)
+		love.graphics.setColor( 255, 255, 255 )
+	end
+end
+
+function lightsaber:update()
+	if(currtime > self.nextmove and not self.over)	then
+		for i = 1, # enemies do
+			if(self.x+self.dx == enemies[i]["x"] and self.y+self.dy == enemies[i]["y"]) then
+				enemies[i]:getHit(self.damage)
+			end
+		end
+		
+		self.sweep = self.sweep + 1
+		self.nextmove = currtime + .1
+		
+		-- Mooooooove
+		if(self.dx == self.dy) then
+			self.icon = "-"
+			self.dy = 0
+		elseif(self.dx == 0) then
+			self.icon = "\\"
+			self.dx = self.dy
+		elseif(self.dx == self.dy * -1) then
+			self.icon = "|"
+			self.dx = 0
+		elseif(self.dy == 0) then
+			self.icon = "/"
+			self.dy = self.dx * -1
+		end
+	end
+	
+	if(self.sweep > self.sweepdist) then
+		self:die()
+	end
+end
+-- *************************** END LIGHTSABER ***************
+
+-- *************************** BEGIN SWORD OF DEMACIA ***************
+swordOfDemacia = lightsaber:new{over=true, sweep=1, sweepdist=8, damage=30}
+function swordOfDemacia:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
+function swordOfDemacia:draw()
+	if(not self.over) then -- Dont wanna unpause three times!
+		love.graphics.print(self.icon, (self.x - offset["x"] - 1+self.dx)*12, (self.y - offset["y"] - 1+self.dy)*12 + screenshake)
+	end
+end
+-- *************************** END SWORD OF DEMACIA ***************
 
 -- SHOOTIN WITH YOUR HANDS
 function hands:shoot(direction)
