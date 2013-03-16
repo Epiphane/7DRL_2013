@@ -722,6 +722,7 @@ function updateGame()
 				--check if the enemy hit a wall
 				if(tile.blocker) then
 					printSide("The " .. string.lower(enemies[i].name) .. " slams into a wall!")
+					enemies[i]:getHit(10)
 					enemies[i].forcedMarch = false
 				--check if the enemy ended up where it's supposed to get to
 				elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
