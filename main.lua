@@ -1035,7 +1035,9 @@ function keyPressGame(key, unicode)
 		end
 	
 		if(key == "y" or key == "u" or key == "i" or key == "h" or key == "j" or key == "k" or key == "n" or key == "m" or key == ",") then
-			char.weapon[i]:shoot(key)
+			for i=1,#char.weapon do
+				char.weapon[i]:shoot(key)
+			end
 		end
 	
 		--press E for Explosion
