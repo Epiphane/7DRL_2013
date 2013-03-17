@@ -444,7 +444,7 @@ function makeMap(levelType)
 		
 		for i = 1, NUMNODES do
 			if(i == bossPlatform) then
-				spawnEnemy(platformx[i], platformy[i], Skeleton)
+				spawnEnemy(platformx[i], platformy[i], Boss:new{boss=true})
 			elseif(i == activePlatform) then
 				--spawn an active here!
 			elseif(i == passivePlatform) then
@@ -488,7 +488,7 @@ function makeMap(levelType)
 			map[x + circleCenter][circleCenter-maxY] = Wall:new{room={[1]=true}}
 		end
 		
-		spawnEnemy(MAPWIDTH/2, MAPHEIGHT/2 - 12, EvilWizard)
+		spawnEnemy(MAPWIDTH/2, MAPHEIGHT/2 - 12, Boss:new{boss = true})
 	end
 end
 
@@ -892,22 +892,32 @@ function updateGame()
 			elseif(enemies[i].targetY > enemies[i].y) then newEnemyY = enemies[i].y + 1 end
 			
 			if(map[newEnemyX] and enemies[i].alive) then
-				tile = map[newEnemyX][newEnemyY]
+				tile = checkTile(newEnemyX,newEnemyY)
+				if(tile == "null") then
 				
-				--check if there are traps that should go off (this is awesome btw)
-				tile:checkTrap(enemies[i])
+					--hmm.. Kill the enemy just to be safe.
+					enemies[i]:die()
+					--also stop checking stuff
+					break
+				else
 				
-				--check if the enemy hit a wall
-				if(tile.blocker) then
-					printSide("The " .. string.lower(enemies[i].name) .. " slams into a wall!")
-					enemies[i]:getHit(10)
-					enemies[i].forcedMarch = false
-				--check if the enemy ended up where it's supposed to get to
-				elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
-					enemies[i]:checkAndMove(newEnemyX, newEnemyY)
-					enemies[i].forcedMarch = false
-				else --guess it's safe to move the enemy to a place
-					enemies[i].x, enemies[i].y = newEnemyX, newEnemyY
+					--check if there are traps that should go off (this is awesome btw)
+					
+				
+					tile:checkTrap(enemies[i])
+					
+					--check if the enemy hit a wall
+					if(tile.blocker) then
+						printSide("The " .. string.lower(enemies[i].name) .. " slams into a wall!")
+						enemies[i]:getHit(10)
+						enemies[i].forcedMarch = false
+					--check if the enemy ended up where it's supposed to get to
+					elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
+						enemies[i]:checkAndMove(newEnemyX, newEnemyY)
+						enemies[i].forcedMarch = false
+					else --guess it's safe to move the enemy to a place
+						enemies[i].x, enemies[i].y = newEnemyX, newEnemyY
+					end
 				end
 			end
 		end
@@ -1015,12 +1025,19 @@ function keyPressGame(key, unicode)
 		--handle numpad keypresses, it's for shooooting.
 		--numpad code is formatted as "kp#"
 		if(string.sub(key,0,2) == "kp") then
-			for i=1,#char.weapon do
-				char.weapon[i]:shoot(string.sub(key,3))
+			if tonumber(string.sub(key,3)) ~= nil then
+			   --it's a number
+				for i=1,#char.weapon do
+					char.weapon[i]:shoot(string.sub(key,3))
+				end
 			end
 			doTurn()
 		end
-		
+	
+		if(key == "y" or key == "u" or key == "i" or key == "h" or key == "j" or key == "k" or key == "n" or key == "m" or key == ",") then
+			char.weapon[i]:shoot(key)
+		end
+	
 		--press E for Explosion
 		if(key == "e") then
 			--makeExplosion(char["x"], char["y"], 5, false)
@@ -1658,6 +1675,47 @@ function getDirectionByKey(direction, dy)
 		dx = 0
 		dy = 1
 	elseif(direction == "3") then
+		dx = 1
+		dy = 1
+	elseif(direction == "+") then
+		dx = 1
+		dy = 0
+	elseif(direction == "-") then
+		dx = 1
+		dy = 1
+	elseif(direction == "*") then
+		dx = 1
+		dy = 1
+	elseif(direciton == "/") then
+		dy = -1
+		dx = 0
+	end
+	
+	if(direction == "y") then
+		dx = -1
+		dy = -1
+	elseif(direction == "u") then
+		dx = 0
+		dy = -1
+	elseif(direction == "i") then
+		dx = 1
+		dy = -1
+	elseif(direction == "h") then
+		dx = -1
+		dy = 0
+	elseif(direction == "j" or direction == "0") then
+		dx = 0
+		dy = 0
+	elseif(direction == "k") then
+		dx = 1
+		dy = 0
+	elseif(direction == "n") then
+		dx = -1
+		dy = 1
+	elseif(direction == "m") then
+		dx = 0
+		dy = 1
+	elseif(direction == ",") then
 		dx = 1
 		dy = 1
 	end
