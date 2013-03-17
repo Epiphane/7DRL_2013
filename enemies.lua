@@ -152,6 +152,13 @@ function Enemy:checkAndMove(x, y)
 	
 		k, v = next(map[self.x][self.y].room,nil)
 		self.room = k
+	else
+		if(self.forcedMarch) then
+			dx = x - self.x
+			dy = y - self.y
+			enemy_in_space.forceMarch(x+dx, y+dy)
+			self["x"], self["y"] = x, y
+		end
 	end
 	
 	tile = map[x][y]

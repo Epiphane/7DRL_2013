@@ -101,7 +101,7 @@ function initLevel()
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
 		possiblePassives = {SwordOfDemacia}
-		possibleActives = {BagOMines}
+		possibleActives = {PulsefireBoots}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -687,12 +687,25 @@ function updateGame()
 					printSide("You slam into a wall!")
 					char['forcedMarch'] = false
 				elseif(newPosX == char.fx and newPosY == char.fy) then
-					--check if we've hit the target
-					char['forcedMarch'] = false
 					--being the last one, do a regular check'n'move
 					checkThenMove(newPosX, newPosY)
+					--check if we've hit the target
+					char['forcedMarch'] = false
 				else --guess we're good to move the character here!
 					char["x"], char["y"] = newPosX, newPosY
+					for i=1,#enemies do
+						if(enemies[i].possiblePath and enemies[i].x == newPosX and enemies[i].y == newPosY) then
+							if(enemies[i].health <= 10) then
+								enemies[i]:getHit(10)
+								printSide("It connects, crippling the "..enemies[i].name.." for life! Leap again! (choose a direction)")
+							else
+								enemies[i]:getHit(10)
+								printSide("It connects, smashing the "..enemies[i].name.."'s face! Leap again! (choose a direction)")
+							end
+							char.fx = newPosX
+							char.fy = newPosY
+						end
+					end
 				end
 				
 				char.nextForcedMove = currtime + 0.05
@@ -892,6 +905,20 @@ function keyPressGame(key, unicode)
 				char:spartanKick(string.sub(key,3))
 				doTurn()
 			end
+		elseif(waitingOn == "pulsefire") then --or a number of other flags
+			if(key == "right") then
+				char:jumpKick(1,0)
+			elseif(key == "left") then
+				char:jumpKick(-1,0)
+			elseif(key == "up") then
+				char:jumpKick(0,-1)
+			elseif(key == "down") then
+				char:jumpKick(0,1)
+			end
+			if(string.sub(key,0,2) == "kp") then
+				char:jumpKick(string.sub(key,3))
+				doTurn()
+			end
 		elseif(waitingOn == "grenade") then
 			if(key == "right") then
 				char:throwGrenade(1,0)
@@ -988,7 +1015,26 @@ function checkThenMove(x, y)
 	
 	if tile.blocker then
 	elseif(enemy_in_space) then -- checks for monsters, etc. go here
-		
+		if(waitingOn == "pulsefire") then
+			stackPause = stackPause + 1
+			
+			if(enemy_in_space.health <= 10) then
+				enemy_in_space:getHit(10)
+				printSide("It connects, crippling the "..enemy_in_space.name.." for life! Leap again! (choose a direction)")
+			else
+				enemy_in_space:getHit(10)
+				printSide("It connects, smashing the "..enemy_in_space.name.."'s face! Leap again! (choose a direction)")
+			end
+			char["x"], char["y"] = x, y
+		else
+			if(char.forcedMarch) then
+				waitingOn = ""
+				dx = x - char.x
+				dy = y - char.y
+				enemy_in_space.forceMarch(x+dx, y+dy)
+				char["x"], char["y"] = x, y
+			end
+		end
 	else
 		-- In case we're entering a new room soon
 		viewed_rooms[map[x-1][y]["room"]] = true

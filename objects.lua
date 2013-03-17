@@ -116,6 +116,10 @@ Whip = ActiveItem:new{name="Whip", icon="j", cooldown=10}
 SpartanBoots = ActiveItem:new{name="Spartan Boots", icon="L", cooldown=10}
 -- ******************** END SPARTAN BOOTS   *********************
 
+-- ******************** BEGIN PULSEFIRE BOOTS *********************
+PulsefireBoots = ActiveItem:new{name="Pulsefire Boots", icon="%", cooldown=10}
+-- ******************** END PULSEFIRE BOOTS   *********************
+
 SackOGrenades = ActiveItem:new{name="Sack O' Grenades", icon="B", cooldown=10}
 BagOMines = ActiveItem:new{name="Bag O' Mines", icon="M", cooldown=10}
 
