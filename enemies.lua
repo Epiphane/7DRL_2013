@@ -37,13 +37,13 @@ function Enemy:die()
 		printSide("The " .. string.lower(self.name) .. " has been slain!")
 	end
 	
-	char:gainAwesome(15)
+	char:gainAwesome(10)
 	
 	if self.boss then
 		if(leveltype == "sewers") then
-			printSide("As you defeat the skeleton, you are suddenly teleported to the lair of the wizard!")
-			level = level+1
-			initLevel()
+			printSide("The skeleton crumbles down into a mass of skeletal fragments!!!")
+			spawnObject(self.x, self.y, table.remove(possibleActives, math.random(#possibleActives)))
+			map[self.x-1][self.y] = Staircase:new{room={[1]=true}}
 			return
 		end
 		spawnObject(self.x, self.y, table.remove(possibleActives, math.random(#possibleActives)))

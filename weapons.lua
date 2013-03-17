@@ -100,9 +100,8 @@ function bullet:update()
 				if(enemies[i] ~= nil) then
 					if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
 						enemies[i]:getHit(pistolDamage)
+						self:die()
 					end
-					self:die()
-					
 				end
 			end
 		else
