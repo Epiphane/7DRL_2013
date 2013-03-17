@@ -1,6 +1,7 @@
 --Table info about all the weapons (functions to come later
 bullet = {x=5, y=5, dx=0, dy=0, over=true, range=5, distance=0, nextmove=0}
 lightsaber = {over=true, sweep=1, sweepdist=3, nextmove=0, damage=45}
+shotgun = {x=5, y=5, dx=0, dy=0, over=true, range=3, distance=0, nextmove=0}
 hands = {}
 
 pistolDamage = 25
@@ -83,7 +84,7 @@ end
 
 function bullet:draw()
 	if(not self.over) then -- Dont wanna unpause three times!
-		love.graphics.print("!", (self.x - offset["x"] - 1)*12, (self.y - offset["y"] - 1)*12 + screenshake)
+		love.graphics.print(".", (self.x - offset["x"] - 1)*12, (self.y - offset["y"] - 1)*12 + screenshake)
 	end
 end
 
@@ -126,7 +127,120 @@ function bullet:update()
 	end
 end
 
--- **************************** END BULLETS *****************
+-- **************************** END SHOTGUN *****************
+
+function shotgun:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+end
+
+--Just a little thing I maaaade.
+--Direction is:
+
+
+--Fire bullets with the numpad, scoob.
+
+function shotgun:shoot(direction)
+	self.x = char.x
+	self.y = char.y
+	
+	self.dx, self.dy = getDirectionByKey(direction)
+	
+	--now, animate the bullet shootin.
+	--suspend user input
+	stackPause = stackPause + 1
+	
+	--move bullet once so it's not on top of our character
+	self.x = self.x + self.dx
+	self.y = self.y + self.dy
+	
+	self.over = false
+	self.distance = 0
+	self.range = 5
+	
+	self.spreadLeft = {x=0, y=self.dy*-1, dx=0, dy=self.dy*-0.5}
+	self.spreadRight = {x=self.dx*-1,y=0, dx=self.dx*-0.5, dy=0}
+	
+	if(self.dx == 0) then
+		self.spreadLeft = {x=1, y=0, dx=0.5, dy=0}
+		self.spreadRight = {x=-1, y=0, dx=-0.5, dy=0}
+	elseif(self.dy == 0) then
+		self.spreadLeft = {x=0, y=1, dx=0, dy=0.5}
+		self.spreadRight = {x=0, y=-1, dx=0, dy=-0.5}
+	end
+	
+	self.nextmove = currtime + .08
+	
+	--are we shooting at a wall?
+	if(map[self.x][self.y].blocker) then
+		self.over = true
+		stackPause = stackPause - 1
+	end
+end
+--end shoot()
+
+function shotgun:die()
+	if not self.over then
+		self.over = true
+		stackPause = stackPause - 1
+	end
+end
+
+function shotgun:draw()
+	if(not self.over) then -- Dont wanna unpause three times!
+		love.graphics.print(".", (self.x - offset["x"] - 1)*12, (self.y - offset["y"] - 1)*12 + screenshake)
+		love.graphics.print(".", (self.x - offset["x"] - 1 + self.spreadLeft.x)*12, (self.y - offset["y"] - 1 + self.spreadLeft.y)*12 + screenshake)
+		love.graphics.print(".", (self.x - offset["x"] - 1 + self.spreadRight.x)*12, (self.y - offset["y"] - 1 + self.spreadRight.y)*12 + screenshake)
+	end
+end
+
+function shotgun:update()
+	if(currtime > self.nextmove and not self.over)	then
+		--did we hit something?
+		if(not map[self.x + self.dx] or not map[self.x + self.dx][self.y + self.dy] or map[self.x + self.dx][self.y + self.dy].blocker) then
+			self:die()
+		end
+		
+		if not self.target then -- Hitting enemies
+			for i = 1, # enemies do
+				if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
+					enemies[i]:getHit(pistolDamage)
+					self:die()
+				end
+			end
+		else
+			if(self.x == self.target.x and self.y == self.target.y) then
+				self.target:getHit(25)
+				self.over = true
+				stackPause = stackPause - 1
+			end
+		end
+		
+		self.x = self.x + self.dx
+		self.y = self.y + self.dy
+		
+		self.spreadLeft.x = self.spreadLeft.x + self.spreadLeft.dx
+		self.spreadLeft.y = self.spreadLeft.y + self.spreadLeft.dy
+		self.spreadRight.x = self.spreadRight.x + self.spreadRight.dx
+		self.spreadRight.y = self.spreadRight.y + self.spreadRight.dy
+		
+		self.distance = self.distance + 1
+		self.nextmove = currtime + .1
+		
+		if(self.distance >= self.range) then
+			self:die()
+		end
+	end
+	
+	--make sure bullet stops if it reaches its maximum range.
+	if(self.distance >= self.range) then
+		self:die()
+	end
+end
+
+-- **************************** END SHOTGUN *****************
 
 -- ************************* BEGIN LIGHTSABER **************
 function lightsaber:new(o)
@@ -250,8 +364,6 @@ function hands:shoot(direction)
 			return
 		end
 	end
-	
-	printSide("You swing at the empty air...")
 end
 --end hands.shoot()
 

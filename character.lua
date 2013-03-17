@@ -1,4 +1,4 @@
-char = {awesome=100, weapon=hands, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, passiveNum = 0,
+char = {awesome=100, weapon={hands}, forcedMarch = false, fx = 0, fy = 0, dirx=0, diry=0, nextForcedMove = 0, inAPit = false, passiveNum = 0,
 		actives = {}, passives = {}, activeNum = 0, invisible = 0}
 -- For directions, 0 is neutral, 1 is positive, -1 is negative
 
@@ -53,7 +53,7 @@ function char:addPassive(name)
 end
 
 function char:addActive(name)
-	if(name == "Falcon Punch") then
+	if(name == "F Zero Suit") then
 		self.activeNum = self.activeNum + 1
 		self.actives[self.activeNum] = {}
 		self.actives[self.activeNum].name = "Falcon Punch"
@@ -113,7 +113,7 @@ function char:doActive(name)
 		explosion["falcon"] = true
 		
 		printSide("FALCOOOOON... (choose a direction)")
-	elseif(name == "Cloak And Dagger") then
+	elseif(name == "Cloak and Dagger") then
 		printSide("You fade from view! Your next attack will critically strike.")
 		char.invisible = 50
 	elseif(name == "Whip") then
@@ -147,6 +147,7 @@ end
 function char:falconPunch(dx, dy)
 	printSide("PAWWWNNCHH!!!")
 	makeExplosion(self.x, self.y, 5, false)
+	explosion.direction = {}
 	explosion["direction"].x, explosion.direction.y = getDirectionByKey(dx, dy)
 	
 	self:forceMarch(char.x + dx*2, char.y + dy*2)

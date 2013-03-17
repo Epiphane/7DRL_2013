@@ -49,14 +49,31 @@ function love.load()
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "123456789")
 
 	level = 1
+	char.name = randomName()
+	
+	story = makeAnIntro(char.name)
 end
 
+story = ""
 function initGame()
 	sidebarlog = {{message="You wake up.", color={r=100,g=255,b=255}}}
 	displayBig = true
 	-- Character location set in map function
 	
 	level = 1
+	char.awesome=100
+	char.weapon={hands}
+	char.forcedMarch = false
+	char.fx = 0
+	char.fy = 0
+	char.dirx=0
+	char.diry=0
+	char.inAPit = false
+	char.passiveNum = 0
+	char.actives = {}
+	char.passives = {}
+	char.activeNum = 0
+	char.invisible = 0
 	initLevel()
 	
 	explosionTiles = {}
@@ -100,8 +117,8 @@ function initLevel()
 		possibleEnemies = {{{enemy=Rat, num=3}}, {{enemy=Rat, num=2}}}
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
-		possiblePassives = {SwordOfDemacia}
-		possibleActives = {PulsefireBoots}
+		possiblePassives = {Pistol}
+		possibleActives = {Whip, FZeroSuit, SpartanBoots, CloakAndDagger}
 		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
@@ -109,8 +126,8 @@ function initLevel()
 		MAPWIDTH = 48
 		MAPHEIGHT = 48
 		ROOMNUM = 1
-		possiblePassives = {Pistol}
-		possibleActives = {Whip}
+		possiblePassives = {Lightsaber, SwordOfDemacia, SpeedBoots}
+		possibleActives = {BagOMines, SackOGrenades, PulsefireBoots, CloakAndDagger}
 		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
 		Boss = Skeleton
 		viewed_rooms = {}
@@ -121,7 +138,7 @@ function initLevel()
 		MAPHEIGHT = 96
 		ROOMNUM = 1
 		viewed_rooms = {}
-		possiblePassives = {Pistol, SpeedBoots}
+		possiblePassives = {SwordOfDemacia, Shotgun, SpeedBoots}
 		possibleActives = {FZeroSuit, BagOMines, CloakAndDagger, Whip, SpartanBoots}
 		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
 		Boss = Skeleton
@@ -236,7 +253,8 @@ function makeMap(levelType)
 			else
 				makeRoom(start_i, start_j - 10, end_i, start_j + 10, 999)
 			end
-			map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2), y=start_j}} -- Make thundering door lever
+			map[start_i][start_j] = Floor:new{room={[999]=true}}
+			map[start_i + (orient - 2)][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2), y=start_j}} -- Make thundering door lever
 			doorSealer = {x=start_i, y=start_j}
 		end
 	elseif(levelType == "sewers") then
@@ -549,7 +567,7 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 	-- TIME TO CUSTOMIZE THE ROOMS. THIS IS WHERE SHIT GETS REAL
 	-- SO WATCH OUT
 	if(roomnum == 999) then -- Boss room
-		spawnEnemy(end_i - 3, start_j + (end_j - start_j) / 2, Boss:new{boss=true})
+		spawnEnemy(start_i + (end_i - start_i) / 2, start_j + (end_j - start_j) / 2, Boss:new{boss=true})
 	end
 	-- Determine types
 	roomType = math.random(3)
@@ -605,8 +623,8 @@ end
 function drawWelcome()
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("Welcome to AwesomeRogue.\n\nPress enter to be awesome", 100, 250)
-	love.graphics.draw(controlImage, 250, 450)
+	love.graphics.print("Welcome to AwesomeRogue.\n\n\n"..story.."\n\n\nPress enter to be awesome", 150, 150)
+	love.graphics.draw(controlImage, 250, 550)
 end
 
 function drawYouSuck()
@@ -847,10 +865,12 @@ downpress = REAL_BIG_NUMBER
 
 stackPause = 0
 function love.keypressed(key, unicode)
-	if(gameState == 0 or gameState == 2) then
+	if(gameState == 0) then
 		keyPressWelcome(key, unicode)
 	elseif(gameState == 1) then
 		keyPressGame(key, unicode)
+	elseif(gameState == 2) then
+		keyPressYouSuck(key, unicode)
 	end
 end
 	
@@ -860,6 +880,15 @@ function keyPressWelcome(key, unicode)
 		initGame()
 	end
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
+end
+
+function keyPressYouSuck(key, unicode)
+	if(key == "return") then
+		gameState = 0
+		char.name = randomName()
+		
+		story = makeAnIntro(char.name)
+	end
 end
 	
 function keyPressGame(key, unicode)
@@ -1131,7 +1160,7 @@ function checkThenMove(x, y)
 				waitingOn = ""
 				dx = x - char.x
 				dy = y - char.y
-				enemy_in_space.forceMarch(x+dx, y+dy)
+				enemy_in_space:forceMarch(x+dx, y+dy)
 				char["x"], char["y"] = x, y
 			end
 		end
@@ -1529,7 +1558,7 @@ function getDirectionByKey(direction, dy)
 	elseif(direction == "4") then
 		dx = -1
 		dy = 0
-	elseif(direction == "5") then
+	elseif(direction == "5" or direction == "0") then
 		dx = 0
 		dy = 0
 	elseif(direction == "6") then
@@ -1547,4 +1576,53 @@ function getDirectionByKey(direction, dy)
 	end
 	
 	return dx, dy
+end
+
+vowels = {"a","e","i","o","u"}
+loneConsonants = {"d","j","m","n","qu","t"}
+doubleLetters = {"mm","nn","tt","ll","dd","ff","kk","ss"}
+followerConsonants = {"h","l","r"}
+leaderConsonants = {"b","c","f","g","k","p","s"}
+function randomName()
+	name = {}
+	repeat
+		cType = math.random(5)
+		if(cType == 1) then
+			name[#name+1] = randomLetter(loneConsonants)
+			name[#name+1] = randomLetter(vowels)
+		elseif(cType == 2 and #name > 1) then
+			name[#name+1] = randomLetter(doubleLetters)
+			name[#name+1] = randomLetter(vowels)
+		elseif(cType == 3 or cType == 2) then
+			name[#name+1] = randomLetter(leaderConsonants)
+			name[#name+1] = randomLetter(vowels)
+		elseif(cType == 4) then
+			name[#name+1] = randomLetter(leaderConsonants)
+			name[#name+1] = randomLetter(followerConsonants)
+			name[#name+1] = randomLetter(vowels)
+		else
+			name[#name+1] = randomLetter(vowels)
+		end
+	until (#name > math.random(8) + 4)
+	return table.concat(name, "")
+end
+
+function randomLetter(letters)
+	return letters[math.random(#letters)]
+end
+
+jobs = {"Cement Mixer", "Pizza Taster", "Robotic Finger Programmer", "Pepper Grower", "Shoe Polisher",
+		"Coconut Painter", "Child Therapist", "Old Spice Representative"}
+places = {"New York", "Summoner's Rift", "Mars", "Zimbabwe", "Middle Earth", "Iceland",
+			"Calvary", "Your Bedroom"}
+
+function makeAnIntro()
+	introStory = {}
+	
+	table.insert(introStory,"Your name is "..char.name..".")
+	table.insert(introStory,"You last remember working as a "..randomLetter(jobs))
+	table.insert(introStory,"from "..randomLetter(places)..".\n")
+	table.insert(introStory,"The world has come under the control")
+	
+	return parseLongThing(table.concat(introStory, " "), 45)
 end

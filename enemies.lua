@@ -147,7 +147,7 @@ function Enemy:checkAndMove(x, y)
 	if(map[x] == nil or map[x][y] == nil or map[x][y].blocker or map[x][y].trap) then --[[chill]]-- 
 		return
 	end
-	local enemy_in_space = false
+	local enemy_in_space = nil
 	if(char.x == x and char.y == y) then enemy_in_space = true end
 	for i=1,#enemies do
 		if(enemies[i].x == x and enemies[i].y == y and enemies[i].name ~= "Mine") then
