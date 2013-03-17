@@ -155,8 +155,8 @@ function initLevel()
 	end
 	print("get on my level: " .. level)
 	
-	--if we're in the sewers then the character is already set
-	if(leveltype ~= "sewers") then
+	--if we're in the sewers or the final arena then the character is already set
+	if(leveltype == "rooms") then
 		-- Set character location
 		char["x"] = MAPWIDTH/4 + math.random(MAPWIDTH/2)
 		char["y"] = MAPHEIGHT/4 + math.random(MAPHEIGHT/2)
@@ -164,6 +164,7 @@ function initLevel()
 
 	-- Set screen offset (for scrolling)
 	offset = {x=char["x"]-20, y=char["y"]-30}
+	--print("map at charx, chary: " .. map[char.x][char.y])
 	while(map[char["x"]][char["y"]].blocker) do
 		char["x"] = char["x"] + 1
 		char["y"] = char["y"] + 1
@@ -454,7 +455,44 @@ function makeMap(levelType)
 				spawnEnemy(platformx[i] - 1, platformy[i] + 1, Rat)
 			end
 		end
+	elseif(levelType == "finalarena") then
+		--make a big circle surrounded with pits
+		
+		for i = 1, MAPWIDTH do
+			row = {}
+			for j = 1, MAPHEIGHT do
+				row[j] = Pit:new{room={[1]=true}}
+			end
+			map[i] = row
+		end
+		
+		circleCenter = MAPWIDTH/2
+		for angle = 0, 2 * math.pi, math.pi / 36 do
+			for radius = 0, 12 do
+				x = math.cos(angle) * radius
+				y = math.cos(angle) * radius
+				
+				map[x][y] = Floor:new{room={[1]=true}}
+				
+			end
+		end
+		
+		char.x, char.y = circleCenter, circleCenter
+		print("character at " .. char.x .. ", " .. char.y)
+		
+		--add some "pillars"
+		
+		for angle = 0, 2 * math.pi, math.pi / 8 do
+			radius = 6
+			x = math.cos(angle) * radius
+			y = math.cos(angle) * radius
+			
+			map[x][y] = Wall:new{room={[1]=true}}
+		end
+		
 	end
+	
+	
 	
 	--[[
 	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2)*2, y=start_j}} -- Make thundering door lever
@@ -922,6 +960,11 @@ function keyPressGame(key, unicode)
 	
 	if(key == "3") then
 		level = 3
+		initLevel()
+	end
+	
+	if(key == "4") then
+		level = 4
 		initLevel()
 	end
 

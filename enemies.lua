@@ -484,11 +484,13 @@ evilWizX, evilWizY = 0, 0
 function EvilWizard:doLaser()
 	--figure out which direction we gonn do it
 	diffX = char.x - self.x
-	diffY = char.x - self.y
+	diffY = char.y - self.y
 	
 	evilWizX, evilWizY = self.x, self.y
 	
 	ldx, ldy = 0, 0
+	
+	print("Diffx: " .. diffX .. " Diffy: " .. diffY)
 	
 	if(math.abs(diffY) > math.abs(diffX)) then --must be either up/down
 		if(diffY > 0) then
@@ -498,9 +500,9 @@ function EvilWizard:doLaser()
 		end
 	else -- must be horizontal
 		if(diffX > 0) then
-			ldx = -1
-		else
 			ldx = 1
+		else
+			ldx = -1
 		end
 	end
 	
@@ -511,14 +513,14 @@ function EvilWizard:doLaser()
 	for k in pairs (wizLaserTiles) do
 		wizLaserTiles [k] = nil
 	end
-	
+	laserlength = 60
 	--"tracking" lazer
 	--is a straight line from the wizard in the direction he chose
 	print("well why the fuck is self.x, self.y " .. self.x .. ", " .. self.y .. " here then?")
 	if(ldx ~= 0) then
 		ly = self.y
 		lx = self.x
-		while(lx ~= self.x + ldx * 40) do
+		while(lx ~= self.x + ldx * laserlength) do
 			table.insert(wizLaserTiles, {x=lx, y=ly})
 			--print("So we just put " .. wizLaserTiles[#wizLaserTiles].x .. " as x, " .. wizLaserTiles[#wizLaserTiles].y .. " as y, in tracking")
 			lx = lx + ldx
@@ -526,7 +528,7 @@ function EvilWizard:doLaser()
 	else
 		lx = self.x
 		ly = self.y
-		while(ly ~= self.y + ldy * 40) do
+		while(ly ~= self.y + ldy * laserlength) do
 			table.insert(wizLaserTiles, {x=lx, y=ly})
 			ly = ly + ldy
 		end
@@ -558,7 +560,7 @@ function EvilWizard:updateLaser()
 			lx = evilWizX
 			ly = evilWizY
 			if(ldx ~= 0) then
-				while(lx ~= evilWizX + ldx * 40) do
+				while(lx ~= evilWizX + ldx * laserlength) do
 					ly = evilWizY + 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
 					ly = evilWizY - 1
@@ -575,7 +577,7 @@ function EvilWizard:updateLaser()
 			end
 			
 			if(ldy ~= 0) then
-				while(ly ~= evilWizY + ldy * 40) do
+				while(ly ~= evilWizY + ldy * laserlength) do
 					lx = evilWizX + 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
 					lx = evilWizX - 1
