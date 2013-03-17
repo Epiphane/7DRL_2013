@@ -411,6 +411,182 @@ function Skeleton:update()
 	self.weapon:update()
 end
 
+-- BEGIN EVIL WIZARD ******************************
+wizLaserTiles = {} --keeps track of where the wizard lazer tiles show up
+wizLaserMode = "idle"
+EvilWizard = Enemy:new{name="Evil Wizard", icon="W", health=300}
+function EvilWizard:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+	--Have a randomly generated name for the wizard
+end
+
+
+function EvilWizard:takeTurn()
+	wizardChoice = 35 --math.random(0,100)
+	--Wizard has a 1/10 chance of making an explosion randomly near you...
+	if(wizardChoice < 10) then
+		printSideWithColor(self.name .. " waves his hand and the ground around you erupts in flame!", 237, 121, 26)
+		
+		makeExplosion(char.x + math.random(-5,5), char.y + math.random(-5,5), 4, true)
+		
+	--1/10 of spawning a random enemy...
+	elseif(wizardChoice < 20) then
+		whichEnemy = math.random(1,4)
+		if(whichEnemy == 1) then
+			whichEnemy = Skeleton
+		elseif(whichEnemy == 2) then
+			whichEnemy = Rat
+		elseif(whichEnemy == 3) then
+			whichEnemy = GiantRat
+		elseif(whichEnemy == 4) then
+			whichEnemy = Zombie
+		end
+		
+		printSideWithColor(self.name .. " vomits out a " .. whichEnemy.name .."!", 84, 196, 20)
+		spawnEnemy(self.x + 1, self.y + 1)
+		
+	--1/10 chance of mocking you...
+	elseif(wizardChoice < 30) then
+		whichMessage = math.random(1,4)
+		if(whichMessage == 1) then
+			printSideWithColor("\"Your torment shall be unending!\" shouts " .. self.name, 196, 23, 20)
+		elseif(whichMessage == 2) then
+			printSideWithColor("\"Just stand still and accept your fate!\" screams " .. self.name, 196, 20, 185)
+		elseif(whichMessage == 3) then
+			printSideWithColor("\"Yo I'mma really screw you up!\" yells " .. self.name, 20, 164, 196)
+		elseif(whichMessage == 4) then
+			printSideWithColor("\"ALLAN PLEASE WRITE A WIZARD TAUNT\" " .. self.name .. " yells", 	40, 196, 20)
+		end
+	
+	--1/10 chance of doin dat lazar
+	elseif(wizardChoice < 40) then
+		printSide(self.name .. " fires a powerful beam of energy!")
+		self:doLaser()
+	end
+
+end
+
+--do a sweet laser aimed at the player
+ldx, ldy = 0, 0 --stores direction of laser
+
+function EvilWizard:doLaser()
+	--figure out which direction we gonn do it
+	diffX = char.x - self.x
+	diffY = char.x - self.y
+	
+	ldx, ldy = 0, 0
+	
+	if(math.abs(diffY) > math.abs(diffX)) then --must be either up/down
+		if(diffY > 0) then
+			ldy = 1
+		else
+			ldy = -1
+		end
+	else -- must be horizontal
+		if(diffX > 0) then
+			ldx = -1
+		else
+			ldx = 1
+		end
+	end
+	
+	--hold up a second mr. user
+	stackPause = stackPause + 1
+	
+	--wipe the old lazer table
+	for k in pairs (wizLaserTiles) do
+		wizLaserTiles [k] = nil
+	end
+	
+	--"tracking" lazer
+	--is a straight line from the wizard in the direction he chose
+	if(ldx ~= 0) then
+		for lx = self.x, self.x + ldx * 40 do
+			table.insert(wizLaserTiles, {x=lx, y=ly})
+		end
+	else
+		for ly = self.y, self.y + ldy * 40 do
+			table.insert(wizLaserTiles, {x=lx, y=ly})
+		end
+	end
+	
+	wizLaserMode = "tracking"
+	fireLaserTime = currtime + 0.5 --when do we switch from track mode to firing mode?
+	waitingOn = "wizLaser"
+end
+
+doneLaserTime = 0
+function EvilWizard:updateLaser()
+	if(wizLaserMode == "tracking") then
+		if(currtime > fireLaserTime) then
+			--FIIIARRRRRR
+			wizLaserMode = "firing"
+			
+			--figure out where the laser thingies should be
+			--generally looks like this:
+			--[[
+			      ------------------------->
+			   ---------------------------->
+			W------------------------------> BLLEAAARGH
+			   ---------------------------->
+			      ------------------------->
+			]]--
+			
+			if(ldx ~= 0) then
+				for lx = self.x + ldx * 2, self.x + ldx * 40 do
+					ly = self.y + 1
+					table.insert(wizLaserTiles, {x=lx, y=ly})
+					ly = self.y - 1
+					table.insert(wizLaserTiles, {x=lx, y=ly})
+					
+					ly = self.y + 2
+					row2x = lx + 2 * ldx
+					table.insert(wizLaserTiles, {x=row2x, y=ly})
+					ly = self.y - 2
+					table.insert(wizLaserTiles, {x=row2x, y=ly})
+				end
+			end
+			
+			if(ldy ~= 0) then
+				for ly = self.y + ldy * 2, self.y + ldy * 40 do
+					lx = self.x + 1
+					table.insert(wizLaserTiles, {x=lx, y=ly})
+					lx = self.x - 1
+					table.insert(wizLaserTiles, {x=lx, y=ly})
+					
+					lx = self.x + 2
+					row2y = ly + 2 * ldy
+					table.insert(wizLaserTiles, {x=lx, y=row2y})
+					lx = self.x - 2
+					table.insert(wizLaserTiles, {x=lx, y=row2y})
+				end
+			end
+		end
+		
+		doneLaserTime = currtime + 0.5
+	end
+	
+	if(wizLaserMode == "firing") then
+		if(currtime > doneLaserTime) then
+			--no moar lazer
+			for k in pairs (wizLaserTiles) do
+				wizLaserTiles [k] = nil
+			end
+			
+			--we done here
+			stackPause = stackPause - 1
+			if(waitingOn == "wizLaser") then
+				waitingOn = nil
+			end
+		end
+	end
+end
+
+-- END EVIL WIZARD   ******************************
+
 function Enemy:forceMarch(newX, newY)
 	self.forcedMarch = true
 	self.targetX = newX

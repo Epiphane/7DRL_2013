@@ -75,6 +75,8 @@ end
 
 function printSideWithColor(message, r, g, b)
 	if message then
+		message = parseLongThing(message)
+		
 		table.insert(sidebarlog, 1, {message="break", color={r=0,g=0,b=0}})
 		m = string.explode(message, "\n")
 		for i = #m,1,-1 do

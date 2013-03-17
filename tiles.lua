@@ -187,13 +187,25 @@ function SpikeTrap:checkTrap(victim)
 	end
 end
 
-CatapultTrap = Tile:new{tile=7, blocker=false, awesome_effect=5, dir_x=0, dir_y=0, trap = true}
+CatapultTrap = Tile:new{tile="u", blocker=false, awesome_effect=5, direction = 1, trap = true}
 function CatapultTrap:new(o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
+	self.direction = math.random(1,4)
 	
-	print(cdir)
+	--1=up  2=right  3=down  4=left
+	if(self.direction == 1) then
+		self.tile="u"
+	elseif(self.direction == 2) then
+		self.tile="r"
+	elseif(self.direction == 3) then
+		self.tile="d"
+	elseif(self.direction == 4) then
+		self.tile="l"
+	else
+		print("well SOMEthing screwed up in CatapultTrap...")
+	end
 	return o
 end
 
@@ -206,14 +218,40 @@ function CatapultTrap:checkTrap(victim)
 		else
 			printSide("A hidden catapult springs out of the ground and flings you across the room!")
 		end
-		char:forceMarch(char.x + math.random(-5,5), char.y + math.random(-5,5))
+		
+		resultx, resulty = char.x, char.y
+		if(self.direction == 1) then
+			resulty = resulty - 5
+		elseif(self.direction == 2) then
+			resultx = resultx + 5
+		elseif(self.direction == 3) then
+			resulty = resulty + 5
+		elseif(self.direction == 4) then
+			resultx = resultx - 5
+		end
+		print("you are at " .. char.x .. ", " .. char.y .. ", punting you to " .. resultx .. ", " .. resulty)
+		
+		char:forceMarch(resultx,resulty)
 	else
 		if(victim.forcedMarch) then --enemy hit a trap while flying: AWEZZZOMMEE
 			printSide("The " .. string.lower(victim.name) .. " lands on a catapult trap and is sent hurtling across the room!")
+			victim.getHit(5)
+			--just in case they get caught in the wall-loop, which I never really figured out :I
 		else
 			printSide("A hidden catapult springs out of the ground and flings the " .. string.lower(victim.name) .. "across the room!")
 		end
-		victim:forceMarch(victim.x + math.random(-5,5), victim.y + math.random(-5,5))
+		resultx, resulty = victim.x, victim.y
+		if(direction == 1) then
+			resulty = resulty - 5
+		elseif(direction == 2) then
+			resultx = resultx + 5
+		elseif(direction == 3) then
+			resulty = resulty + 5
+		elseif(direction == 4) then
+			resultx = resultx - 5
+		end
+		
+		victim:forceMarch(resultx, resulty)
 	end
 end
 
