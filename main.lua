@@ -934,9 +934,6 @@ function love.keypressed(key, unicode)
 end
 	
 function keyPressWelcome(key, unicode)
-	if(key == "/") then
-		gameState = 3
-	end
 	if(key == "return") then
 		gameState = 1
 		initGame()
@@ -965,13 +962,13 @@ function keyPressGame(key, unicode)
 		return
 	end
 	--DEBUG: get on my level
-	if(key == "1") then
-		level = 1
-		initLevel()
+	--[[if(key == "1") then
+		--level = 1
+		--initLevel()
 	end
 	
 	if(key == "2") then
-		level = 2
+		-level = 2
 		initLevel()
 	end
 	
@@ -983,7 +980,7 @@ function keyPressGame(key, unicode)
 	if(key == "4") then
 		level = 4
 		initLevel()
-	end
+	end]]--
 
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
@@ -1024,8 +1021,8 @@ function keyPressGame(key, unicode)
 		
 		--press E for Explosion
 		if(key == "e") then
-			makeExplosion(char["x"], char["y"], 5, false)
-			char:forceMarch(char["x"], char["y"] + 5)
+			--makeExplosion(char["x"], char["y"], 5, false)
+			--char:forceMarch(char["x"], char["y"] + 5)
 		end
 		
 		--press "Z" for first active item
