@@ -97,7 +97,7 @@ function initLevel()
 		MAPHEIGHT = 24
 		ROOMNUM = 1
 		viewed_rooms = {}
-		possibleEnemies = {{{enemy=Rat, num=3}}}
+		possibleEnemies = {{{enemy=Rat, num=3}}, {{enemy=Rat, num=2}}}
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
 		possiblePassives = {SwordOfDemacia}
@@ -117,12 +117,12 @@ function initLevel()
 		makeMap(leveltype)
 	elseif level == 3 then
 		leveltype = "sewers"
-		MAPWIDTH = 100
-		MAPHEIGHT = 100
+		MAPWIDTH = 96
+		MAPHEIGHT = 96
 		ROOMNUM = 1
 		viewed_rooms = {}
-		possiblePassives = {Pistol}
-		possibleActives = {FZeroSuit}
+		possiblePassives = {Pistol, SpeedBoots}
+		possibleActives = {FZeroSuit, BagOMines, CloakAndDagger, Whip, SpartanBoots}
 		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
 		Boss = Skeleton
 		makeMap(leveltype)
@@ -155,19 +155,21 @@ function makeMap(levelType)
 	map = {}
 	filledRooms = {}
 	print(#filledRooms)
-	for i = 1, MAPWIDTH do
-		row = {}
-		for j = 1, MAPHEIGHT do
-			if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
-				row[j] = Wall:new{room={[ROOMNUM]=true}}
-			else
-				row[j] = Floor:new{room={[ROOMNUM]=true}}
-			end
-		end
-		map[i] = row
-	end
+	
 	
 	if(levelType == "rooms") then
+		for i = 1, MAPWIDTH do
+			row = {}
+			for j = 1, MAPHEIGHT do
+				if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
+					row[j] = Wall:new{room={[ROOMNUM]=true}}
+				else
+					row[j] = Floor:new{room={[ROOMNUM]=true}}
+				end
+			end
+			map[i] = row
+		end
+	
 		-- Create rooms
 		j = 1
 		repeat
@@ -239,17 +241,29 @@ function makeMap(levelType)
 		end
 	elseif(levelType == "sewers") then
 	
-		--[[for i = 1, MAPWIDTH do
+		SEWER_WIDTH = MAPWIDTH/2
+		SEWER_HEIGHT = MAPHEIGHT/2
+	
+		SEWER_START_X = math.ceil(MAPWIDTH/4)
+		SEWER_END_X = math.ceil(3 * MAPWIDTH/4)
+		SEWER_START_Y = math.ceil(MAPWIDTH/4)
+		SEWER_END_Y = math.ceil(3 * MAPWIDTH/4)
+		
+		for i = 1, MAPWIDTH do
 			row = {}
 			for j = 1, MAPHEIGHT do
-				if(i == 1 or j == 1 or j == MAPHEIGHT or i == MAPWIDTH) then
-					row[j] = Wall:new{room={[ROOMNUM]=true}}
-				else
-					row[j] = Pit:new{room={[ROOMNUM]=true}}
-				end
+				row[j] = Pit:new{room={[ROOMNUM]=true}}
 			end
 			map[i] = row
-		end]]--
+		end
+		
+		for i = SEWER_START_X, SEWER_END_X do
+			row = {}
+			for j = SEWER_START_Y, SEWER_END_Y do
+				row[j] = Pit:new{room={[ROOMNUM]=true}}
+			end
+			map[i] = row
+		end
 	
 		--first off.  We got 8 "nodes," 2 for each of the walls around the bigass room.
 		NUMNODES = 8
@@ -262,65 +276,32 @@ function makeMap(levelType)
 		--establish position of the nodes
 		local mapWthird = math.ceil(MAPWIDTH/3)
 		local mapHthird = math.ceil(MAPHEIGHT/3)
-		nodes[1]["x"], nodes[1]["y"] = mapWthird, 2
-		nodes[2]["x"], nodes[2]["y"] = 2 * mapWthird, 2
-		nodes[3]["x"], nodes[3]["y"] = MAPWIDTH - 2, mapHthird
-		nodes[4]["x"], nodes[4]["y"] = MAPWIDTH - 2, 2 * mapHthird   ---~~~~~~~~~~~~~~~~~~
-		nodes[5]["x"], nodes[5]["y"] = 2 * mapWthird, mapHthird   ---~~~~~~~~~~~~~~~~~~~ lol it's a penis
-		nodes[6]["x"], nodes[6]["y"] = mapWthird, MAPHEIGHT - 2
-		nodes[7]["x"], nodes[7]["y"] = 2, 2 * mapHthird
-		nodes[8]["x"], nodes[8]["y"] = 2, mapHthird
+		nodes[1]["x"], nodes[1]["y"] = SEWER_START_X + SEWER_WIDTH / 3, SEWER_START_Y
+		nodes[2]["x"], nodes[2]["y"] = SEWER_START_X + 2 * SEWER_WIDTH / 3, SEWER_START_Y
+		nodes[3]["x"], nodes[3]["y"] = SEWER_END_X, SEWER_START_Y + SEWER_HEIGHT/3
+		nodes[4]["x"], nodes[4]["y"] = SEWER_END_X, SEWER_START_Y + 2 * SEWER_HEIGHT/3
+		nodes[5]["x"], nodes[5]["y"] = SEWER_START_X + 2 * SEWER_WIDTH / 3, SEWER_END_Y
+		nodes[6]["x"], nodes[6]["y"] = SEWER_START_X + SEWER_WIDTH / 3, SEWER_END_Y
+		nodes[7]["x"], nodes[7]["y"] = SEWER_START_X, SEWER_START_Y + 2 * SEWER_HEIGHT / 3
+		nodes[8]["x"], nodes[8]["y"] = SEWER_START_X, SEWER_START_Y + SEWER_HEIGHT /3
 		
 		for i = 1, NUMNODES do
 			nodes[i]["friend"] = false
+			print("node " .. i .. " x: " .. nodes[i].x .. " y: " .. nodes[i].y)
 		end
 		
-		--match two of each of the "nodes" together
-		--don't match adjacent nodes (no incest plz)
-		--just kind of go around haphazardly matching nodes until all of them have a pair.
-		done = false
-		while(not done) do
-			for i = 1, NUMNODES do
-				done = true
-				if(nodes[i].friend == false) then
-					newFriend = ( math.random(1,6) + i ) % NUMNODES + 1 --math enough for ya??
-					for j = 1, NUMNODES do
-						--here, check 'em all to see if we're done.
-						if(not nodes[j].friend) then
-							done = false
-						end
-					end
-					
-					if done then break end
-					
-					for j = 1, NUMNODES do
-						--here, make sure if "i" or "newFriend" had a pair that guy is TERMINATED
-						if(nodes[j].friend == i) then nodes[j].friend = false end
-						if(nodes[j].friend == newFriend) then nodes[j].friend = false end
-					end
-					
-					--give 'em their newfriends :D
-					nodes[newFriend].friend = i
-					nodes[i].friend = newFriend
-					
-					--print("matched " .. newFriend .. " and " .. i)
-				end
-			end
-			for j = 1, NUMNODES do
-				--here, check 'em all to see if we're done.
-				if(not nodes[j].friend) then
-					done = false
-				end
-			end
-		end
+		--Match each node with its friend across the way
+		nodes[1].friend = 5
+		nodes[5].friend = 1
 		
-		for i = 1, NUMNODES do
-			if(nodes[i].friend) then
-				print("oh boy! " .. i .. " is friends with " .. nodes[i].friend .. "!!")
-			else
-				print("OH GOD " .. i .. " I AM SO ALONE")
-			end
-		end
+		nodes[2].friend = 6
+		nodes[6].friend = 2
+		
+		nodes[3].friend = 7
+		nodes[7].friend = 3
+		
+		nodes[8].friend = 4
+		nodes[4].friend = 8
 			
 		--create a "walker" for each of the matched nodes that will move towards each other, leaving
 		--a trail of floor tiles.
@@ -340,6 +321,7 @@ function makeMap(levelType)
 				currWalker = nodes[i].walker
 				if(currWalker) then --ensures the walker exists
 					--walker shits out a floorseed where it's at
+					--print("currWalker x: " .. currWalker.x .. " currWalker y: " .. currWalker.y)
 					map[currWalker.x][currWalker.y].tile=7
 					
 					local deltaX = math.sign(currWalker.targetX - currWalker.x)
@@ -349,10 +331,17 @@ function makeMap(levelType)
 					randoCommando = math.random(0,100)
 					if(randoCommando > 40) then
 						currWalker.x = currWalker.x + deltaX
+					elseif(randoCommando > 95) then
+						currWalker.x = currWalker.x - deltaX
+						--FUCK YOU I'M NOT A PART OF YO SYSTEEMMMMM
 					end
+					
 					randoCommando = math.random(0,100)
 					if(randoCommando > 40) then
 						currWalker.y = currWalker.y + deltaY
+					elseif(randoCommando > 95) then
+						currWalker.y = currWalker.y - deltaY
+						--FUCK YOU I WON'T, DO WHAT YOU TELLL LMEEEEE
 					end
 					
 					if(currWalker.x ~= currWalker.targetX or currWalker.y ~= currWalker.targetY) then
@@ -363,21 +352,21 @@ function makeMap(levelType)
 		end
 		
 		--finally, for each floorseed, add tiles to the 3x3 area around it.
-		for mx = 1, MAPWIDTH do
-			for my = 1, MAPHEIGHT do
+		for mx = SEWER_START_X, SEWER_END_X do
+			for my = SEWER_START_Y, SEWER_END_Y do
 				if(map[mx][my].tile == 7) then
 					--for dx = math.random(-4,-2), math.random(1,3) do
 						--for dy = math.random(-4,-2), math.random(1,3) do
-					for dx = -2, 2 do
-						for dy = -2, 2 do
+					for dx = math.random(-3,-2), math.random(2,3) do
+						for dy = math.random(-3,-2), math.random(2,3) do
 							if(map[mx + dx] and map[mx + dx][my + dy] and map[mx + dx][my + dy].tile ~= 2) then 
 							--make sure tile exists and is not a wall
-								map[mx + dx][my + dy] = Floor:new{room={[ROOMNUM]=true}}
+								map[mx + dx][my + dy] = Floor:new{room={[1]=true}}
 							end
 						end
 					end
 					
-					map[mx][my].tile = 9
+					--map[mx][my].tile = 9
 				end
 			end
 		end
@@ -385,8 +374,100 @@ function makeMap(levelType)
 		--plop the character down on a random node
 		charNode = math.random(1,NUMNODES)
 		char.x, char.y = nodes[charNode].x, nodes[charNode].y
+		
+		--add the 8 platforms that are sorta "behind" each one of the nodes.
+		platformx = {}
+		platformy = {}
+		platformx[1], platformy[1] = nodes[1].x, nodes[1].y - 15
+		platformx[2], platformy[2] = nodes[2].x, nodes[2].y - 15
+		platformx[3], platformy[3] = nodes[3].x + 15, nodes[3].y
+		platformx[4], platformy[4] = nodes[4].x + 15, nodes[4].y
+		platformx[5], platformy[5] = nodes[5].x, nodes[5].y + 15
+		platformx[6], platformy[6] = nodes[6].x, nodes[6].y + 15
+		platformx[7], platformy[7] = nodes[7].x - 15, nodes[7].y
+		platformx[8], platformy[8] = nodes[8].x - 15, nodes[8].y
+		
+		makePlatform(platformx[1], platformy[1], nodes[1].x, nodes[1].y, 1)
+		makePlatform(platformx[2], platformy[2], nodes[2].x, nodes[2].y, 2)
+		makePlatform(platformx[3], platformy[3], nodes[3].x, nodes[3].y, 3)
+		makePlatform(platformx[4], platformy[4], nodes[4].x, nodes[4].y, 4)
+		makePlatform(platformx[5], platformy[5], nodes[5].x, nodes[5].y, 5)
+		makePlatform(platformx[6], platformy[6], nodes[6].x, nodes[6].y, 6)
+		makePlatform(platformx[7], platformy[7], nodes[7].x, nodes[7].y, 7)
+		makePlatform(platformx[8], platformy[8], nodes[8].x, nodes[8].y, 8)
+		
+		--one platform gets an active item, one platform gets a passive item,
+		--one platform gets the boss and the rest get enemies.
+		
+		bossPlatform = math.random(1,8)
+		print("boss platform at: " .. bossPlatform)
+		activePlatform = bossPlatform
+		
+		while(activePlatform == bossPlatform) do
+			activePlatform = math.random(1,8)
+			print("activePlatform at: " .. activePlatform)
+		end
+		
+		passivePlatform = activePlatform
+		while(passivePlatform == activePlatform) do
+			passivePlatform = math.random(1,8)
+			print("passive platform at: " .. passivePlatform)
+		end
+		
+		for i = 1, NUMNODES do
+			if(i == bossPlatform) then
+				spawnEnemy(platformx[i], platformy[i], Skeleton)
+			elseif(i == activePlatform) then
+				--spawn an active here!
+			elseif(i == passivePlatform) then
+				--spawn a passive here!
+			else
+				--spawn a few enemies
+				spawnEnemy(platformx[i] - 1, platformy[i], GiantRat)
+				spawnEnemy(platformx[i], platformy[i] + 1, Zombie)
+				spawnEnemy(platformx[i] - 1, platformy[i] + 1, Rat)
+			end
+		end
 	end
+	
+	--[[
 	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2)*2, y=start_j}} -- Make thundering door lever
+	]]--
+end
+
+function makePlatform(x, y, nodex, nodey, nodenum)
+	--make a big ol pancake blob
+	for angle = 0, 2 * math.pi, math.pi / 24 do
+		max_radius = math.random(4,8)
+		for radius = 0, max_radius do
+			--gimme dat gimme dat polar co-ordinates!
+			floorx, floory = math.floor(radius * math.cos(angle) + x), math.floor(radius * math.sin(angle) + y)
+			--print("adding floor to: " .. floorx .. ", " .. floory)
+			map[floorx][floory] = Floor:new{room={[1]=true}}
+		end
+	end
+	
+	print("Adding bridge")
+	
+	--now make a "bridge" back to the node
+	targetx, targety = nodex, nodey
+	currx, curry = x, y
+	--print("target x: " .. targetx .. " targety: " .. targety .. " currx: " .. currx .. " curry: " .. curry)
+	while(currx ~= targetx or curry ~= targety) do
+		for i = -3, 3 do
+			for j = -3, 3 do
+				map[i + currx][j + curry] = Floor:new{room={[1]=true}}
+			end
+		end
+		
+		--print("bridge is at " .. currx .. ", " .. curry) -- lol curry
+		
+		deltax = math.sign(targetx - currx)
+		deltay = math.sign(targety - curry) -- lol indian food
+		
+		currx = currx + deltax
+		curry = curry + deltay
+	end
 end
 
 -- Automatically add doors to the room
@@ -409,15 +490,16 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 				map[i][j] = Floor:new{room={[roomnum]=true}} -- Floor
 			end
 			if(i == trapX and j == trapY) then
-				--[[whichTrap = math.random(1,2)
+				whichTrap = math.random(1,3)
 				if(whichTrap == 1) then
 					map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
 				elseif(whichTrap == 2) then
-					cxdir = math.random(-6,6)
-					cydir = math.random(-6,6)
-					map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
-				end]]--
-				map[i][j] = Pit:new{room={[roomnum]=true}}
+					--direction = 1 --> 4
+					catadirection = math.random(1, 4)
+					map[i][j] = CatapultTrap:new{room={[roomnum]=true}, direction = catadirection}
+				elseif(whichTrap == 3) then
+					map[i][j] = Pit:new{room={[roomnum]=true}}
+				end
 			end
 			
 			-- if its the top or left of a room we need to make special...modifications
@@ -737,6 +819,7 @@ function updateGame()
 				--check if the enemy hit a wall
 				if(tile.blocker) then
 					printSide("The " .. string.lower(enemies[i].name) .. " slams into a wall!")
+					enemies[i]:getHit(10)
 					enemies[i].forcedMarch = false
 				--check if the enemy ended up where it's supposed to get to
 				elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
@@ -776,9 +859,20 @@ function keyPressWelcome(key, unicode)
 end
 	
 function keyPressGame(key, unicode)
-	--escaaaape
-	if(key == "escape") then
-		love.quit()
+	--DEBUG: get on my level
+	if(key == "1") then
+		level = 1
+		initLevel()
+	end
+	
+	if(key == "2") then
+		level = 2
+		initLevel()
+	end
+	
+	if(key == "3") then
+		level = 3
+		initLevel()
 	end
 
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
@@ -1054,9 +1148,31 @@ function checkThenMove(x, y)
 		else
 			char.diry = -1
 		end
-		k, v = next(map[char["x"]][char["y"]].room, nil)
-		char["room"] = k
-		viewed_rooms[k] = true
+		
+		if(leveltype == "rooms") then
+			k, v = next(map[char["x"]][char["y"]].room, nil)
+			char["room"] = k
+			viewed_rooms[k] = true
+		end
+		
+		if(leveltype == "sewers") then
+			--on sewer levels, the "room" is the 30x30 square around you.
+			char["room"] = 1 --it's value is "1," all other squares are in the magical room "2"
+			
+			for i = 1, MAPWIDTH do
+				for j = 1, MAPHEIGHT do
+					if(math.sqrt( (i - char.x)^2 + (j - char.y)^2 ) < 5) then
+						if(map[i] and map[i][j]) then
+							map[i][j].room = {1}
+						end
+					else
+						if(map[i] and map [i][j]) then
+							map[i][j].room = {2}
+						end
+					end
+				end
+			end
+		end
 		
 		-- And lets do some fancy scrolling stuff
 		--if(table.getn(map) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
@@ -1095,7 +1211,7 @@ end
 --does the null-check for you.
 function checkTile(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then 
-		--print("oh crap, tried to access a null tile!")
+		print("oh crap, tried to access a null tile!")
 		return "null" --** run a check to see if tile=="null" to avoid exceptions.
 	end
 	
