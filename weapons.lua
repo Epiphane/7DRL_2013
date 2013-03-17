@@ -513,7 +513,7 @@ function SpartanBootsWeapon:shoot(dx, dy)
 			else
 				enemies[i]:getHit(15)
 				
-				enemies[i]:forceMarch(self.x+self.dx*4,self.y+self.dy*4)
+				enemies[i]:forceMarch(self.x+self.dx*10,self.y+self.dy*10)
 				printSide("SPARTAAAAA!!!!!!!!")
 			end
 			return
