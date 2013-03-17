@@ -109,7 +109,7 @@ dofile("character.lua")
 -- Initialize everything Enemy
 dofile("enemies.lua")
 
-possibleActives = {Whip, FZeroSuit, SpartanBoots, CloakAndDagger, BagOMines, SackOGrenades, PulsefireBoots,}
+possibleActives = {Whip, FZeroSuit, SpartanBoots, CloakAndDagger, BagOMines, SackOGrenades}
 function initLevel()
 	enemies = {}
 	objects = {}
@@ -237,9 +237,7 @@ function makeMap(levelType)
 			table.insert(map[start_i][start_j-1].room, {[998]=true})
 			table.insert(map[start_i][start_j+1].room, {[998]=true})
 			-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
-			if level == 1 then
-				spawnEnemy(start_i-(orient-2), start_j, Barrel)
-			end
+			spawnEnemy(start_i-(orient-2), start_j, Barrel)
 			
 			for i = start_i+(orient-2),end_i,(orient-2) do
 				map[i] = {}
