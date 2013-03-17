@@ -94,6 +94,13 @@ function char:addActive(name)
 		self.actives[self.activeNum].name = "Bag O' Mines"
 		self.actives[self.activeNum].maxcooldown = BagOMines.cooldown
 		self.actives[self.activeNum].cooldown = 0
+	elseif(name == "Pulsefire Boots") then
+		self.activeNum = self.activeNum + 1
+		
+		self.actives[self.activeNum] = {}
+		self.actives[self.activeNum].name = "Pulsefire Boots"
+		self.actives[self.activeNum].maxcooldown = PulsefireBoots.cooldown
+		self.actives[self.activeNum].cooldown = 0
 	end
 end
 
@@ -120,6 +127,11 @@ function char:doActive(name)
 		waitingOn = "spartan"
 		
 		printSide("You wind up for a grand kick. (choose a direction)")
+	elseif(name == "Pulsefire Boots") then
+		stackPause = stackPause + 1
+		waitingOn = "pulsefire"
+		
+		printSide("You prepare for a grandiose leap. (choose a direction)")
 	elseif(name == "Sack O' Grenades") then
 		stackPause = stackPause + 1
 		waitingOn = "grenade"
@@ -158,6 +170,14 @@ function char:spartanKick(dx, dy)
 	SpartanBootsWeapon:shoot(dx, dy)
 	
 	waitingOn = ""
+	stackPause = stackPause - 1
+end
+
+function char:jumpKick(dx, dy)
+	dx, dy = getDirectionByKey(dx, dy)
+	
+	PulsefireBootsWeapon:shoot(dx*4, dy*4)
+	
 	stackPause = stackPause - 1
 end
 

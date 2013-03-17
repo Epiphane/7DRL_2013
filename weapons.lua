@@ -360,7 +360,7 @@ function WhipWeapon:update()
 		
 		for i = 1, # enemies do
 			if(self.x == enemies[i]["x"] and self.y == enemies[i]["y"]) then
-				enemies[i]:forceMarch(enemies[i].x - self.dx*self.distance/2, enemies[i].y - self.dy*self.distance/2)
+				enemies[i]:forceMarch(enemies[i].x - self.dx*math.ceil(self.distance/2), enemies[i].y - self.dy*math.ceil(self.distance/2))
 				self:die()
 			end	
 		end
@@ -394,6 +394,7 @@ function SpartanBootsWeapon:shoot(dx, dy)
 	for i = 1, # enemies do
 		if(self.x + self.dx == enemies[i]["x"] and self.y + self.dy == enemies[i]["y"]) then
 			if(enemies[i].health <= 15) then
+				enemies[i]:getHit(15)
 				printSide("SPARTAAAAA!!!!!!!! The " .. enemies[i].name .. " is reduced to a sticky puddle.")
 			else
 				enemies[i]:getHit(15)
@@ -406,9 +407,21 @@ function SpartanBootsWeapon:shoot(dx, dy)
 	end
 	
 	printSide("You kick at the air and fall over like Charlie Brown")
-	char:getHit(10)
+	char:loseAwesome(10)
 end
 -- *************************** END SPARTAN BOOTS
+
+-- ****************************** BEGIN PULSEFIRE BOOTS
+PulsefireBootsWeapon = {}
+function PulsefireBootsWeapon:shoot(dx, dy)
+	self.x = char.x
+	self.y = char.y
+	
+	self.dx, self.dy = getDirectionByKey(dx, dy)
+	
+	char:forceMarch(char.x+self.dx,char.y+self.dy)
+end
+-- *************************** END PULSEFIRE BOOTS
 
 -- ****************************** BEGIN GRENADESACK
 GrenadeWeapon = {}
