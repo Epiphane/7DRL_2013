@@ -102,7 +102,7 @@ function initLevel()
 		--passive items just give passive benefits
 		possiblePassives = {SwordOfDemacia}
 		possibleActives = {PulsefireBoots}
-		Boss = GiantRat
+		Boss = EvilWizard
 		makeMap(leveltype)
 	elseif level == 2 then
 		leveltype = "rooms"
@@ -706,6 +706,22 @@ function drawGame()
 		end
 	end
 	
+	if(waitingOn == "wizLaser") then
+		--draw all the lazah tiles k
+		
+		--first choose a random color
+		r, g, b = math.random(1,254), math.random(1,254), math.random(1,254)
+		
+		for i = 1, #wizLaserTiles do
+			love.graphics.setColor(r,g,b)
+			love.graphics.rectangle("fill", wizLaserTiles[i].x, wizLaserTiles[i].y, 12, 12)
+		end
+	end
+	
+	if(waitingOn == "laser") then
+	
+	end
+	
 	-- Draw sidebar starting at x = 600
 	drawSidebar(700)
 end
@@ -756,6 +772,10 @@ function updateGame()
 	
 	if(waitingOn == "whip") then
 		WhipWeapon:update()
+	end
+	
+	if(wizLaserMode ~= "idle") then
+		EvilWizard:updateLaser()
 	end
 	
 	--are we in a forced march?
@@ -971,6 +991,8 @@ function keyPressGame(key, unicode)
 			end
 		end
 	else	
+		if(waitingOn ~= nil) then print("waiting for: " .. waitingOn .. " lazermode: " .. wizLaserMode .. " when should the laser change? " .. doneLaserTime) end
+	
 		--wait for directional input here
 		if(waitingOn == "falcon") then --or a number of other flags
 			if(key == "right") then
