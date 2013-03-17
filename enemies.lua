@@ -22,7 +22,7 @@ end
 
 function Enemy:getHit(dmg)
 	self.health = self.health - dmg
-	if self.health <= 0 then
+	if self.health <= 0 and self.alive then
 		self:die()
 	end
 end
@@ -40,6 +40,7 @@ function Enemy:die()
 	if self.boss then
 		spawnObject(self.x, self.y, table.remove(possibleActives, math.random(#possibleActives)))
 		map[doorSealer.x][doorSealer.y] = Staircase:new{room={[999]=true}}
+		char:gainAwesome(15)
 	end
 end
 
@@ -149,7 +150,7 @@ function Enemy:checkAndMove(x, y)
 		return
 	end
 	local enemy_in_space = nil
-	if(char.x == x and char.y == y) then enemy_in_space = true end
+	if(char.x == x and char.y == y) then enemy_in_space = char end
 	for i=1,#enemies do
 		if(enemies[i].x == x and enemies[i].y == y and enemies[i].name ~= "Mine") then
 			enemy_in_space = enemies[i]
@@ -420,6 +421,9 @@ function EvilWizard:new(o)
 	self.name = randomName()
 	self.icon = "W"
 	self.health = 300
+	o = o or {}
+	self.x = o.x
+	self.y = o.y
 	return self
 	--o = o or {}				-- Set the Barrel's info to match passed params
 	--setmetatable(o, self)	-- Inherit methods and stuff from Barrel
@@ -523,6 +527,19 @@ function EvilWizard:doLaser()
 		while(lx ~= self.x + ldx * laserlength) do
 			table.insert(wizLaserTiles, {x=lx, y=ly})
 			--print("So we just put " .. wizLaserTiles[#wizLaserTiles].x .. " as x, " .. wizLaserTiles[#wizLaserTiles].y .. " as y, in tracking")
+			
+			if(char.x == lx and char.y == ly) then
+				printSide("You get fried by a big ol' laser!")
+				char:getHit(10)
+			end
+			
+			for i=1,#enemies do
+				if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+					enemies[i]:getHit(100)
+					break
+				end
+			end
+	
 			lx = lx + ldx
 		end
 	else
@@ -530,6 +547,20 @@ function EvilWizard:doLaser()
 		ly = self.y
 		while(ly ~= self.y + ldy * laserlength) do
 			table.insert(wizLaserTiles, {x=lx, y=ly})
+			
+			
+			if(char.x == lx and char.y == ly) then
+				printSide("You get fried by a big ol' laser!")
+				char:getHit(10)
+			end
+			
+			for i=1,#enemies do
+				if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+					enemies[i]:getHit(100)
+					break
+				end
+			end
+			
 			ly = ly + ldy
 		end
 	end
@@ -556,23 +587,87 @@ function EvilWizard:updateLaser()
 			      ------------------------->
 			]]--
 			
-			print("self.x: " .. evilWizX .. " self.y: " .. evilWizY)
+			print("self.x: " .. evilWizX .. " self.y: " .. evilWizY.. "also I think you're at " .. char.x .. ", " .. char.y)
 			lx = evilWizX
 			ly = evilWizY
 			if(ldx ~= 0) then
 				while(lx ~= evilWizX + ldx * laserlength) do
 					ly = evilWizY + 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
+					
 					ly = evilWizY - 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
+
+
+					
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
 					
 					ly = evilWizY + 2
 					row2x = lx + 2 * ldx
 					table.insert(wizLaserTiles, {x=row2x, y=ly})
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
+					
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
 					ly = evilWizY - 2
 					table.insert(wizLaserTiles, {x=row2x, y=ly})
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
+					
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
 					--print("But in the big cahoots, it's called lx: " .. lx .. ", ly: " .. ly)
 					lx = lx + ldx
+					
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
 				end
 			end
 			
@@ -580,14 +675,63 @@ function EvilWizard:updateLaser()
 				while(ly ~= evilWizY + ldy * laserlength) do
 					lx = evilWizX + 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
+					
+					print("lx is " .. lx .. ", ly is " .. ly)
+					
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
 					lx = evilWizX - 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
 					
 					lx = evilWizX + 2
 					row2y = ly + 2 * ldy
 					table.insert(wizLaserTiles, {x=lx, y=row2y})
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
+					
 					lx = evilWizX - 2
 					table.insert(wizLaserTiles, {x=lx, y=row2y})
+					if(char.x == lx and char.y == ly) then
+						printSide("You get fried by a big ol' laser!")
+						char:getHit(10)
+					end
+					
+					for i=1,#enemies do
+						if(enemies[i].x == lx and enemies[i].y == ly and lx ~= evilWizX and ly ~= evilWizY) then
+							enemies[i]:getHit(100)
+							break
+						end
+					end
 					
 					ly = ly + ldy
 				end

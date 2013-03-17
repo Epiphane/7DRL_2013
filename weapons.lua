@@ -358,12 +358,13 @@ function hands:shoot(direction)
 				printSide("You strike from the shadows, backstabbing the " .. string.lower(enemies[i].name) .."!")
 				char.invisible = 0
 			else
+				if(#char.weapon == 1) then printSide("You punch the "..enemies[i].name) end
 				enemies[i]:getHit(10)
-				printSide("You punch the "..enemies[i].name)
 			end
 			return
 		end
 	end
+	if(#char.weapon == 1) then printSide("You swing at the air...") end
 end
 --end hands.shoot()
 
@@ -512,7 +513,7 @@ function SpartanBootsWeapon:shoot(dx, dy)
 			else
 				enemies[i]:getHit(15)
 				
-				enemies[i]:forceMarch(self.x+self.dx*4,self.y+self.dy*4)
+				enemies[i]:forceMarch(self.x+self.dx*10,self.y+self.dy*10)
 				printSide("SPARTAAAAA!!!!!!!!")
 			end
 			return

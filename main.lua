@@ -61,6 +61,7 @@ function initGame()
 	displayBig = true
 	-- Character location set in map function
 	
+	stackPause = 0
 	level = 1
 	EvilWizard = EvilWizard:new()
 	
@@ -181,7 +182,6 @@ end
 function makeMap(levelType)
 	map = {}
 	itemRoom = math.random(MAPWIDTH*MAPHEIGHT/144)
-	print("item room: "..itemRoom)
 	
 	if(levelType == "rooms") then
 		for i = 1, MAPWIDTH do
@@ -405,9 +405,6 @@ function makeMap(levelType)
 		charNode = math.random(1,NUMNODES)
 		char.x, char.y = nodes[charNode].x, nodes[charNode].y
 		
-		--BLIZZARD WIZZARD
-		spawnEnemy(50,50, EvilWizard)
-		
 		--add the 8 platforms that are sorta "behind" each one of the nodes.
 		platformx = {}
 		platformy = {}
@@ -473,16 +470,13 @@ function makeMap(levelType)
 		end
 		
 		circleCenter = MAPWIDTH/2
-		for angle = 0, 2 * math.pi, math.pi / 72 do
-			for radius = 0, 12 do
-				x = math.ceil(math.cos(angle) * radius)
-				y = math.ceil(math.sin(angle) * radius)
-				
-				tile = checkTile(x,y)
+		for x = -20,20 do
+			maxY = math.ceil(math.sqrt(400-x*x))
+			for y=maxY*-1,maxY do
+				tile = checkTile(x+circleCenter,y+circleCenter)
 				if(tile ~= "null") then
 					map[x + circleCenter][y + circleCenter] = Floor:new{room={[1]=true}}
 				end
-				
 			end
 		end
 		
@@ -490,21 +484,14 @@ function makeMap(levelType)
 		print("character at " .. char.x .. ", " .. char.y)
 		
 		--add some "pillars"
-		
-		for angle = 0, 2 * math.pi, math.pi / 8 do
-			radius = 6
-			x = math.ceil(math.cos(angle) * radius)
-			y = math.ceil(math.sin(angle) * radius)
-			map[x + circleCenter][y + circleCenter] = Wall:new{room={[1]=true}}
+		for x = -6,6 do
+			maxY = math.ceil(math.sqrt(36-x*x))
+			map[x + circleCenter][circleCenter+maxY] = Wall:new{room={[1]=true}}
+			map[x + circleCenter][circleCenter-maxY] = Wall:new{room={[1]=true}}
 		end
 		
+		spawnEnemy(MAPWIDTH/2, MAPHEIGHT/2 - 12, EvilWizard)
 	end
-	
-	
-	
-	--[[
-	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2)*2, y=start_j}} -- Make thundering door lever
-	]]--
 end
 
 function makePlatform(x, y, nodex, nodey, nodenum)
@@ -853,6 +840,7 @@ function updateGame()
 				
 				if(tile.blocker) then
 					printSide("You slam into a wall!")
+					stackPause = stackPause - 1
 					char['forcedMarch'] = false
 				elseif(newPosX == char.fx and newPosY == char.fy) then
 					--being the last one, do a regular check'n'move
@@ -861,6 +849,7 @@ function updateGame()
 					char['forcedMarch'] = false
 				else --guess we're good to move the character here!
 					char["x"], char["y"] = newPosX, newPosY
+					if(waitingOn == "pulsefire") then
 					for i=1,#enemies do
 						if(enemies[i].possiblePath and enemies[i].x == newPosX and enemies[i].y == newPosY) then
 							if(enemies[i].health <= 10) then
@@ -873,6 +862,7 @@ function updateGame()
 							char.fx = newPosX
 							char.fy = newPosY
 						end
+					end
 					end
 				end
 				
@@ -1319,7 +1309,7 @@ end
 --does the null-check for you.
 function checkTile(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then 
-		print("oh crap, tried to access a null tile!")
+		print("oh crap, tried to access a null tile at "..x..", "..y.."!")
 		return "null" --** run a check to see if tile=="null" to avoid exceptions.
 	end
 	
@@ -1345,6 +1335,7 @@ end
 --called whenever player shoots/moves/pulls lever/whatever.
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
+	if(waitingOn == "pulsefire") then return end
 	recentChange = nil
 	--decrement all cooldowns by one
 	for i = 1, char.activeNum do
@@ -1401,6 +1392,12 @@ end
 --spawns an explosion at the specified x and y.
 --if "Friendly Fire" is set to TRUE, it CAN hurt the player.
 function makeExplosion(x, y, size, friendlyFire)
+	if((x < char.x and char.dirx > 0) or (x > char.x and char.dirx < 0)) then
+		char:gainAwesome(15)
+	elseif((y < char.y and char.diry > 0) or (y > char.y and char.diry < 0)) then
+		char:gainAwesome(15)
+	end
+
 	-- Hit environment
 	for i=math.ceil(x-size/2),math.ceil(x+size/2) do
 		for j=math.ceil(y-size/2),math.ceil(y+size/2) do
@@ -1646,8 +1643,6 @@ function getDirectionByKey(direction, dy)
 	elseif(direction == "3") then
 		dx = 1
 		dy = 1
-	else
-		dx, dy = 0,0
 	end
 	
 	return dx, dy

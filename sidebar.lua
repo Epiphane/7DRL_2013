@@ -10,6 +10,7 @@ function drawSidebar(start_x)
 	
 	love.graphics.setColor( 0, 0, 0 ) -- Set color to black for the terminalish feel
 	love.graphics.rectangle("fill", start_x, 0, 400, 800) -- Fill sidebar
+	love.graphics.rectangle("fill", 0, 0, 1000, 140) -- Fill sidebar
 	love.graphics.rectangle("fill", 0, 660, 1000, 140) -- Fill sidebar
 	
 	-- White is write!
