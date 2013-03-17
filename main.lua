@@ -706,15 +706,20 @@ function drawGame()
 		end
 	end
 	
-	if(waitingOn == "wizLaser") then
+	if(waitingOn == "wizLaser" and wizLaserMode ~= "idle" ) then
 		--draw all the lazah tiles k
 		
 		--first choose a random color
 		r, g, b = math.random(1,254), math.random(1,254), math.random(1,254)
 		
+		--print("num tiles: " .. #wizLaserTiles)
+		
 		for i = 1, #wizLaserTiles do
 			love.graphics.setColor(r,g,b)
-			love.graphics.rectangle("fill", wizLaserTiles[i].x, wizLaserTiles[i].y, 12, 12)
+			drawX = (wizLaserTiles[i].x-1-offset["x"]) * 12
+			drawY = (wizLaserTiles[i].y-1-offset["y"]) * 12 + screenshake
+			--print("X: " .. drawX .. " Y: " .. drawY)
+			love.graphics.rectangle("fill", drawX, drawY, 12, 12)
 		end
 	end
 	
@@ -1162,7 +1167,7 @@ function checkThenMove(x, y)
 				waitingOn = ""
 				dx = x - char.x
 				dy = y - char.y
-				enemy_in_space.forceMarch(x+dx, y+dy)
+				enemy_in_space:forceMarch(x+dx, y+dy)
 				char["x"], char["y"] = x, y
 			end
 		end
