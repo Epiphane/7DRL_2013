@@ -643,7 +643,9 @@ function drawGame()
 	
 	--draw a bullet if we shot one
 	--print("bullet at " .. bullet["x"] .. ", " .. bullet["y"])
-	char.weapon:draw()
+	for i=1,#char.weapon do
+		char.weapon[i]:draw()
+	end
 	
 	--draw objects
 	for i = 1, # objects do
@@ -739,7 +741,9 @@ function updateGame()
 		downpress = currtime + .1
 	end
 
-	char.weapon:update()
+	for i=1,#char.weapon do
+		char.weapon[i]:update()
+	end
 	
 	if(waitingOn == "whip") then
 		WhipWeapon:update()
@@ -906,7 +910,9 @@ function keyPressGame(key, unicode)
 		--handle numpad keypresses, it's for shooooting.
 		--numpad code is formatted as "kp#"
 		if(string.sub(key,0,2) == "kp") then
-			char.weapon:shoot(string.sub(key,3))
+			for i=1,#char.weapon do
+				char.weapon[i]:shoot(string.sub(key,3))
+			end
 			doTurn()
 		end
 		

@@ -37,7 +37,7 @@ end
 -- end constructor
 
 function Pistol:interact()
-	char.weapon = bullet
+	table.insert(char.weapon,bullet)
 	printSide("You pick up the Pistol")
 	self.alive = false
 end
@@ -56,7 +56,7 @@ end
 -- end constructor
 
 function Lightsaber:interact()
-	char.weapon = lightsaber
+	table.insert(char.weapon,lightsaber)
 	printSide("You pick up the Lightsaber")
 	self.alive = false
 end
@@ -75,7 +75,7 @@ end
 -- end constructor
 
 function SwordOfDemacia:interact()
-	char.weapon = swordOfDemacia
+	table.insert(char.weapon,swordOfDemacia)
 	printSide("You pick up the Sword of Demacia")
 	self.alive = false
 end
