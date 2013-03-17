@@ -449,6 +449,8 @@ function makeMap(levelType)
 				spawnEnemy(platformx[i], platformy[i], Boss:new{boss=true})
 			elseif(i == activePlatform) then
 				--spawn an active here!
+				o = possibleActives[math.random(#possibleActives)]
+				spawnObject(platformx[i], platformy[i], o)
 			elseif(i == passivePlatform) then
 				--spawn a passive here!
 			else
