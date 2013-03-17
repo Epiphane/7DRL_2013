@@ -101,10 +101,10 @@ end
 --Will try to split up along spaces if possible.
 --If there's more than 10 characters that will be shifted
 --down, it puts a hyphen in.
-function parseLongThing(message)
-	local splitups = {0,0,0,0,0,0,0}
+function parseLongThing(message, CHARS_PER_LINE)
+	if not CHARS_PER_LINE then CHARS_PER_LINE = 24 end
+	local splitups = {}
 	--fucking lua starts at fucking 1 what the fuck
-	local numsplits = 1
 	local i, spaceAt = 0, 0
 	
 	--print(#message .. ": #message length")
@@ -117,26 +117,18 @@ function parseLongThing(message)
 				--is the space at a reasonable splitting point?
 				if(spaceAt > 12) then
 					--add the chunk we just found to our list of splitups
-					splitups[numsplits] = string.sub(message, 1, spaceAt - 1)
+					splitups[#splitups+1] = string.sub(message, 1, spaceAt - 1)
 					message = string.sub(message,spaceAt)
 					break
 				else --oh shit we gotta hyphenate I guess...
-					splitups[numsplits] = string.sub(message, 1, 20) .. "-"
+					splitups[#splitups+1] = string.sub(message, 1, 20) .. "-"
 					message = string.sub(message,20)
 				end
 			end
 		end
-		
-		numsplits = numsplits + 1
 	end
 	
-	splitups[numsplits] = message
-	message = ""
+	splitups[#splitups+1] = message
 	
-	--reassemble string with \n's in between each splitup
-	for i = 1, numsplits do
-		message = message .. "\n" .. splitups[i]
-	end
-	
-	return message
+	return table.concat(splitups, "\n")
 end

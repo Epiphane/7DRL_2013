@@ -43,6 +43,25 @@ function Pistol:interact()
 end
 -- ******************** END PISTOL ***************************
 
+-- ******************** BEGIN SHOTGUN ***************************
+Shotgun = Object:new{name="Shotgun", icon="g"}
+
+-- Pistol constructor seals a door
+function Shotgun:new(o)
+	o = o or {}
+	setmetatable(o, self)	-- Inherit methods and stuff from Tile
+	self.__index = self		-- Define o as a Tile
+	return o
+end
+-- end constructor
+
+function Shotgun:interact()
+	table.insert(char.weapon,shotgun)
+	printSide("You pick up the Shotgun")
+	self.alive = false
+end
+-- ******************** END SHOTGUN ***************************
+
 -- ******************** BEGIN LIGHTSABER ***************************
 Lightsaber = Object:new{name="Lightsaber", icon="!"}
 
