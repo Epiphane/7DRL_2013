@@ -646,6 +646,8 @@ function love.draw()
 		drawGame()
 	elseif(gameState == 2) then
 		drawYouSuck()
+	elseif(gameState == 3) then
+		drawInstructions()
 	end
 end
 
@@ -653,6 +655,11 @@ function drawYouSuck()
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255, 255, 255)
 	love.graphics.print("You suck", 200, 250)
+end
+
+function drawInstructions()
+	drawGame()
+	love.graphics.draw(controlImage, 250, 450)
 end
 
 function drawGame()
@@ -921,15 +928,26 @@ function love.keypressed(key, unicode)
 		keyPressGame(key, unicode)
 	elseif(gameState == 2) then
 		keyPressYouSuck(key, unicode)
+	elseif(gameState == 3) then
+		keyPressInstructions(key, unicode)
 	end
 end
 	
 function keyPressWelcome(key, unicode)
+	if(key == "/") then
+		gameState = 3
+	end
 	if(key == "return") then
 		gameState = 1
 		initGame()
 	end
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
+end
+	
+function keyPressInstructions(key, unicode)
+	if(key == "/") then
+		gameState = 1
+	end
 end
 
 function keyPressYouSuck(key, unicode)
@@ -942,6 +960,10 @@ function keyPressYouSuck(key, unicode)
 end
 	
 function keyPressGame(key, unicode)
+	if(key == "/") then
+		gameState = 3
+		return
+	end
 	--DEBUG: get on my level
 	if(key == "1") then
 		level = 1
@@ -1723,5 +1745,5 @@ function drawWelcome()
 	love.graphics.setColor(255,255,255)
 	love.graphics.print("! Be awesome and save us all!", 240+#char.name*12, 310)
 	love.graphics.print("Press enter to be awesome", 150, 350)
-	love.graphics.draw(controlImage, 250, 550)
+	love.graphics.draw(controlImage, 250, 450)
 end
