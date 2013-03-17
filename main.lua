@@ -1087,6 +1087,18 @@ function keyPressGame(key, unicode)
 				end
 			end
 		end
+		
+		if(char.activeNum >= 4) then
+			if(key == "c") then
+				if(char.actives[4].cooldown == 0) then
+					print("Doing item: " .. char.actives[4].name)
+					char:doActive(char.actives[4].name)
+					char.actives[4].cooldown = char.actives[4].maxcooldown
+				else
+					printSide("That skill is on cooldown!")
+				end
+			end
+		end
 	else	
 		if(waitingOn ~= nil) then print("waiting for: " .. waitingOn .. " lazermode: " .. wizLaserMode .. " when should the laser change? " .. doneLaserTime) end
 	
