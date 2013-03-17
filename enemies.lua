@@ -404,6 +404,48 @@ function Skeleton:update()
 	self.weapon:update()
 end
 
+-- BEGIN EVIL WIZARD ******************************
+
+EvilWizard = Enemy:new{name="Evil Wizard", icon="W", health=300}
+function EvilWizard:new(o)
+	o = o or {}				-- Set the Barrel's info to match passed params
+	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	self.__index = self		-- Define o as a Barrel
+	return o				-- Return Barrel
+	--Have a randomly generated name for the wizard
+end
+
+
+function EvilWizard:takeTurn()
+	wizardChoice = math.random(0,100)
+	--Wizard has a 1/10 chance of making an explosion randomly near you...
+	if(wizardChoice < 10) then
+		printSideWithColor(self.name .. " waves his hand and the ground around you erupts in flame!", 237, 121, 26)
+	--1/10 of spawning a random enemy...
+	elseif(wizardChoice < 20) then
+		whichEnemy = math.random(1,4)
+		if(whichEnemy == 1) then
+			whichEnemy = Skeleton
+		elseif(whichEnemy == 2) then
+			whichEnemy 
+		elseif(whichEnemy == 3) then
+		
+		elseif(whichEnemy == 4) then
+		
+		end
+		
+		printSideWithColor(self.name .. " vomits out a " ..
+	--1/10 chance of mocking you...
+	elseif(wizardChoice < 30) then
+	--1/10 chance of doin dat lazar
+	elseif(wizardChoice < 40) then
+	
+	end
+
+end
+
+-- END EVIL WIZARD   ******************************
+
 function Enemy:forceMarch(newX, newY)
 	self.forcedMarch = true
 	self.targetX = newX

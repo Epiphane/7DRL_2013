@@ -46,7 +46,7 @@ function love.load()
 											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
 	-- Load floor tiles (for theming and shit)
-	floorFont = love.graphics.newImageFont ("floorTiles.png", "123456789")
+	floorFont = love.graphics.newImageFont ("floorTiles.png", "123456789udlr")
 
 	level = 1
 end
@@ -126,6 +126,14 @@ function initLevel()
 		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
 		Boss = Skeleton
 		makeMap(leveltype)
+	elseif level == 4 then	
+		leveltype = "finalarena"
+		MAPWIDTH = 72
+		MAPHEIGHT = 72
+		ROOMNUM = 1
+		viewed_rooms = {}
+		Boss = EvilWizard
+		makeMap(levelType)
 	end
 	print("get on my level: " .. level)
 	
@@ -495,8 +503,7 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 					map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
 				elseif(whichTrap == 2) then
 					--direction = 1 --> 4
-					catadirection = math.random(1, 4)
-					map[i][j] = CatapultTrap:new{room={[roomnum]=true}, direction = catadirection}
+					map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
 				elseif(whichTrap == 3) then
 					map[i][j] = Pit:new{room={[roomnum]=true}}
 				end
@@ -577,11 +584,13 @@ end
 
 --put a trap in the specified locale
 function makeTrap(i, j)
-	whichTrap = math.random(1,2)
+	whichTrap = math.random(1,3)
 	if(whichTrap == 1) then
 		map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
 	elseif(whichTrap == 2) then
 		map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
+	elseif(whichTrap == 3) then
+		map[i][j] = Pit:new{room={[roomnum]=true}}
 	end
 end
 
@@ -1492,6 +1501,8 @@ function getDirectionByKey(direction, dy)
 	elseif(direction == "3") then
 		dx = 1
 		dy = 1
+	else
+		dx, dy = 0,0
 	end
 	
 	return dx, dy
