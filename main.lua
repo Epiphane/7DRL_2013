@@ -237,9 +237,7 @@ function makeMap(levelType)
 			table.insert(map[start_i][start_j-1].room, {[998]=true})
 			table.insert(map[start_i][start_j+1].room, {[998]=true})
 			-- JUST FOR FIRST LEVEL: SPAWN BARREL THAT MUST EXPLODE TO GET TO BOSS
-			if level == 1 then
-				spawnEnemy(start_i-(orient-2), start_j, Barrel)
-			end
+			spawnEnemy(start_i-(orient-2), start_j, Barrel)
 			
 			for i = start_i+(orient-2),end_i,(orient-2) do
 				map[i] = {}
@@ -1039,7 +1037,9 @@ function keyPressGame(key, unicode)
 		end
 	
 		if(key == "y" or key == "u" or key == "i" or key == "h" or key == "j" or key == "k" or key == "n" or key == "m" or key == ",") then
-			char.weapon[i]:shoot(key)
+			for i=1,#char.weapon do
+				char.weapon[i]:shoot(key)
+			end
 		end
 	
 		--press E for Explosion

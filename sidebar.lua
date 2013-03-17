@@ -11,26 +11,26 @@ function drawSidebar(start_x)
 	love.graphics.setColor( 0, 0, 0 ) -- Set color to black for the terminalish feel
 	love.graphics.rectangle("fill", start_x, 0, 400, 800) -- Fill sidebar
 	love.graphics.rectangle("fill", 0, 0, 1000, 140) -- Fill sidebar
-	love.graphics.rectangle("fill", 0, 660, 1000, 140) -- Fill sidebar
+	love.graphics.rectangle("fill", 0, 560, 1000, 140) -- Fill sidebar
 	
 	-- White is write!
 	love.graphics.setColor( 255, 255, 255 )
 	
 	-- Draw strength and corresponding health
-	love.graphics.print("Awesome Levels:", 15, 735)
+	love.graphics.print("Awesome Levels:", 15, 635)
 	
 	-- And the health bars
 	love.graphics.setColor( 129, 129, 129 )
-	love.graphics.rectangle("fill", 10, 750, char['awesome']*2, 25)
+	love.graphics.rectangle("fill", 10, 650, char['awesome']*2, 25)
 	
 	-- Did awesome change?
 	if recentChange then
 		if(recentChange.changeType == "loss") then
 			love.graphics.setColor( 129, 0, 0 )
-			love.graphics.rectangle("fill", char['awesome']*2+10, 750, recentChange.amount, 25)
+			love.graphics.rectangle("fill", char['awesome']*2+10, 650, recentChange.amount, 25)
 		else
 			love.graphics.setColor( 0, 129, 0 )
-			love.graphics.rectangle("fill", char['awesome']*2+10-recentChange.amount, 750, recentChange.amount, 25)
+			love.graphics.rectangle("fill", char['awesome']*2+10-recentChange.amount, 650, recentChange.amount, 25)
 		end
 	end
 	
@@ -57,20 +57,20 @@ function drawSidebar(start_x)
 	
 	love.graphics.setColor( 255, 255, 255)
 	for i = 1, #(char.actives) do
-		love.graphics.print(char.actives[i].name, 20 + 200 * (i-1), 700)
+		love.graphics.print(char.actives[i].name, 20 + 200 * (i-1), 600)
 		if(char.actives[i].cooldown > 0) then
 			love.graphics.setColor(200,200,200)
-			love.graphics.print("[" .. char.actives[i].cooldown .. "]", 100 + 200 * (i - 1), 712)
+			love.graphics.print("[" .. char.actives[i].cooldown .. "]", 100 + 200 * (i - 1), 612)
 		end
 	end
 	if(char.activeNum > 0) then
-		love.graphics.print("(Z)", 0, 680)
+		love.graphics.print("(Z)", 0, 580)
 	end
 	if(char.activeNum > 1) then
-		love.graphics.print("(X)", 200, 680)
+		love.graphics.print("(X)", 200, 580)
 	end
 	if(char.activeNum > 2) then
-		love.graphics.print("(C)", 400, 680)
+		love.graphics.print("(C)", 400, 580)
 	end
 end
 
