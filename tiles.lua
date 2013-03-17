@@ -1,6 +1,6 @@
 -- Constructor for the Tile Class
 -- param: o is an object, or table of information.
-Tile = {tile=1, room=1, blocker=false, awesome_effect=0}
+Tile = {tile=1, room={[1]=false}, blocker=false, awesome_effect=0}
 
 -- Generic tile constructor. Doesn't do much
 function Tile:new(o)
@@ -110,7 +110,7 @@ function DoorSealer:doAction()
 	if(self.door_to_seal.x) then
 		door_room = {}
 		for k,v in pairs(map[self.door_to_seal.x][self.door_to_seal.y].room, nil) do door_room[k] = v end
-		map[self.door_to_seal.x][self.door_to_seal.y] = Wall:new{room=door_room}
+		map[self.door_to_seal.x][self.door_to_seal.y] = Wall:new{room={[door_room]=true}}
 		self.door_to_seal.x = nil -- Can't seal again
 		printSide("The door shudders closed behind you.")
 		for i=1,#enemies do

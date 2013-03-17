@@ -1231,8 +1231,14 @@ function checkThenMove(x, y)
 		end
 	else
 		-- In case we're entering a new room soon
-		viewed_rooms[map[x-1][y]["room"]] = true
-		viewed_rooms[map[x][y-1]["room"]] = true
+		if(map[x-1] and map[x-1][y]) then
+			k, v = next(map[x-1][y]["room"], nil)
+			viewed_rooms[k] = true
+		end
+		if(map[x][y-1]) then
+			k, v = next(map[x][y-1]["room"], nil)
+			viewed_rooms[k] = true
+		end
 		
 		char["prev_x"], char["prev_y"] = char["x"], char["y"]
 		char["x"], char["y"] = x, y
