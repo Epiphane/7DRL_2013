@@ -38,6 +38,7 @@ function Enemy:die()
 	end
 	
 	if self.boss then
+		spawnObject(self.x, self.y, table.remove(possibleActives, math.random(#possibleActives)))
 		map[doorSealer.x][doorSealer.y] = Staircase:new{room={[999]=true}}
 	end
 end
@@ -166,7 +167,7 @@ function Enemy:checkAndMove(x, y)
 		if(self.forcedMarch) then
 			dx = x - self.x
 			dy = y - self.y
-			enemy_in_space.forceMarch(x+dx, y+dy)
+			enemy_in_space:forceMarch(x+dx, y+dy)
 			self["x"], self["y"] = x, y
 		end
 	end
@@ -416,10 +417,14 @@ wizLaserTiles = {} --keeps track of where the wizard lazer tiles show up
 wizLaserMode = "idle"
 EvilWizard = Enemy:new{name="Evil Wizard", icon="W", health=300}
 function EvilWizard:new(o)
-	o = o or {}				-- Set the Barrel's info to match passed params
-	setmetatable(o, self)	-- Inherit methods and stuff from Barrel
-	self.__index = self		-- Define o as a Barrel
-	return o				-- Return Barrel
+	self.name = randomName()
+	self.icon = "W"
+	self.health = 300
+	return self
+	--o = o or {}				-- Set the Barrel's info to match passed params
+	--setmetatable(o, self)	-- Inherit methods and stuff from Barrel
+	--self.__index = self		-- Define o as a Barrel
+	--return o				-- Return Barrel
 	--Have a randomly generated name for the wizard
 end
 

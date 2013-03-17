@@ -504,6 +504,7 @@ function SpartanBootsWeapon:shoot(dx, dy)
 	self.dx, self.dy = getDirectionByKey(dx, dy)
 	
 	for i = 1, # enemies do
+		print("trying to kick x="..enemies[i]["x"].."y="..enemies[i]["y"].." when we are at "..self.x+self.dx..", "..self.y+self.dy)
 		if(self.x + self.dx == enemies[i]["x"] and self.y + self.dy == enemies[i]["y"]) then
 			if(enemies[i].health <= 15) then
 				enemies[i]:getHit(15)

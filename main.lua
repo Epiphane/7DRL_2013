@@ -51,6 +51,7 @@ function love.load()
 	level = 1
 	char.name = randomName()
 	
+	EvilWizard = EvilWizard:new()
 	story = makeAnIntro(char.name)
 end
 
@@ -61,6 +62,8 @@ function initGame()
 	-- Character location set in map function
 	
 	level = 1
+	EvilWizard = EvilWizard:new()
+	
 	char.awesome=100
 	char.weapon={hands}
 	char.forcedMarch = false
@@ -105,6 +108,7 @@ dofile("character.lua")
 -- Initialize everything Enemy
 dofile("enemies.lua")
 
+possibleActives = {Whip, FZeroSuit, SpartanBoots, CloakAndDagger, BagOMines, SackOGrenades, PulsefireBoots,}
 function initLevel()
 	enemies = {}
 	objects = {}
@@ -118,8 +122,7 @@ function initLevel()
 		--possiblePassives = {Pistol} --The pistol will be recategorized to a "weapon"
 		--passive items just give passive benefits
 		possiblePassives = {Pistol}
-		possibleActives = {Whip, FZeroSuit, SpartanBoots, CloakAndDagger}
-		Boss = EvilWizard
+		Boss = GiantRat
 		makeMap(leveltype)
 	elseif level == 2 then
 		leveltype = "rooms"
@@ -127,7 +130,6 @@ function initLevel()
 		MAPHEIGHT = 48
 		ROOMNUM = 1
 		possiblePassives = {Lightsaber, SwordOfDemacia, SpeedBoots}
-		possibleActives = {BagOMines, SackOGrenades, PulsefireBoots, CloakAndDagger}
 		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
 		Boss = Skeleton
 		viewed_rooms = {}
@@ -139,7 +141,6 @@ function initLevel()
 		ROOMNUM = 1
 		viewed_rooms = {}
 		possiblePassives = {SwordOfDemacia, Shotgun, SpeedBoots}
-		possibleActives = {FZeroSuit, BagOMines, CloakAndDagger, Whip, SpartanBoots}
 		possibleEnemies = {{{enemy=Zombie, num=1}}, {{enemy=GiantRat, num=2}}}
 		Boss = Skeleton
 		makeMap(leveltype)
@@ -178,9 +179,8 @@ end
 
 function makeMap(levelType)
 	map = {}
-	filledRooms = {}
-	print(#filledRooms)
-	
+	itemRoom = math.random(MAPWIDTH*MAPHEIGHT/144)
+	print("item room: "..itemRoom)
 	
 	if(levelType == "rooms") then
 		for i = 1, MAPWIDTH do
@@ -577,18 +577,8 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 		spawnEnemy(start_i + (end_i - start_i) / 2, start_j + (end_j - start_j) / 2, Boss:new{boss=true})
 	end
 	-- Determine types
-	roomType = math.random(3)
-	while(filledRooms[roomType]) do
-		roomType = roomType + 1
-		if(roomType > 3) then roomType = 1 end
-	end
-	if(roomType ~= 3) then filledRooms[roomType] = true end
-
-	if(roomType == 1) then
+	if(itemRoom == roomnum) then
 		o = possiblePassives[math.random(#possiblePassives)]
-		spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), o)
-	elseif(roomType == 2) then
-		o = possibleActives[math.random(#possibleActives)]
 		spawnObject(start_i + 2 + math.random(end_i-start_i-4), start_j + 2 + math.random(end_j-start_j-4), o)
 	else
 		e = possibleEnemies[math.random(#possibleEnemies)]
@@ -627,13 +617,6 @@ function love.draw()
 	elseif(gameState == 2) then
 		drawYouSuck()
 	end
-end
-
-function drawWelcome()
-	love.graphics.setFont(mainFont)
-	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("Welcome to AwesomeRogue.\n\n\n"..story.."\n\n\nPress enter to be awesome", 150, 150)
-	love.graphics.draw(controlImage, 250, 550)
 end
 
 function drawYouSuck()
@@ -1636,7 +1619,8 @@ function randomName()
 		else
 			name[#name+1] = randomLetter(vowels)
 		end
-	until (#name > math.random(8) + 4)
+	until (#name > math.random(2) + 4)
+	name[1] = string.upper(name[1])
 	return table.concat(name, "")
 end
 
@@ -1647,15 +1631,43 @@ end
 jobs = {"Cement Mixer", "Pizza Taster", "Robotic Finger Programmer", "Pepper Grower", "Shoe Polisher",
 		"Coconut Painter", "Child Therapist", "Old Spice Representative"}
 places = {"New York", "Summoner's Rift", "Mars", "Zimbabwe", "Middle Earth", "Iceland",
-			"Calvary", "Your Bedroom"}
+			"Calgary", "Your Bedroom"}
 
 function makeAnIntro()
 	introStory = {}
+	char.job = randomLetter(jobs)
+	char.location = randomLetter(places)
 	
 	table.insert(introStory,"Your name is "..char.name..".")
 	table.insert(introStory,"You last remember working as a "..randomLetter(jobs))
 	table.insert(introStory,"from "..randomLetter(places)..".\n")
-	table.insert(introStory,"The world has come under the control")
+	table.insert(introStory,"The world has come under the control of the evil Wizard "..EvilWizard.name..",")
+	table.insert(introStory,"who seeks your head because he knows that only you are awesome enough to end his reign.")
+	table.insert(introStory,"Please "..char.name.."! Be awesome and save us all!")
 	
 	return parseLongThing(table.concat(introStory, " "), 45)
+end
+
+function drawWelcome()
+	love.graphics.setFont(mainFont)
+	love.graphics.setColor(255, 255, 255)
+	love.graphics.print("Welcome to AwesomeRogue.", 150, 150)
+	love.graphics.print("Your name is", 150, 180)
+	love.graphics.setColor(0,255,0)
+	love.graphics.print(char.name,320, 180)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("You last remember working as a "..char.job.."\nfrom "..char.location..".", 150, 200)
+	love.graphics.print("The world has come under the control\nof the evil Wizard ", 150, 235)
+	love.graphics.setColor(255,0,0)
+	love.graphics.print(EvilWizard.name, 395, 247)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print(", who seeks your head because he knows\nthat only you are awesome enough to end\nhis reign.", 150, 259)
+	
+	love.graphics.print("Please ",150,310)
+	love.graphics.setColor(0,255,0)
+	love.graphics.print(char.name,230, 310)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("! Be awesome and save us all!", 240+#char.name*12, 310)
+	love.graphics.print("Press enter to be awesome", 150, 350)
+	love.graphics.draw(controlImage, 250, 550)
 end
