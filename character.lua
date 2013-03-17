@@ -157,6 +157,7 @@ function char:falconPunch(dx, dy)
 	makeExplosion(self.x, self.y, 5, false)
 	explosion.direction = {}
 	explosion["direction"].x, explosion.direction.y = getDirectionByKey(dx, dy)
+	dx, dy = getDirectionByKey(dx, dy)
 	
 	self:forceMarch(char.x + dx*2, char.y + dy*2)
 	

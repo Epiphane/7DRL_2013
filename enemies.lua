@@ -421,6 +421,9 @@ function EvilWizard:new(o)
 	self.name = randomName()
 	self.icon = "W"
 	self.health = 300
+	o = o or {}
+	self.x = o.x
+	self.y = o.y
 	return self
 	--o = o or {}				-- Set the Barrel's info to match passed params
 	--setmetatable(o, self)	-- Inherit methods and stuff from Barrel

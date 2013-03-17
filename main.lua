@@ -467,16 +467,13 @@ function makeMap(levelType)
 		end
 		
 		circleCenter = MAPWIDTH/2
-		for angle = 0, 2 * math.pi, math.pi / 72 do
-			for radius = 0, 12 do
-				x = math.ceil(math.cos(angle) * radius)
-				y = math.ceil(math.sin(angle) * radius)
-				
-				tile = checkTile(x,y)
+		for x = -20,20 do
+			maxY = math.ceil(math.sqrt(400-x*x))
+			for y=maxY*-1,maxY do
+				tile = checkTile(x+circleCenter,y+circleCenter)
 				if(tile ~= "null") then
 					map[x + circleCenter][y + circleCenter] = Floor:new{room={[1]=true}}
 				end
-				
 			end
 		end
 		
@@ -484,21 +481,14 @@ function makeMap(levelType)
 		print("character at " .. char.x .. ", " .. char.y)
 		
 		--add some "pillars"
-		
-		for angle = 0, 2 * math.pi, math.pi / 8 do
-			radius = 6
-			x = math.ceil(math.cos(angle) * radius)
-			y = math.ceil(math.sin(angle) * radius)
-			map[x + circleCenter][y + circleCenter] = Wall:new{room={[1]=true}}
+		for x = -6,6 do
+			maxY = math.ceil(math.sqrt(36-x*x))
+			map[x + circleCenter][circleCenter+maxY] = Wall:new{room={[1]=true}}
+			map[x + circleCenter][circleCenter-maxY] = Wall:new{room={[1]=true}}
 		end
 		
+		spawnEnemy(MAPWIDTH/2, MAPHEIGHT/2 - 12, EvilWizard)
 	end
-	
-	
-	
-	--[[
-	map[start_i][start_j] = DoorSealer:new{room={[999]=true}, door_to_seal={x=start_i-(orient-2)*2, y=start_j}} -- Make thundering door lever
-	]]--
 end
 
 function makePlatform(x, y, nodex, nodey, nodenum)
@@ -1319,7 +1309,7 @@ end
 --does the null-check for you.
 function checkTile(x, y)
 	if(map[x] == nil or map[x][y]	== nil) then 
-		print("oh crap, tried to access a null tile!")
+		print("oh crap, tried to access a null tile at "..x..", "..y.."!")
 		return "null" --** run a check to see if tile=="null" to avoid exceptions.
 	end
 	
