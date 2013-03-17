@@ -128,7 +128,7 @@ function Wall:new(o)
 	return o
 end
 
-CrackedWall = Wall:new{tile=6, awesome_effect=0, trap = false}
+CrackedWall = Wall:new{tile=3, awesome_effect=0, trap = false, blocker = false}
 function CrackedWall:new(o)
 	o = o or {}
 	setmetatable(o, self)	-- Inherit methods and stuff from Tile
@@ -185,11 +185,11 @@ function SpikeTrap:checkTrap(victim)
 			printSide("Spikes shoot out of the ground and stab the " .. string.lower(victim.name) .. "!")
 			char:gainAwesome(5)
 		end
-		victim:getHit(10)
+		victim:getHit(50)
 	end
 end
 
-CatapultTrap = Tile:new{tile="u", blocker=false, awesome_effect=5, direction = 1, trap = true}
+CatapultTrap = Tile:new{tile="u", blocker=false, awesome_effect=0, direction = 1, trap = true}
 function CatapultTrap:new(o)
 	o = o or {}
 	setmetatable(o, self)

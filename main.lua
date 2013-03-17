@@ -109,7 +109,7 @@ dofile("character.lua")
 -- Initialize everything Enemy
 dofile("enemies.lua")
 
-possibleActives = {Whip, FZeroSuit, SpartanBoots, CloakAndDagger, BagOMines, SackOGrenades, PulsefireBoots,}
+possibleActives = {Whip, FZeroSuit, SpartanBoots, CloakAndDagger, BagOMines, SackOGrenades}
 function initLevel()
 	enemies = {}
 	objects = {}
@@ -446,7 +446,7 @@ function makeMap(levelType)
 		
 		for i = 1, NUMNODES do
 			if(i == bossPlatform) then
-				spawnEnemy(platformx[i], platformy[i], Skeleton)
+				spawnEnemy(platformx[i], platformy[i], Boss:new{boss=true})
 			elseif(i == activePlatform) then
 				--spawn an active here!
 			elseif(i == passivePlatform) then
@@ -490,7 +490,7 @@ function makeMap(levelType)
 			map[x + circleCenter][circleCenter-maxY] = Wall:new{room={[1]=true}}
 		end
 		
-		spawnEnemy(MAPWIDTH/2, MAPHEIGHT/2 - 12, EvilWizard)
+		spawnEnemy(MAPWIDTH/2, MAPHEIGHT/2 - 12, Boss:new{boss = true})
 	end
 end
 
@@ -650,6 +650,8 @@ function love.draw()
 		drawGame()
 	elseif(gameState == 2) then
 		drawYouSuck()
+	elseif(gameState == 3) then
+		drawInstructions()
 	end
 end
 
@@ -657,6 +659,11 @@ function drawYouSuck()
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255, 255, 255)
 	love.graphics.print("You suck", 200, 250)
+end
+
+function drawInstructions()
+	drawGame()
+	love.graphics.draw(controlImage, 250, 450)
 end
 
 function drawGame()
@@ -887,22 +894,32 @@ function updateGame()
 			elseif(enemies[i].targetY > enemies[i].y) then newEnemyY = enemies[i].y + 1 end
 			
 			if(map[newEnemyX] and enemies[i].alive) then
-				tile = map[newEnemyX][newEnemyY]
+				tile = checkTile(newEnemyX,newEnemyY)
+				if(tile == "null") then
 				
-				--check if there are traps that should go off (this is awesome btw)
-				tile:checkTrap(enemies[i])
+					--hmm.. Kill the enemy just to be safe.
+					enemies[i]:die()
+					--also stop checking stuff
+					break
+				else
 				
-				--check if the enemy hit a wall
-				if(tile.blocker) then
-					printSide("The " .. string.lower(enemies[i].name) .. " slams into a wall!")
-					enemies[i]:getHit(10)
-					enemies[i].forcedMarch = false
-				--check if the enemy ended up where it's supposed to get to
-				elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
-					enemies[i]:checkAndMove(newEnemyX, newEnemyY)
-					enemies[i].forcedMarch = false
-				else --guess it's safe to move the enemy to a place
-					enemies[i].x, enemies[i].y = newEnemyX, newEnemyY
+					--check if there are traps that should go off (this is awesome btw)
+					
+				
+					tile:checkTrap(enemies[i])
+					
+					--check if the enemy hit a wall
+					if(tile.blocker) then
+						printSide("The " .. string.lower(enemies[i].name) .. " slams into a wall!")
+						enemies[i]:getHit(10)
+						enemies[i].forcedMarch = false
+					--check if the enemy ended up where it's supposed to get to
+					elseif(enemies[i].targetX == newEnemyX and enemies[i].targetY == newEnemyY) then
+						enemies[i]:checkAndMove(newEnemyX, newEnemyY)
+						enemies[i].forcedMarch = false
+					else --guess it's safe to move the enemy to a place
+						enemies[i].x, enemies[i].y = newEnemyX, newEnemyY
+					end
 				end
 			end
 		end
@@ -925,6 +942,8 @@ function love.keypressed(key, unicode)
 		keyPressGame(key, unicode)
 	elseif(gameState == 2) then
 		keyPressYouSuck(key, unicode)
+	elseif(gameState == 3) then
+		keyPressInstructions(key, unicode)
 	end
 end
 	
@@ -934,6 +953,12 @@ function keyPressWelcome(key, unicode)
 		initGame()
 	end
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
+end
+	
+function keyPressInstructions(key, unicode)
+	if(key == "/") then
+		gameState = 1
+	end
 end
 
 function keyPressYouSuck(key, unicode)
@@ -946,14 +971,18 @@ function keyPressYouSuck(key, unicode)
 end
 	
 function keyPressGame(key, unicode)
+	if(key == "/") then
+		gameState = 3
+		return
+	end
 	--DEBUG: get on my level
-	if(key == "1") then
-		level = 1
-		initLevel()
+	--[[if(key == "1") then
+		--level = 1
+		--initLevel()
 	end
 	
 	if(key == "2") then
-		level = 2
+		-level = 2
 		initLevel()
 	end
 	
@@ -965,7 +994,7 @@ function keyPressGame(key, unicode)
 	if(key == "4") then
 		level = 4
 		initLevel()
-	end
+	end]]--
 
 	--print("You pressed " .. key .. ", unicode: " .. unicode)
 	--don't let the user make input if we're showing an animation or something
@@ -998,16 +1027,23 @@ function keyPressGame(key, unicode)
 		--handle numpad keypresses, it's for shooooting.
 		--numpad code is formatted as "kp#"
 		if(string.sub(key,0,2) == "kp") then
-			for i=1,#char.weapon do
-				char.weapon[i]:shoot(string.sub(key,3))
+			if tonumber(string.sub(key,3)) ~= nil then
+			   --it's a number
+				for i=1,#char.weapon do
+					char.weapon[i]:shoot(string.sub(key,3))
+				end
 			end
 			doTurn()
 		end
-		
+	
+		if(key == "y" or key == "u" or key == "i" or key == "h" or key == "j" or key == "k" or key == "n" or key == "m" or key == ",") then
+			char.weapon[i]:shoot(key)
+		end
+	
 		--press E for Explosion
 		if(key == "e") then
-			makeExplosion(char["x"], char["y"], 5, false)
-			char:forceMarch(char["x"], char["y"] + 5)
+			--makeExplosion(char["x"], char["y"], 5, false)
+			--char:forceMarch(char["x"], char["y"] + 5)
 		end
 		
 		--press "Z" for first active item
@@ -1643,6 +1679,47 @@ function getDirectionByKey(direction, dy)
 	elseif(direction == "3") then
 		dx = 1
 		dy = 1
+	elseif(direction == "+") then
+		dx = 1
+		dy = 0
+	elseif(direction == "-") then
+		dx = 1
+		dy = 1
+	elseif(direction == "*") then
+		dx = 1
+		dy = 1
+	elseif(direciton == "/") then
+		dy = -1
+		dx = 0
+	end
+	
+	if(direction == "y") then
+		dx = -1
+		dy = -1
+	elseif(direction == "u") then
+		dx = 0
+		dy = -1
+	elseif(direction == "i") then
+		dx = 1
+		dy = -1
+	elseif(direction == "h") then
+		dx = -1
+		dy = 0
+	elseif(direction == "j" or direction == "0") then
+		dx = 0
+		dy = 0
+	elseif(direction == "k") then
+		dx = 1
+		dy = 0
+	elseif(direction == "n") then
+		dx = -1
+		dy = 1
+	elseif(direction == "m") then
+		dx = 0
+		dy = 1
+	elseif(direction == ",") then
+		dx = 1
+		dy = 1
 	end
 	
 	return dx, dy
@@ -1723,5 +1800,5 @@ function drawWelcome()
 	love.graphics.setColor(255,255,255)
 	love.graphics.print("! Be awesome and save us all!", 240+#char.name*12, 310)
 	love.graphics.print("Press enter to be awesome", 150, 350)
-	love.graphics.draw(controlImage, 250, 550)
+	love.graphics.draw(controlImage, 250, 450)
 end

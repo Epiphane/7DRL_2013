@@ -37,16 +37,30 @@ function Enemy:die()
 		printSide("The " .. string.lower(self.name) .. " has been slain!")
 	end
 	
+	char:gainAwesome(15)
+	
 	if self.boss then
+		if(leveltype == "sewers") then
+			printSide("As you defeat the skeleton, you are suddenly teleported to the lair of the wizard!")
+			level = level+1
+			initLevel()
+			return
+		end
 		spawnObject(self.x, self.y, table.remove(possibleActives, math.random(#possibleActives)))
 		map[doorSealer.x][doorSealer.y] = Staircase:new{room={[999]=true}}
 		char:gainAwesome(15)
+		
+		if(level == 4) then
+			printSideColor("YOU DID IT, YOU WIN AND EVERYTHING.  GOOD JOB.  WHOOHOOO. YOUR AWESOME LEVEL IS: " .. char.awesome, 252,0,101)
+		end
 	end
+	
+	
 end
 
 function Enemy:hitByExplosion(size)
 	char:gainAwesome(7)
-	self:getHit(size*5)
+	self:getHit(size*15)
 	if not self.alive then
 		printSide("The " .. self.name .. " explodes in a shower of blood!")
 		self:die()
