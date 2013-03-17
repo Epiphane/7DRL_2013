@@ -455,9 +455,9 @@ function makeMap(levelType)
 				spawnEnemy(platformx[i] - 1, platformy[i] + 1, Rat)
 			end
 		end
-	elseif(levelType == "finalarena") then
+	elseif(leveltype == "finalarena") then
 		--make a big circle surrounded with pits
-		
+		print("wait did we even get in here?")
 		for i = 1, MAPWIDTH do
 			row = {}
 			for j = 1, MAPHEIGHT do
@@ -467,12 +467,15 @@ function makeMap(levelType)
 		end
 		
 		circleCenter = MAPWIDTH/2
-		for angle = 0, 2 * math.pi, math.pi / 36 do
+		for angle = 0, 2 * math.pi, math.pi / 72 do
 			for radius = 0, 12 do
-				x = math.cos(angle) * radius
-				y = math.cos(angle) * radius
+				x = math.ceil(math.cos(angle) * radius)
+				y = math.ceil(math.sin(angle) * radius)
 				
-				map[x][y] = Floor:new{room={[1]=true}}
+				tile = checkTile(x,y)
+				if(tile ~= "null") then
+					map[x + circleCenter][y + circleCenter] = Floor:new{room={[1]=true}}
+				end
 				
 			end
 		end
@@ -484,10 +487,9 @@ function makeMap(levelType)
 		
 		for angle = 0, 2 * math.pi, math.pi / 8 do
 			radius = 6
-			x = math.cos(angle) * radius
-			y = math.cos(angle) * radius
-			
-			map[x][y] = Wall:new{room={[1]=true}}
+			x = math.ceil(math.cos(angle) * radius)
+			y = math.ceil(math.sin(angle) * radius)
+			map[x + circleCenter][y + circleCenter] = Wall:new{room={[1]=true}}
 		end
 		
 	end
