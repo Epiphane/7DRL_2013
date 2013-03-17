@@ -431,7 +431,7 @@ end
 
 
 function EvilWizard:takeTurn()
-	wizardChoice = 35 --math.random(0,100)
+	wizardChoice = math.random(0,100)
 	--Wizard has a 1/10 chance of making an explosion randomly near you...
 	if(wizardChoice < 10) then
 		printSideWithColor(self.name .. " waves his hand and the ground around you erupts in flame!", 237, 121, 26)
@@ -452,7 +452,7 @@ function EvilWizard:takeTurn()
 		end
 		
 		printSideWithColor(self.name .. " vomits out a " .. whichEnemy.name .."!", 84, 196, 20)
-		spawnEnemy(self.x + 1, self.y + 1)
+		spawnEnemy(self.x + 1, self.y + 1, whichEnemy)
 		
 	--1/10 chance of mocking you...
 	elseif(wizardChoice < 30) then
@@ -478,12 +478,20 @@ end
 --do a sweet laser aimed at the player
 ldx, ldy = 0, 0 --stores direction of laser
 
+
+--for some reason EvilWizard forgets where he is, the Alzheimeristic bastard.
+--gotta save that value here.
+evilWizX, evilWizY = 0, 0
 function EvilWizard:doLaser()
 	--figure out which direction we gonn do it
 	diffX = char.x - self.x
-	diffY = char.x - self.y
+	diffY = char.y - self.y
+	
+	evilWizX, evilWizY = self.x, self.y
 	
 	ldx, ldy = 0, 0
+	
+	print("Diffx: " .. diffX .. " Diffy: " .. diffY)
 	
 	if(math.abs(diffY) > math.abs(diffX)) then --must be either up/down
 		if(diffY > 0) then
@@ -493,9 +501,9 @@ function EvilWizard:doLaser()
 		end
 	else -- must be horizontal
 		if(diffX > 0) then
-			ldx = -1
-		else
 			ldx = 1
+		else
+			ldx = -1
 		end
 	end
 	
@@ -506,16 +514,24 @@ function EvilWizard:doLaser()
 	for k in pairs (wizLaserTiles) do
 		wizLaserTiles [k] = nil
 	end
-	
+	laserlength = 60
 	--"tracking" lazer
 	--is a straight line from the wizard in the direction he chose
+	print("well why the fuck is self.x, self.y " .. self.x .. ", " .. self.y .. " here then?")
 	if(ldx ~= 0) then
-		for lx = self.x, self.x + ldx * 40 do
+		ly = self.y
+		lx = self.x
+		while(lx ~= self.x + ldx * laserlength) do
 			table.insert(wizLaserTiles, {x=lx, y=ly})
+			--print("So we just put " .. wizLaserTiles[#wizLaserTiles].x .. " as x, " .. wizLaserTiles[#wizLaserTiles].y .. " as y, in tracking")
+			lx = lx + ldx
 		end
 	else
-		for ly = self.y, self.y + ldy * 40 do
+		lx = self.x
+		ly = self.y
+		while(ly ~= self.y + ldy * laserlength) do
 			table.insert(wizLaserTiles, {x=lx, y=ly})
+			ly = ly + ldy
 		end
 	end
 	
@@ -541,33 +557,40 @@ function EvilWizard:updateLaser()
 			      ------------------------->
 			]]--
 			
+			print("self.x: " .. evilWizX .. " self.y: " .. evilWizY)
+			lx = evilWizX
+			ly = evilWizY
 			if(ldx ~= 0) then
-				for lx = self.x + ldx * 2, self.x + ldx * 40 do
-					ly = self.y + 1
+				while(lx ~= evilWizX + ldx * laserlength) do
+					ly = evilWizY + 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
-					ly = self.y - 1
+					ly = evilWizY - 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
 					
-					ly = self.y + 2
+					ly = evilWizY + 2
 					row2x = lx + 2 * ldx
 					table.insert(wizLaserTiles, {x=row2x, y=ly})
-					ly = self.y - 2
+					ly = evilWizY - 2
 					table.insert(wizLaserTiles, {x=row2x, y=ly})
+					--print("But in the big cahoots, it's called lx: " .. lx .. ", ly: " .. ly)
+					lx = lx + ldx
 				end
 			end
 			
 			if(ldy ~= 0) then
-				for ly = self.y + ldy * 2, self.y + ldy * 40 do
-					lx = self.x + 1
+				while(ly ~= evilWizY + ldy * laserlength) do
+					lx = evilWizX + 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
-					lx = self.x - 1
+					lx = evilWizX - 1
 					table.insert(wizLaserTiles, {x=lx, y=ly})
 					
-					lx = self.x + 2
+					lx = evilWizX + 2
 					row2y = ly + 2 * ldy
 					table.insert(wizLaserTiles, {x=lx, y=row2y})
-					lx = self.x - 2
+					lx = evilWizX - 2
 					table.insert(wizLaserTiles, {x=lx, y=row2y})
+					
+					ly = ly + ldy
 				end
 			end
 		end
