@@ -61,6 +61,7 @@ function initGame()
 	displayBig = true
 	-- Character location set in map function
 	
+	stackPause = 0
 	level = 1
 	EvilWizard = EvilWizard:new()
 	
@@ -180,7 +181,6 @@ end
 function makeMap(levelType)
 	map = {}
 	itemRoom = math.random(MAPWIDTH*MAPHEIGHT/144)
-	print("item room: "..itemRoom)
 	
 	if(levelType == "rooms") then
 		for i = 1, MAPWIDTH do
@@ -801,6 +801,7 @@ function updateGame()
 				
 				if(tile.blocker) then
 					printSide("You slam into a wall!")
+					stackPause = stackPause - 1
 					char['forcedMarch'] = false
 				elseif(newPosX == char.fx and newPosY == char.fy) then
 					--being the last one, do a regular check'n'move
@@ -809,6 +810,7 @@ function updateGame()
 					char['forcedMarch'] = false
 				else --guess we're good to move the character here!
 					char["x"], char["y"] = newPosX, newPosY
+					if(waitingOn == "pulsefire") then
 					for i=1,#enemies do
 						if(enemies[i].possiblePath and enemies[i].x == newPosX and enemies[i].y == newPosY) then
 							if(enemies[i].health <= 10) then
@@ -821,6 +823,7 @@ function updateGame()
 							char.fx = newPosX
 							char.fy = newPosY
 						end
+					end
 					end
 				end
 				
@@ -1286,6 +1289,7 @@ end
 --called whenever player shoots/moves/pulls lever/whatever.
 --all enemies get to move, bombs go off, fires spread, whatever.
 function doTurn()
+	if(waitingOn == "pulsefire") then return end
 	recentChange = nil
 	--decrement all cooldowns by one
 	for i = 1, char.activeNum do
@@ -1342,6 +1346,12 @@ end
 --spawns an explosion at the specified x and y.
 --if "Friendly Fire" is set to TRUE, it CAN hurt the player.
 function makeExplosion(x, y, size, friendlyFire)
+	if((x < char.x and char.dirx > 0) or (x > char.x and char.dirx < 0)) then
+		char:gainAwesome(15)
+	elseif((y < char.y and char.diry > 0) or (y > char.y and char.diry < 0)) then
+		char:gainAwesome(15)
+	end
+
 	-- Hit environment
 	for i=math.ceil(x-size/2),math.ceil(x+size/2) do
 		for j=math.ceil(y-size/2),math.ceil(y+size/2) do
@@ -1587,8 +1597,6 @@ function getDirectionByKey(direction, dy)
 	elseif(direction == "3") then
 		dx = 1
 		dy = 1
-	else
-		dx, dy = 0,0
 	end
 	
 	return dx, dy

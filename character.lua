@@ -16,12 +16,20 @@ function char:loseAwesome(amt)
 	if(self.awesome <= 0) then
 		gameState = 2
 	end
-	recentChange = {changeType="loss", amount=amt}
+	if not recentChange then
+		recentChange = {changeType="loss", amount=amt}
+	else
+		recentChange.amount = recentChange.amount + amt
+	end
 end
 
 function char:gainAwesome(amt)
 	self.awesome = self.awesome + amt
-	recentChange = {changeType="gain", amount=amt}
+	if not recentChange then
+		recentChange = {changeType="gain", amount=amt}
+	else
+		recentChange.amount = recentChange.amount + amt
+	end
 end
 
 --this function forces you to move multiple tiles in one frame.
@@ -57,14 +65,14 @@ function char:addActive(name)
 		self.activeNum = self.activeNum + 1
 		self.actives[self.activeNum] = {}
 		self.actives[self.activeNum].name = "Falcon Punch"
-		self.actives[self.activeNum].maxcooldown = FalconPunch.cooldown
+		self.actives[self.activeNum].maxcooldown = FZeroSuit.cooldown
 		self.actives[self.activeNum].cooldown = 0
-	elseif(name == "Cloak And Dagger") then
+	elseif(name == "Cloak and Dagger") then
 		self.activeNum = self.activeNum + 1
 		print("addin dat cloak and dagga")
 		self.actives[self.activeNum] = {}
-		self.actives[self.activeNum].name = "Cloak And Dagger"
-		self.actives[self.activeNum].maxcooldown = CloakAndDagge.cooldown
+		self.actives[self.activeNum].name = "Cloak and Dagger"
+		self.actives[self.activeNum].maxcooldown = CloakAndDagger.cooldown
 		self.actives[self.activeNum].cooldown = 0
 	elseif(name == "Whip") then
 		self.activeNum = self.activeNum + 1

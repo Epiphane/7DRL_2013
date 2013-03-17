@@ -22,7 +22,7 @@ end
 
 function Enemy:getHit(dmg)
 	self.health = self.health - dmg
-	if self.health <= 0 then
+	if self.health <= 0 and self.alive then
 		self:die()
 	end
 end
@@ -40,6 +40,7 @@ function Enemy:die()
 	if self.boss then
 		spawnObject(self.x, self.y, table.remove(possibleActives, math.random(#possibleActives)))
 		map[doorSealer.x][doorSealer.y] = Staircase:new{room={[999]=true}}
+		char:gainAwesome(15)
 	end
 end
 
@@ -149,7 +150,7 @@ function Enemy:checkAndMove(x, y)
 		return
 	end
 	local enemy_in_space = nil
-	if(char.x == x and char.y == y) then enemy_in_space = true end
+	if(char.x == x and char.y == y) then enemy_in_space = char end
 	for i=1,#enemies do
 		if(enemies[i].x == x and enemies[i].y == y and enemies[i].name ~= "Mine") then
 			enemy_in_space = enemies[i]

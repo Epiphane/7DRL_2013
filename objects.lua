@@ -14,6 +14,7 @@ end
 
 -- draws the enemy if he's in the right room
 function Object:draw()
+	love.graphics.setColor( 200, 200, 0)
 	if(self.room == char.room) then
 		love.graphics.print(self.icon, (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
 	elseif viewed_rooms[self.room] then
@@ -21,6 +22,7 @@ function Object:draw()
 	else
 		love.graphics.print("?", (self.x - offset["x"]-1)*12, (self.y - offset["y"]-1)*12 + screenshake)
 	end
+	love.graphics.setColor( 255, 255, 255)
 end
 -- end draw()
 

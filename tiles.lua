@@ -180,8 +180,10 @@ function SpikeTrap:checkTrap(victim)
 	else
 		if(victim.forcedMarch) then --enemy hit a spike trap while flying: AWEZZZOMMEE
 			printSide("The " .. string.lower(victim.name) .. " is shot full of spikes as it flies across the room!")
+			char:gainAwesome(15)
 		else
 			printSide("Spikes shoot out of the ground and stab the " .. string.lower(victim.name) .. "!")
+			char:gainAwesome(5)
 		end
 		victim:getHit(10)
 	end
@@ -235,7 +237,8 @@ function CatapultTrap:checkTrap(victim)
 	else
 		if(victim.forcedMarch) then --enemy hit a trap while flying: AWEZZZOMMEE
 			printSide("The " .. string.lower(victim.name) .. " lands on a catapult trap and is sent hurtling across the room!")
-			victim.getHit(5)
+			victim:getHit(5)
+			char:gainAwesome(15)
 			--just in case they get caught in the wall-loop, which I never really figured out :I
 		else
 			printSide("A hidden catapult springs out of the ground and flings the " .. string.lower(victim.name) .. "across the room!")
@@ -271,9 +274,10 @@ function Pit:checkTrap(victim)
 	if(victim == "you") then
 		if(char.forcedMarch) then
 			printSide("You soar over a pit!")
+			char:gainAwesome(10)
 		else
 			printSide("You fall into a deep, dank pit! (Press Enter to Continue)")
-			char:loseAwesome(10)
+			char:loseAwesome(15)
 			
 			waitingOn = "pit"
 			stackPause = stackPause + 1
