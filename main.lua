@@ -386,9 +386,12 @@ function makeMap(levelType)
 						--for dy = math.random(-4,-2), math.random(1,3) do
 					for dx = math.random(-3,-2), math.random(2,3) do
 						for dy = math.random(-3,-2), math.random(2,3) do
-							if(map[mx + dx] and map[mx + dx][my + dy] and map[mx + dx][my + dy].tile ~= 2) then 
+							if(map[mx + dx] and map[mx + dx][my + dy]) then 
 							--make sure tile exists and is not a wall
 								map[mx + dx][my + dy] = Floor:new{room={[1]=true}}
+								if(math.random() < 0.01) then
+									makeTrap(mx + dx, my + dy)
+								end
 							end
 						end
 					end
@@ -401,6 +404,9 @@ function makeMap(levelType)
 		--plop the character down on a random node
 		charNode = math.random(1,NUMNODES)
 		char.x, char.y = nodes[charNode].x, nodes[charNode].y
+		
+		--BLIZZARD WIZZARD
+		spawnEnemy(50,50, EvilWizard)
 		
 		--add the 8 platforms that are sorta "behind" each one of the nodes.
 		platformx = {}
@@ -633,12 +639,13 @@ end
 --put a trap in the specified locale
 function makeTrap(i, j)
 	whichTrap = math.random(1,3)
+	print("trap at " .. i .. ", " .. j)
 	if(whichTrap == 1) then
-		map[i][j] = SpikeTrap:new{room={[roomnum]=true}}
+		map[i][j] = SpikeTrap:new{room={[1]=true}}
 	elseif(whichTrap == 2) then
-		map[i][j] = CatapultTrap:new{room={[roomnum]=true}}
+		map[i][j] = CatapultTrap:new{room={[1]=true}}
 	elseif(whichTrap == 3) then
-		map[i][j] = Pit:new{room={[roomnum]=true}}
+		map[i][j] = Pit:new{room={[1]=true}}
 	end
 end
 
@@ -1229,9 +1236,11 @@ function checkThenMove(x, y)
 			end
 		end
 	else
-		-- In case we're entering a new room soon
-		viewed_rooms[map[x-1][y]["room"]] = true
-		viewed_rooms[map[x][y-1]["room"]] = true
+		if(leveltype == "rooms") then
+			-- In case we're entering a new room soon
+			viewed_rooms[map[x-1][y]["room"]] = true
+			viewed_rooms[map[x][y-1]["room"]] = true
+		end
 		
 		char["prev_x"], char["prev_y"] = char["x"], char["y"]
 		char["x"], char["y"] = x, y
@@ -1254,7 +1263,7 @@ function checkThenMove(x, y)
 			viewed_rooms[k] = true
 		end
 		
-		if(leveltype == "sewers") then
+		--[[if(leveltype == "sewers") then
 			--on sewer levels, the "room" is the 30x30 square around you.
 			char["room"] = 1 --it's value is "1," all other squares are in the magical room "2"
 			
@@ -1271,7 +1280,7 @@ function checkThenMove(x, y)
 					end
 				end
 			end
-		end
+		end]]--
 		
 		-- And lets do some fancy scrolling stuff
 		--if(table.getn(map) > DISPLAYWIDTH) then -- Only scroll if the map is wide enough
