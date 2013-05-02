@@ -1,14 +1,3 @@
---        ________
---				 |       |
---				 |       |
---		  _______|_______|
---       |       |
---       |       |
---       |       |_______
---
--- 	COMMENT YOUR CODE
---
---	OR YOU'RE WORSE THAN HITLER
 
 -- handy constants
 REAL_BIG_NUMBER = 999999999999
