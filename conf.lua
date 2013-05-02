@@ -10,7 +10,7 @@ function love.conf(t)
     t.modules.sound = true      -- Enable the sound module (boolean)
 	t.modules.thread = true
     --t.modules.physics = true    -- Enable the physics module (boolean)
-    t.console = true           -- FUCK YO CONSOLE IT'S IN MY WAY nvm it's useful
+    t.console = true           --enable console, or not I guess.
     t.title = "7DRL"            -- The title of the window the game is in (string) 
     t.author = "T.S. Elliot"    -- The author of the game (string)
     t.screen.fullscreen = false -- Enable fullscreen (boolean)
