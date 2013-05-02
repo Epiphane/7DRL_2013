@@ -1,4 +1,3 @@
-
 -- handy constants
 REAL_BIG_NUMBER = 999999999999
 
@@ -25,7 +24,7 @@ susrightpress, susleftpress, susuppress, susdownpress = REAL_BIG_NUMBER, REAL_BI
 function love.load()
 	controlImage = love.graphics.newImage("controls.png")
 	
-	-- Set background color black, cause it's a console you stupid bitch
+	-- Set background color black, cause it's a console
 	love.graphics.setBackgroundColor( 0, 0, 0 )
 	
 	-- Load character/NPC/enemy/active objects (x is the random unassigned stuff)
@@ -34,7 +33,7 @@ function love.load()
 											.. "xxxxxxxxxxxxOxxxxxxxxxxxx"
 											.. "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 											.. "abcdefghijklmnopqrstuvwxyz")
-	-- Load floor tiles (for theming and shit)
+	-- Load floor tiles (for theming and stuff)
 	floorFont = love.graphics.newImageFont ("floorTiles.png", "123456789udlr")
 
 	level = 1
@@ -90,7 +89,7 @@ dofile("objects.lua")
 -- Initialize everything that has to do with weaponry
 dofile("weapons.lua")
 
--- Initialize main character and shit
+-- Initialize main character and stuff
 -- Side note: right now, with sizing and everything, it's looking like strength
 -- and such values will max at 180
 dofile("character.lua")
@@ -334,7 +333,7 @@ function makeMap(levelType)
 			for i = 1, NUMNODES do
 				currWalker = nodes[i].walker
 				if(currWalker) then --ensures the walker exists
-					--walker shits out a floorseed where it's at
+					--walker lays out a floorseed where it's at
 					--print("currWalker x: " .. currWalker.x .. " currWalker y: " .. currWalker.y)
 					map[currWalker.x][currWalker.y].tile=7
 					
@@ -347,7 +346,7 @@ function makeMap(levelType)
 						currWalker.x = currWalker.x + deltaX
 					elseif(randoCommando > 95) then
 						currWalker.x = currWalker.x - deltaX
-						--FUCK YOU I'M NOT A PART OF YO SYSTEEMMMMM
+						--I'M NOT A PART OF YOUR SYSTEM
 					end
 					
 					randoCommando = math.random(0,100)
@@ -355,7 +354,7 @@ function makeMap(levelType)
 						currWalker.y = currWalker.y + deltaY
 					elseif(randoCommando > 95) then
 						currWalker.y = currWalker.y - deltaY
-						--FUCK YOU I WON'T, DO WHAT YOU TELLL LMEEEEE
+						--I WON'T, DO WHAT YOU TELLL LMEEEEE
 					end
 					
 					if(currWalker.x ~= currWalker.targetX or currWalker.y ~= currWalker.targetY) then
@@ -593,7 +592,7 @@ function makeRoom(start_i, start_j, end_i, end_j, roomnum, makeDoors)
 		end
 	end
 	
-	-- TIME TO CUSTOMIZE THE ROOMS. THIS IS WHERE SHIT GETS REAL
+	-- TIME TO CUSTOMIZE THE ROOMS. THIS IS WHERE stuff GETS REAL
 	-- SO WATCH OUT
 	if(roomnum == 999) then -- Boss room
 		spawnEnemy(start_i + (end_i - start_i) / 2, start_j + (end_j - start_j) / 2, Boss:new{boss=true})
@@ -674,7 +673,7 @@ function drawGame()
 	-- Set color back to gray
 	love.graphics.setColor( 128, 128, 128 )
 	
-	-- Draw characters and shit!
+	-- Draw characters and stuff!
 	love.graphics.setFont(mainFont)
 	
 	-- Main Character
@@ -1532,7 +1531,7 @@ function iterateExplosion()
 	--draw a bunch of yellow/red/orange rectangles, centered at x, y
 	--goes all the way to radius specified by "size"
 
-	--is all randomized and shit.
+	--is all randomized and stuff.
 	if(nextiteration < currtime) then
 	
 		--gimme dat screen shakery
