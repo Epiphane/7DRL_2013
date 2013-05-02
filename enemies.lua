@@ -51,7 +51,7 @@ function Enemy:die()
 		char:gainAwesome(15)
 		
 		if(level == 4) then
-			printSideColor("YOU DID IT, YOU WIN AND EVERYTHING.  GOOD JOB.  WHOOHOOO. YOUR AWESOME LEVEL IS: " .. char.awesome, 252,0,101)
+			printSideColor("YOU DID IT, YOU WIN AND EVERYTHING.  GOOD JOB.  WHOOHOOO.  YOUR AWESOME LEVEL IS: " .. char.awesome, 252,0,101)
 		end
 	end
 	

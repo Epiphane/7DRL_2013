@@ -843,7 +843,10 @@ function updateGame()
 				--check if we've hit a wall.
 				
 				--check if we hit a trap during our flight pattern
-				tile:checkTrap("you")
+				mytile = checkTile(newPosX, newPosY)
+				if(mytile ~= "null") then
+					tile:checkTrap("you")
+				end
 				
 				if(tile.blocker) then
 					printSide("You slam into a wall!")
