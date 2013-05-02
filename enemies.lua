@@ -100,7 +100,7 @@ function Enemy:moveTowardsCharacter(dir_influence)
 	diff = math.abs(goal.x - self.x) + math.abs(goal.y - self.y)
 	
 	if(diff_char > 20 and leveltype == "sewers") then
-		--fuck it, too far.
+		--never mind, too far.
 		return
 	end
 	
@@ -534,7 +534,6 @@ function EvilWizard:doLaser()
 	laserlength = 60
 	--"tracking" lazer
 	--is a straight line from the wizard in the direction he chose
-	print("well why the fuck is self.x, self.y " .. self.x .. ", " .. self.y .. " here then?")
 	if(ldx ~= 0) then
 		ly = self.y
 		lx = self.x
