@@ -34,7 +34,7 @@ end
 
 --this function forces you to move multiple tiles in one frame.
 --maybe you WANTED to (i.e. dash attack)
---or maybe you are being knocked on your ass by an explosion.
+--or maybe you are being knocked on your butt by an explosion.
 
 --It syncs up with the enemy's forcedMarch in case of, for instance,
 --an explosion that knocks both you and an enemy away.
